@@ -1,6 +1,13 @@
-# AI Secretary SaaS Platform
+# 🤖 AI Secretary SaaS Platform
 
-Омніканальна платформа з мультиагентним AI-секретарем для SMB, що включає Inbox, CRM, Календар, RAG-знання, інвойсинг через Stripe та KYB-моніторинг контрагентів.
+> Омніканальна платформа з мультиагентним AI-секретарем для SMB
+
+[![Python](https://img.shields.io/badge/Python-3.11+-blue.svg)](https://python.org)
+[![Flask](https://img.shields.io/badge/Flask-2.3+-green.svg)](https://flask.palletsprojects.com/)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-13+-blue.svg)](https://postgresql.org)
+[![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
+**AI Secretary** - це повнофункціональна SaaS платформа, що об'єднує Inbox, CRM, Календар, RAG-знання, інвойсинг через Stripe та KYB-моніторинг контрагентів в одному рішенні.
 
 ## Особливості
 
