@@ -1,0 +1,454 @@
+# Ukrainian translations for AI Secretary
+# Copyright (C) 2024
+# This file is distributed under the same license as the AI Secretary project.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: AI Secretary 1.0\n"
+"Report-Msgid-Bugs-To: support@ai-secretary.com\n"
+"POT-Creation-Date: 2024-01-01 12:00+0000\n"
+"PO-Revision-Date: 2024-01-01 12:00+0000\n"
+"Last-Translator: AI Secretary Team\n"
+"Language: uk\n"
+"Language-Team: Ukrainian\n"
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2)\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.12.1\n"
+
+# Authentication
+msgid "Authentication required"
+msgstr "Потрібна автентифікація"
+
+msgid "Invalid email or password"
+msgstr "Невірний email або пароль"
+
+msgid "Account is disabled"
+msgstr "Акаунт деактивовано"
+
+msgid "Token has expired"
+msgstr "Токен прострочений"
+
+# Validation
+msgid "This field is required"
+msgstr "Це поле обов'язкове"
+
+msgid "Invalid email address"
+msgstr "Невірна email адреса"
+
+msgid "Invalid phone number"
+msgstr "Невірний номер телефону"
+
+msgid "Password must be at least 8 characters"
+msgstr "Пароль повинен містити щонайменше 8 символів"
+
+# Permissions
+msgid "Access denied"
+msgstr "Доступ заборонено"
+
+msgid "Insufficient permissions"
+msgstr "Недостатньо прав доступу"
+
+# Operations
+msgid "Created successfully"
+msgstr "Успішно створено"
+
+msgid "Updated successfully"
+msgstr "Успішно оновлено"
+
+msgid "Deleted successfully"
+msgstr "Успішно видалено"
+
+msgid "Operation failed"
+msgstr "Операція не вдалася"
+
+# Errors
+msgid "Resource not found"
+msgstr "Ресурс не знайдено"
+
+msgid "Resource already exists"
+msgstr "Ресурс вже існує"
+
+msgid "Internal server error"
+msgstr "Внутрішня помилка сервера"
+
+# Trial and billing
+msgid "Trial period has expired"
+msgstr "Пробний період закінчився"
+
+msgid "Active subscription required"
+msgstr "Потрібна активна підписка"
+
+msgid "Payment failed"
+msgstr "Платіж не вдався"
+
+# KYB
+msgid "Counterparty added successfully"
+msgstr "Контрагента успішно додано"
+
+msgid "Sanctions match found"
+msgstr "Знайдено збіг у санкційних списках"
+
+msgid "VAT number validation failed"
+msgstr "Перевірка ПДВ номера не вдалася"
+
+# AI
+msgid "AI processing failed"
+msgstr "Обробка ШІ не вдалася"
+
+msgid "Message is too long"
+msgstr "Повідомлення занадто довге"
+
+# File upload
+msgid "File is too large"
+msgstr "Файл занадто великий"
+
+msgid "Invalid file type"
+msgstr "Невірний тип файлу"
+
+msgid "File upload failed"
+msgstr "Завантаження файлу не вдалося"
+
+# CRM
+msgid "Lead created successfully"
+msgstr "Лід успішно створено"
+
+msgid "Lead updated successfully"
+msgstr "Лід успішно оновлено"
+
+msgid "Lead marked as won"
+msgstr "Лід позначено як виграний"
+
+msgid "Lead marked as lost"
+msgstr "Лід позначено як програний"
+
+msgid "Task assigned successfully"
+msgstr "Задачу успішно призначено"
+
+msgid "Task completed"
+msgstr "Задачу виконано"
+
+msgid "Task is overdue"
+msgstr "Задача прострочена"
+
+msgid "Contact added successfully"
+msgstr "Контакт успішно додано"
+
+msgid "Contact updated successfully"
+msgstr "Контакт успішно оновлено"
+
+# Channels
+msgid "Channel connected successfully"
+msgstr "Канал успішно підключено"
+
+msgid "Channel disconnected"
+msgstr "Канал відключено"
+
+msgid "Channel connection error"
+msgstr "Помилка підключення каналу"
+
+# Messages
+msgid "Message sent successfully"
+msgstr "Повідомлення успішно надіслано"
+
+msgid "Failed to send message"
+msgstr "Не вдалося надіслати повідомлення"
+
+msgid "Auto-reply sent"
+msgstr "Автовідповідь надіслано"
+
+# Calendar
+msgid "Event created successfully"
+msgstr "Подію успішно створено"
+
+msgid "Event updated successfully"
+msgstr "Подію успішно оновлено"
+
+msgid "Booking confirmed"
+msgstr "Бронювання підтверджено"
+
+msgid "Booking cancelled"
+msgstr "Бронювання скасовано"
+
+# Knowledge
+msgid "Document uploaded successfully"
+msgstr "Документ успішно завантажено"
+
+msgid "Document processed successfully"
+msgstr "Документ успішно оброблено"
+
+msgid "Knowledge base updated"
+msgstr "База знань оновлена"
+
+# Additional errors
+msgid "Rate limit exceeded"
+msgstr "Перевищено ліміт запитів"
+
+msgid "External service unavailable"
+msgstr "Зовнішній сервіс недоступний"
+
+msgid "Database error occurred"
+msgstr "Сталася помилка бази даних"
+
+msgid "Unknown error"
+msgstr "Невідома помилка"
+
+# UI Elements
+msgid "Dashboard"
+msgstr "Панель управління"
+
+msgid "Inbox"
+msgstr "Вхідні"
+
+msgid "CRM"
+msgstr "CRM"
+
+msgid "Calendar"
+msgstr "Календар"
+
+msgid "Knowledge"
+msgstr "База знань"
+
+msgid "Settings"
+msgstr "Налаштування"
+
+msgid "Profile"
+msgstr "Профіль"
+
+msgid "Account"
+msgstr "Акаунт"
+
+msgid "Logout"
+msgstr "Вийти"
+
+msgid "Login"
+msgstr "Увійти"
+
+msgid "Register"
+msgstr "Реєстрація"
+
+# Forms
+msgid "Email Address"
+msgstr "Email адреса"
+
+msgid "Password"
+msgstr "Пароль"
+
+msgid "Remember me"
+msgstr "Запам'ятати мене"
+
+msgid "Sign In"
+msgstr "Увійти"
+
+msgid "Create Account"
+msgstr "Створити акаунт"
+
+msgid "Welcome Back"
+msgstr "З поверненням"
+
+msgid "Sign in to your account"
+msgstr "Увійдіть до свого акаунту"
+
+msgid "Enter your email"
+msgstr "Введіть ваш email"
+
+msgid "Enter your password"
+msgstr "Введіть ваш пароль"
+
+msgid "Forgot your password?"
+msgstr "Забули пароль?"
+
+msgid "Don't have an account?"
+msgstr "Немає акаунту?"
+
+msgid "Language"
+msgstr "Мова"
+
+msgid "All rights reserved."
+msgstr "Всі права захищені."
+
+msgid "Privacy Policy"
+msgstr "Політика конфіденційності"
+
+msgid "Terms of Service"
+msgstr "Умови використання"
+
+msgid "Support"
+msgstr "Підтримка"
+
+# Status messages
+msgid "healthy"
+msgstr "здоровий"
+
+msgid "System is operational"
+msgstr "Система працює"
+
+msgid "Available languages"
+msgstr "Доступні мови"
+
+msgid "Language updated successfully"
+msgstr "Мову успішно оновлено"
+
+msgid "Language code is required"
+msgstr "Код мови обов'язковий"
+
+msgid "Invalid language code. Available: %(languages)s"
+msgstr "Невірний код мови. Доступні: %(languages)s"
+
+# Authentication messages
+msgid "Registration successful. Welcome to %(app_name)s!"
+msgstr "Реєстрація успішна. Ласкаво просимо до %(app_name)s!"
+
+msgid "Organization name must be at least 2 characters"
+msgstr "Назва організації повинна містити щонайменше 2 символи"
+
+msgid "User with this email already exists"
+msgstr "Користувач з цим email вже існує"
+
+msgid "Registration failed. Please try again."
+msgstr "Реєстрація не вдалася. Спробуйте ще раз."
+
+msgid "Login successful. Welcome back!"
+msgstr "Вхід успішний. З поверненням!"
+
+msgid "Organization account is disabled"
+msgstr "Акаунт організації деактивовано"
+
+msgid "Login failed. Please try again."
+msgstr "Вхід не вдався. Спробуйте ще раз."
+
+msgid "Logged out successfully"
+msgstr "Успішно вийшли"
+
+msgid "Profile retrieved successfully"
+msgstr "Профіль успішно отримано"
+
+msgid "Failed to retrieve profile"
+msgstr "Не вдалося отримати профіль"
+
+msgid "Profile updated successfully"
+msgstr "Профіль успішно оновлено"
+
+msgid "Failed to update profile"
+msgstr "Не вдалося оновити профіль"
+
+msgid "Token refreshed successfully"
+msgstr "Токен успішно оновлено"
+
+msgid "Token refresh failed"
+msgstr "Не вдалося оновити токен"
+
+# CRM messages
+msgid "Contacts retrieved successfully"
+msgstr "Контакти успішно отримано"
+
+msgid "Failed to retrieve contacts"
+msgstr "Не вдалося отримати контакти"
+
+msgid "Contact with this email already exists"
+msgstr "Контакт з цим email вже існує"
+
+msgid "Failed to create contact"
+msgstr "Не вдалося створити контакт"
+
+msgid "Contact retrieved successfully"
+msgstr "Контакт успішно отримано"
+
+msgid "Failed to retrieve contact"
+msgstr "Не вдалося отримати контакт"
+
+msgid "Failed to update contact"
+msgstr "Не вдалося оновити контакт"
+
+msgid "Leads retrieved successfully"
+msgstr "Ліди успішно отримано"
+
+msgid "Failed to retrieve leads"
+msgstr "Не вдалося отримати ліди"
+
+msgid "Failed to create lead"
+msgstr "Не вдалося створити лід"
+
+msgid "Pipelines retrieved successfully"
+msgstr "Пайплайни успішно отримано"
+
+msgid "Failed to retrieve pipelines"
+msgstr "Не вдалося отримати пайплайни"
+
+# Validation messages
+msgid "Request must be JSON"
+msgstr "Запит повинен бути JSON"
+
+msgid "Invalid JSON data"
+msgstr "Невірні JSON дані"
+
+msgid "Tenant context required"
+msgstr "Потрібен контекст орендаря"
+
+msgid "Insufficient permissions. Required roles: %(roles)s"
+msgstr "Недостатньо прав. Потрібні ролі: %(roles)s"
+
+msgid "Permission required: %(permission)s"
+msgstr "Потрібен дозвіл: %(permission)s"
+
+msgid "Trial period has expired. Please upgrade your subscription."
+msgstr "Пробний період закінчився. Будь ласка, оновіть підписку."
+
+msgid "This feature is not available in your current plan."
+msgstr "Ця функція недоступна у вашому поточному плані."
+
+msgid "Page number must be positive"
+msgstr "Номер сторінки повинен бути позитивним"
+
+msgid "Per page value must be between 1 and 100"
+msgstr "Значення на сторінку повинно бути між 1 і 100"
+
+msgid "Invalid pagination parameters"
+msgstr "Невірні параметри пагінації"
+
+# Generic messages
+msgid "Contact"
+msgstr "Контакт"
+
+msgid "Lead"
+msgstr "Лід"
+
+msgid "Task"
+msgstr "Задача"
+
+msgid "Note"
+msgstr "Нотатка"
+
+msgid "Pipeline"
+msgstr "Пайплайн"
+
+msgid "Stage"
+msgstr "Етап"
+
+msgid "User"
+msgstr "Користувач"
+
+msgid "Organization"
+msgstr "Організація"
+
+msgid "%(resource)s not found"
+msgstr "%(resource)s не знайдено"
+
+msgid "The requested resource was not found"
+msgstr "Запитуваний ресурс не знайдено"
+
+msgid "Method not allowed for this endpoint"
+msgstr "Метод не дозволений для цього endpoint"
+
+msgid "An internal server error occurred"
+msgstr "Сталася внутрішня помилка сервера"
+
+msgid "Validation failed"
+msgstr "Валідація не вдалася"
+
+msgid "An error occurred. Please try again."
+msgstr "Сталася помилка. Спробуйте ще раз."
+
+msgid "Login successful"
+msgstr "Вхід успішний"

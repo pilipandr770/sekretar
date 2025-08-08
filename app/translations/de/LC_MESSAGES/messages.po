@@ -1,0 +1,454 @@
+# German translations for AI Secretary
+# Copyright (C) 2024
+# This file is distributed under the same license as the AI Secretary project.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: AI Secretary 1.0\n"
+"Report-Msgid-Bugs-To: support@ai-secretary.com\n"
+"POT-Creation-Date: 2024-01-01 12:00+0000\n"
+"PO-Revision-Date: 2024-01-01 12:00+0000\n"
+"Last-Translator: AI Secretary Team\n"
+"Language: de\n"
+"Language-Team: German\n"
+"Plural-Forms: nplurals=2; plural=(n != 1)\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.12.1\n"
+
+# Authentication
+msgid "Authentication required"
+msgstr "Authentifizierung erforderlich"
+
+msgid "Invalid email or password"
+msgstr "Ungültige E-Mail oder Passwort"
+
+msgid "Account is disabled"
+msgstr "Konto ist deaktiviert"
+
+msgid "Token has expired"
+msgstr "Token ist abgelaufen"
+
+# Validation
+msgid "This field is required"
+msgstr "Dieses Feld ist erforderlich"
+
+msgid "Invalid email address"
+msgstr "Ungültige E-Mail-Adresse"
+
+msgid "Invalid phone number"
+msgstr "Ungültige Telefonnummer"
+
+msgid "Password must be at least 8 characters"
+msgstr "Passwort muss mindestens 8 Zeichen haben"
+
+# Permissions
+msgid "Access denied"
+msgstr "Zugriff verweigert"
+
+msgid "Insufficient permissions"
+msgstr "Unzureichende Berechtigungen"
+
+# Operations
+msgid "Created successfully"
+msgstr "Erfolgreich erstellt"
+
+msgid "Updated successfully"
+msgstr "Erfolgreich aktualisiert"
+
+msgid "Deleted successfully"
+msgstr "Erfolgreich gelöscht"
+
+msgid "Operation failed"
+msgstr "Vorgang fehlgeschlagen"
+
+# Errors
+msgid "Resource not found"
+msgstr "Ressource nicht gefunden"
+
+msgid "Resource already exists"
+msgstr "Ressource existiert bereits"
+
+msgid "Internal server error"
+msgstr "Interner Serverfehler"
+
+# Trial and billing
+msgid "Trial period has expired"
+msgstr "Testphase ist abgelaufen"
+
+msgid "Active subscription required"
+msgstr "Aktives Abonnement erforderlich"
+
+msgid "Payment failed"
+msgstr "Zahlung fehlgeschlagen"
+
+# KYB
+msgid "Counterparty added successfully"
+msgstr "Geschäftspartner erfolgreich hinzugefügt"
+
+msgid "Sanctions match found"
+msgstr "Sanktionstreffer gefunden"
+
+msgid "VAT number validation failed"
+msgstr "USt-IdNr. Validierung fehlgeschlagen"
+
+# AI
+msgid "AI processing failed"
+msgstr "KI-Verarbeitung fehlgeschlagen"
+
+msgid "Message is too long"
+msgstr "Nachricht ist zu lang"
+
+# File upload
+msgid "File is too large"
+msgstr "Datei ist zu groß"
+
+msgid "Invalid file type"
+msgstr "Ungültiger Dateityp"
+
+msgid "File upload failed"
+msgstr "Datei-Upload fehlgeschlagen"
+
+# CRM
+msgid "Lead created successfully"
+msgstr "Lead erfolgreich erstellt"
+
+msgid "Lead updated successfully"
+msgstr "Lead erfolgreich aktualisiert"
+
+msgid "Lead marked as won"
+msgstr "Lead als gewonnen markiert"
+
+msgid "Lead marked as lost"
+msgstr "Lead als verloren markiert"
+
+msgid "Task assigned successfully"
+msgstr "Aufgabe erfolgreich zugewiesen"
+
+msgid "Task completed"
+msgstr "Aufgabe abgeschlossen"
+
+msgid "Task is overdue"
+msgstr "Aufgabe ist überfällig"
+
+msgid "Contact added successfully"
+msgstr "Kontakt erfolgreich hinzugefügt"
+
+msgid "Contact updated successfully"
+msgstr "Kontakt erfolgreich aktualisiert"
+
+# Channels
+msgid "Channel connected successfully"
+msgstr "Kanal erfolgreich verbunden"
+
+msgid "Channel disconnected"
+msgstr "Kanal getrennt"
+
+msgid "Channel connection error"
+msgstr "Kanal-Verbindungsfehler"
+
+# Messages
+msgid "Message sent successfully"
+msgstr "Nachricht erfolgreich gesendet"
+
+msgid "Failed to send message"
+msgstr "Nachricht konnte nicht gesendet werden"
+
+msgid "Auto-reply sent"
+msgstr "Automatische Antwort gesendet"
+
+# Calendar
+msgid "Event created successfully"
+msgstr "Termin erfolgreich erstellt"
+
+msgid "Event updated successfully"
+msgstr "Termin erfolgreich aktualisiert"
+
+msgid "Booking confirmed"
+msgstr "Buchung bestätigt"
+
+msgid "Booking cancelled"
+msgstr "Buchung storniert"
+
+# Knowledge
+msgid "Document uploaded successfully"
+msgstr "Dokument erfolgreich hochgeladen"
+
+msgid "Document processed successfully"
+msgstr "Dokument erfolgreich verarbeitet"
+
+msgid "Knowledge base updated"
+msgstr "Wissensdatenbank aktualisiert"
+
+# Additional errors
+msgid "Rate limit exceeded"
+msgstr "Rate-Limit überschritten"
+
+msgid "External service unavailable"
+msgstr "Externer Service nicht verfügbar"
+
+msgid "Database error occurred"
+msgstr "Datenbankfehler aufgetreten"
+
+msgid "Unknown error"
+msgstr "Unbekannter Fehler"
+
+# UI Elements
+msgid "Dashboard"
+msgstr "Dashboard"
+
+msgid "Inbox"
+msgstr "Posteingang"
+
+msgid "CRM"
+msgstr "CRM"
+
+msgid "Calendar"
+msgstr "Kalender"
+
+msgid "Knowledge"
+msgstr "Wissensdatenbank"
+
+msgid "Settings"
+msgstr "Einstellungen"
+
+msgid "Profile"
+msgstr "Profil"
+
+msgid "Account"
+msgstr "Konto"
+
+msgid "Logout"
+msgstr "Abmelden"
+
+msgid "Login"
+msgstr "Anmelden"
+
+msgid "Register"
+msgstr "Registrieren"
+
+# Forms
+msgid "Email Address"
+msgstr "E-Mail-Adresse"
+
+msgid "Password"
+msgstr "Passwort"
+
+msgid "Remember me"
+msgstr "Angemeldet bleiben"
+
+msgid "Sign In"
+msgstr "Anmelden"
+
+msgid "Create Account"
+msgstr "Konto erstellen"
+
+msgid "Welcome Back"
+msgstr "Willkommen zurück"
+
+msgid "Sign in to your account"
+msgstr "Melden Sie sich in Ihrem Konto an"
+
+msgid "Enter your email"
+msgstr "Geben Sie Ihre E-Mail ein"
+
+msgid "Enter your password"
+msgstr "Geben Sie Ihr Passwort ein"
+
+msgid "Forgot your password?"
+msgstr "Passwort vergessen?"
+
+msgid "Don't have an account?"
+msgstr "Haben Sie noch kein Konto?"
+
+msgid "Language"
+msgstr "Sprache"
+
+msgid "All rights reserved."
+msgstr "Alle Rechte vorbehalten."
+
+msgid "Privacy Policy"
+msgstr "Datenschutzerklärung"
+
+msgid "Terms of Service"
+msgstr "Nutzungsbedingungen"
+
+msgid "Support"
+msgstr "Support"
+
+# Status messages
+msgid "healthy"
+msgstr "gesund"
+
+msgid "System is operational"
+msgstr "System ist betriebsbereit"
+
+msgid "Available languages"
+msgstr "Verfügbare Sprachen"
+
+msgid "Language updated successfully"
+msgstr "Sprache erfolgreich aktualisiert"
+
+msgid "Language code is required"
+msgstr "Sprachcode ist erforderlich"
+
+msgid "Invalid language code. Available: %(languages)s"
+msgstr "Ungültiger Sprachcode. Verfügbar: %(languages)s"
+
+# Authentication messages
+msgid "Registration successful. Welcome to %(app_name)s!"
+msgstr "Registrierung erfolgreich. Willkommen bei %(app_name)s!"
+
+msgid "Organization name must be at least 2 characters"
+msgstr "Organisationsname muss mindestens 2 Zeichen haben"
+
+msgid "User with this email already exists"
+msgstr "Benutzer mit dieser E-Mail existiert bereits"
+
+msgid "Registration failed. Please try again."
+msgstr "Registrierung fehlgeschlagen. Bitte versuchen Sie es erneut."
+
+msgid "Login successful. Welcome back!"
+msgstr "Anmeldung erfolgreich. Willkommen zurück!"
+
+msgid "Organization account is disabled"
+msgstr "Organisationskonto ist deaktiviert"
+
+msgid "Login failed. Please try again."
+msgstr "Anmeldung fehlgeschlagen. Bitte versuchen Sie es erneut."
+
+msgid "Logged out successfully"
+msgstr "Erfolgreich abgemeldet"
+
+msgid "Profile retrieved successfully"
+msgstr "Profil erfolgreich abgerufen"
+
+msgid "Failed to retrieve profile"
+msgstr "Profil konnte nicht abgerufen werden"
+
+msgid "Profile updated successfully"
+msgstr "Profil erfolgreich aktualisiert"
+
+msgid "Failed to update profile"
+msgstr "Profil konnte nicht aktualisiert werden"
+
+msgid "Token refreshed successfully"
+msgstr "Token erfolgreich aktualisiert"
+
+msgid "Token refresh failed"
+msgstr "Token-Aktualisierung fehlgeschlagen"
+
+# CRM messages
+msgid "Contacts retrieved successfully"
+msgstr "Kontakte erfolgreich abgerufen"
+
+msgid "Failed to retrieve contacts"
+msgstr "Kontakte konnten nicht abgerufen werden"
+
+msgid "Contact with this email already exists"
+msgstr "Kontakt mit dieser E-Mail existiert bereits"
+
+msgid "Failed to create contact"
+msgstr "Kontakt konnte nicht erstellt werden"
+
+msgid "Contact retrieved successfully"
+msgstr "Kontakt erfolgreich abgerufen"
+
+msgid "Failed to retrieve contact"
+msgstr "Kontakt konnte nicht abgerufen werden"
+
+msgid "Failed to update contact"
+msgstr "Kontakt konnte nicht aktualisiert werden"
+
+msgid "Leads retrieved successfully"
+msgstr "Leads erfolgreich abgerufen"
+
+msgid "Failed to retrieve leads"
+msgstr "Leads konnten nicht abgerufen werden"
+
+msgid "Failed to create lead"
+msgstr "Lead konnte nicht erstellt werden"
+
+msgid "Pipelines retrieved successfully"
+msgstr "Pipelines erfolgreich abgerufen"
+
+msgid "Failed to retrieve pipelines"
+msgstr "Pipelines konnten nicht abgerufen werden"
+
+# Validation messages
+msgid "Request must be JSON"
+msgstr "Anfrage muss JSON sein"
+
+msgid "Invalid JSON data"
+msgstr "Ungültige JSON-Daten"
+
+msgid "Tenant context required"
+msgstr "Mandantenkontext erforderlich"
+
+msgid "Insufficient permissions. Required roles: %(roles)s"
+msgstr "Unzureichende Berechtigungen. Erforderliche Rollen: %(roles)s"
+
+msgid "Permission required: %(permission)s"
+msgstr "Berechtigung erforderlich: %(permission)s"
+
+msgid "Trial period has expired. Please upgrade your subscription."
+msgstr "Testphase ist abgelaufen. Bitte upgraden Sie Ihr Abonnement."
+
+msgid "This feature is not available in your current plan."
+msgstr "Diese Funktion ist in Ihrem aktuellen Plan nicht verfügbar."
+
+msgid "Page number must be positive"
+msgstr "Seitenzahl muss positiv sein"
+
+msgid "Per page value must be between 1 and 100"
+msgstr "Wert pro Seite muss zwischen 1 und 100 liegen"
+
+msgid "Invalid pagination parameters"
+msgstr "Ungültige Paginierungsparameter"
+
+# Generic messages
+msgid "Contact"
+msgstr "Kontakt"
+
+msgid "Lead"
+msgstr "Lead"
+
+msgid "Task"
+msgstr "Aufgabe"
+
+msgid "Note"
+msgstr "Notiz"
+
+msgid "Pipeline"
+msgstr "Pipeline"
+
+msgid "Stage"
+msgstr "Stufe"
+
+msgid "User"
+msgstr "Benutzer"
+
+msgid "Organization"
+msgstr "Organisation"
+
+msgid "%(resource)s not found"
+msgstr "%(resource)s nicht gefunden"
+
+msgid "The requested resource was not found"
+msgstr "Die angeforderte Ressource wurde nicht gefunden"
+
+msgid "Method not allowed for this endpoint"
+msgstr "Methode für diesen Endpunkt nicht erlaubt"
+
+msgid "An internal server error occurred"
+msgstr "Ein interner Serverfehler ist aufgetreten"
+
+msgid "Validation failed"
+msgstr "Validierung fehlgeschlagen"
+
+msgid "An error occurred. Please try again."
+msgstr "Ein Fehler ist aufgetreten. Bitte versuchen Sie es erneut."
+
+msgid "Login successful"
+msgstr "Anmeldung erfolgreich"

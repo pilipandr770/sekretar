@@ -1,0 +1,51 @@
+# Render.com deployment configuration
+services:
+  # Main web service
+  - type: web
+    name: ai-secretary-api
+    env: python
+    plan: starter  # or standard/pro based on your needs
+    buildCommand: |
+      pip install --upgrade pip
+      pip install -r requirements.txt
+    startCommand: |
+      python -c "
+      from app import create_app
+      from app.utils.schema import init_database_schema
+      app = create_app('production')
+      with app.app_context():
+          init_database_schema(app)
+      "
+      flask db upgrade
+      gunicorn --bind 0.0.0.0:$PORT --workers 2 --timeout 120 run:app
+    envVars:
+      - key: FLASK_ENV
+        value: production
+      - key: DB_SCHEMA
+        value: ai_secretary
+      - key: PYTHON_VERSION
+        value: 3.11.0
+      # Add your other environment variables here
+      # DATABASE_URL will be automatically provided by Render
+      
+  # Background worker service
+  - type: worker
+    name: ai-secretary-worker
+    env: python
+    plan: starter
+    buildCommand: |
+      pip install --upgrade pip
+      pip install -r requirements.txt
+    startCommand: |
+      celery -A celery_app.celery worker --loglevel=info --concurrency=2
+    envVars:
+      - key: FLASK_ENV
+        value: production
+      - key: DB_SCHEMA
+        value: ai_secretary
+      - key: PYTHON_VERSION
+        value: 3.11.0
+
+# You'll need to add these services manually in Render dashboard:
+# - PostgreSQL database
+# - Redis instance
