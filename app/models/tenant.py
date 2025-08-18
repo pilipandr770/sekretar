@@ -31,11 +31,17 @@ class Tenant(BaseModel, SoftDeleteMixin):
     
     # Relationships
     users = relationship('User', back_populates='tenant', cascade='all, delete-orphan')
+    roles = relationship('Role', back_populates='tenant', cascade='all, delete-orphan')
     channels = relationship('Channel', back_populates='tenant', cascade='all, delete-orphan')
+    threads = relationship('Thread', back_populates='tenant', cascade='all, delete-orphan')
     inbox_messages = relationship('InboxMessage', back_populates='tenant', cascade='all, delete-orphan')
     leads = relationship('Lead', back_populates='tenant', cascade='all, delete-orphan')
     tasks = relationship('Task', back_populates='tenant', cascade='all, delete-orphan')
+    notes = relationship('Note', back_populates='tenant', cascade='all, delete-orphan')
     knowledge_sources = relationship('KnowledgeSource', back_populates='tenant', cascade='all, delete-orphan')
+    documents = relationship('Document', back_populates='tenant', cascade='all, delete-orphan')
+    chunks = relationship('Chunk', back_populates='tenant', cascade='all, delete-orphan')
+    embeddings = relationship('Embedding', back_populates='tenant', cascade='all, delete-orphan')
     invoices = relationship('Invoice', back_populates='tenant', cascade='all, delete-orphan')
     counterparties = relationship('Counterparty', back_populates='tenant', cascade='all, delete-orphan')
     subscriptions = relationship('Subscription', back_populates='tenant', cascade='all, delete-orphan')
@@ -60,6 +66,8 @@ class Tenant(BaseModel, SoftDeleteMixin):
     
     def get_setting(self, key, default=None):
         """Get a setting value."""
+        if self.settings is None:
+            return default
         return self.settings.get(key, default)
     
     def set_setting(self, key, value):
@@ -67,6 +75,9 @@ class Tenant(BaseModel, SoftDeleteMixin):
         if self.settings is None:
             self.settings = {}
         self.settings[key] = value
+        # Mark the attribute as modified so SQLAlchemy detects the change
+        from sqlalchemy.orm.attributes import flag_modified
+        flag_modified(self, 'settings')
         return self
     
     def is_trial_expired(self):
@@ -97,8 +108,15 @@ class Tenant(BaseModel, SoftDeleteMixin):
     def create_with_owner(cls, name, owner_email, owner_password, **kwargs):
         """Create tenant with owner user."""
         from app.models.user import User
+        from app.models.role import Role
         import secrets
         import string
+        
+        # Extract user-specific kwargs
+        user_kwargs = {}
+        for key in ['first_name', 'last_name', 'language', 'timezone']:
+            if key in kwargs:
+                user_kwargs[key] = kwargs.pop(key)
         
         # Generate unique slug
         slug = kwargs.get('slug')
@@ -115,13 +133,23 @@ class Tenant(BaseModel, SoftDeleteMixin):
         tenant = cls(name=name, slug=slug, **kwargs)
         tenant.save()
         
+        # Create default system roles
+        roles = Role.create_system_roles(tenant.id)
+        owner_role = next((role for role in roles if role.name == 'Owner'), None)
+        
         # Create owner user
         owner = User.create(
             tenant_id=tenant.id,
             email=owner_email,
             password=owner_password,
-            role='owner',
-            is_active=True
+            role='owner',  # Keep for backward compatibility
+            is_active=True,
+            **user_kwargs
         )
+        
+        # Assign owner role
+        if owner_role:
+            owner.add_role(owner_role)
+            owner.save()
         
         return tenant, owner

@@ -1,0 +1,249 @@
+{% extends "base.html" %}
+
+{% block title %}{{ _('Register') }} - {{ _('AI Secretary') }}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8 col-lg-6">
+        <div class="card shadow">
+            <div class="card-body p-4">
+                <div class="text-center mb-4">
+                    <h2 class="card-title">{{ _('Create Your Account') }}</h2>
+                    <p class="text-muted">{{ _('Start your 3-day free trial') }}</p>
+                </div>
+                
+                <form id="registerForm" method="POST">
+                    <!-- Organization Information -->
+                    <div class="mb-4">
+                        <h5 class="text-primary">{{ _('Organization Information') }}</h5>
+                        <hr>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="organization_name" class="form-label">{{ _('Organization Name') }}</label>
+                            <input type="text" class="form-control" id="organization_name" name="organization_name" required
+                                   placeholder="{{ _('Enter organization name') }}">
+                            <div class="invalid-feedback"></div>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="domain" class="form-label">{{ _('Domain') }}</label>
+                            <input type="text" class="form-control" id="domain" name="domain"
+                                   placeholder="{{ _('company.com (optional)') }}">
+                            <div class="invalid-feedback"></div>
+                        </div>
+                    </div>
+                    
+                    <!-- User Information -->
+                    <div class="mb-4">
+                        <h5 class="text-primary">{{ _('Your Information') }}</h5>
+                        <hr>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="first_name" class="form-label">{{ _('First Name') }}</label>
+                            <input type="text" class="form-control" id="first_name" name="first_name" required
+                                   placeholder="{{ _('Enter your first name') }}">
+                            <div class="invalid-feedback"></div>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="last_name" class="form-label">{{ _('Last Name') }}</label>
+                            <input type="text" class="form-control" id="last_name" name="last_name" required
+                                   placeholder="{{ _('Enter your last name') }}">
+                            <div class="invalid-feedback"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="email" class="form-label">{{ _('Email Address') }}</label>
+                        <input type="email" class="form-control" id="email" name="email" required
+                               placeholder="{{ _('Enter your email') }}">
+                        <div class="invalid-feedback"></div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="password" class="form-label">{{ _('Password') }}</label>
+                            <input type="password" class="form-control" id="password" name="password" required
+                                   placeholder="{{ _('Enter password') }}">
+                            <div class="invalid-feedback"></div>
+                            <div class="form-text">{{ _('Minimum 8 characters') }}</div>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="confirm_password" class="form-label">{{ _('Confirm Password') }}</label>
+                            <input type="password" class="form-control" id="confirm_password" name="confirm_password" required
+                                   placeholder="{{ _('Confirm password') }}">
+                            <div class="invalid-feedback"></div>
+                        </div>
+                    </div>
+                    
+                    <!-- Terms and Privacy -->
+                    <div class="mb-3 form-check">
+                        <input type="checkbox" class="form-check-input" id="terms" name="terms" required>
+                        <label class="form-check-label" for="terms">
+                            {{ _('I agree to the') }} 
+                            <a href="#" target="_blank">{{ _('Terms of Service') }}</a> 
+                            {{ _('and') }} 
+                            <a href="#" target="_blank">{{ _('Privacy Policy') }}</a>
+                        </label>
+                        <div class="invalid-feedback"></div>
+                    </div>
+                    
+                    <div class="mb-3 form-check">
+                        <input type="checkbox" class="form-check-input" id="marketing" name="marketing">
+                        <label class="form-check-label" for="marketing">
+                            {{ _('I would like to receive product updates and marketing communications') }}
+                        </label>
+                    </div>
+                    
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            <span class="spinner-border spinner-border-sm d-none" role="status"></span>
+                            {{ _('Start Free Trial') }}
+                        </button>
+                    </div>
+                </form>
+                
+                <hr class="my-4">
+                
+                <div class="text-center">
+                    <p class="text-muted mb-2">{{ _("Already have an account?") }}</p>
+                    <a href="{{ url_for('main.login') }}" class="btn btn-outline-primary">
+                        {{ _('Sign In') }}
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Trial Information -->
+        <div class="card mt-4">
+            <div class="card-body">
+                <h6 class="card-title text-success">{{ _('3-Day Free Trial Includes:') }}</h6>
+                <ul class="list-unstyled mb-0">
+                    <li><i class="text-success">✓</i> {{ _('Full access to all features') }}</li>
+                    <li><i class="text-success">✓</i> {{ _('Multi-channel communication') }}</li>
+                    <li><i class="text-success">✓</i> {{ _('AI-powered responses') }}</li>
+                    <li><i class="text-success">✓</i> {{ _('CRM and calendar integration') }}</li>
+                    <li><i class="text-success">✓</i> {{ _('No credit card required') }}</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.getElementById('registerForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    const form = e.target;
+    const submitBtn = form.querySelector('button[type="submit"]');
+    const spinner = submitBtn.querySelector('.spinner-border');
+    
+    // Show loading state
+    submitBtn.disabled = true;
+    spinner.classList.remove('d-none');
+    
+    // Clear previous errors
+    form.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
+    form.querySelectorAll('.invalid-feedback').forEach(el => el.textContent = '');
+    
+    // Validate passwords match
+    const password = form.querySelector('#password').value;
+    const confirmPassword = form.querySelector('#confirm_password').value;
+    
+    if (password !== confirmPassword) {
+        const confirmInput = form.querySelector('#confirm_password');
+        confirmInput.classList.add('is-invalid');
+        confirmInput.nextElementSibling.textContent = '{{ _("Passwords do not match") }}';
+        submitBtn.disabled = false;
+        spinner.classList.add('d-none');
+        return;
+    }
+    
+    try {
+        const formData = new FormData(form);
+        const response = await fetch('/api/v1/auth/register', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                organization_name: formData.get('organization_name'),
+                domain: formData.get('domain'),
+                first_name: formData.get('first_name'),
+                last_name: formData.get('last_name'),
+                email: formData.get('email'),
+                password: formData.get('password'),
+                terms: formData.get('terms') === 'on',
+                marketing: formData.get('marketing') === 'on'
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            // Store token
+            localStorage.setItem('access_token', data.data.access_token);
+            localStorage.setItem('refresh_token', data.data.refresh_token);
+            
+            // Show success message
+            showAlert('success', data.message || '{{ _("Registration successful! Welcome to AI Secretary.") }}');
+            
+            // Redirect to dashboard
+            setTimeout(() => {
+                window.location.href = '/dashboard';
+            }, 1500);
+            
+        } else {
+            // Show error message
+            showAlert('danger', data.error.message);
+            
+            // Show field-specific errors
+            if (data.error.details && data.error.details.validation_errors) {
+                const errors = data.error.details.validation_errors;
+                for (const [field, messages] of Object.entries(errors)) {
+                    const input = form.querySelector(`[name="${field}"]`);
+                    if (input) {
+                        input.classList.add('is-invalid');
+                        const feedback = input.nextElementSibling;
+                        if (feedback && feedback.classList.contains('invalid-feedback')) {
+                            feedback.textContent = messages[0];
+                        }
+                    }
+                }
+            }
+        }
+        
+    } catch (error) {
+        console.error('Registration error:', error);
+        showAlert('danger', '{{ _("An error occurred. Please try again.") }}');
+    } finally {
+        // Hide loading state
+        submitBtn.disabled = false;
+        spinner.classList.add('d-none');
+    }
+});
+
+function showAlert(type, message) {
+    const alertDiv = document.createElement('div');
+    alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
+    alertDiv.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    
+    const container = document.querySelector('.container');
+    container.insertBefore(alertDiv, container.firstChild);
+    
+    // Auto-dismiss after 5 seconds
+    setTimeout(() => {
+        if (alertDiv.parentNode) {
+            alertDiv.remove();
+        }
+    }, 5000);
+}
+</script>
+{% endblock %}

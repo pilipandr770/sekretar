@@ -1,0 +1,679 @@
+{% extends "base.html" %}
+
+{% block title %}Signal Integration Setup{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <i class="fas fa-comment-dots"></i>
+                        Signal Integration Setup
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <!-- Status Section -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <div class="alert alert-info" id="status-alert">
+                                <i class="fas fa-info-circle"></i>
+                                Loading Signal status...
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Setup Steps -->
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h4>Setup Steps</h4>
+                                </div>
+                                <div class="card-body">
+                                    <!-- Step 1: Install Signal CLI -->
+                                    <div class="setup-step" id="step-install">
+                                        <div class="d-flex align-items-center mb-3">
+                                            <div class="step-number">1</div>
+                                            <h5 class="mb-0 ml-3">Install Signal CLI</h5>
+                                            <div class="ml-auto">
+                                                <span class="badge badge-secondary" id="install-status">Not Started</span>
+                                            </div>
+                                        </div>
+                                        <p class="text-muted mb-3">
+                                            Signal CLI is required to send and receive Signal messages. 
+                                            This will download and install the latest version.
+                                        </p>
+                                        <button class="btn btn-primary" id="install-btn" onclick="installSignalCLI()">
+                                            <i class="fas fa-download"></i>
+                                            Install Signal CLI
+                                        </button>
+                                        <div class="progress mt-3" id="install-progress" style="display: none;">
+                                            <div class="progress-bar progress-bar-striped progress-bar-animated" 
+                                                 role="progressbar" style="width: 0%"></div>
+                                        </div>
+                                    </div>
+
+                                    <hr>
+
+                                    <!-- Step 2: Register Phone Number -->
+                                    <div class="setup-step" id="step-register">
+                                        <div class="d-flex align-items-center mb-3">
+                                            <div class="step-number">2</div>
+                                            <h5 class="mb-0 ml-3">Register Phone Number</h5>
+                                            <div class="ml-auto">
+                                                <span class="badge badge-secondary" id="register-status">Not Started</span>
+                                            </div>
+                                        </div>
+                                        <p class="text-muted mb-3">
+                                            Register your phone number with Signal. You'll receive an SMS with a verification code.
+                                        </p>
+                                        <form id="register-form">
+                                            <div class="form-group">
+                                                <label for="phone-number">Phone Number</label>
+                                                <input type="tel" class="form-control" id="phone-number" 
+                                                       placeholder="+1234567890" required>
+                                                <small class="form-text text-muted">
+                                                    Include country code (e.g., +1 for US, +49 for Germany)
+                                                </small>
+                                            </div>
+                                            <div class="form-group" id="captcha-group" style="display: none;">
+                                                <label for="captcha">Captcha (if required)</label>
+                                                <input type="text" class="form-control" id="captcha" 
+                                                       placeholder="Enter captcha if requested">
+                                                <small class="form-text text-muted">
+                                                    Only needed if Signal requests a captcha
+                                                </small>
+                                            </div>
+                                            <button type="submit" class="btn btn-primary" id="register-btn" disabled>
+                                                <i class="fas fa-phone"></i>
+                                                Register Phone Number
+                                            </button>
+                                        </form>
+                                    </div>
+
+                                    <hr>
+
+                                    <!-- Step 3: Verify Phone Number -->
+                                    <div class="setup-step" id="step-verify">
+                                        <div class="d-flex align-items-center mb-3">
+                                            <div class="step-number">3</div>
+                                            <h5 class="mb-0 ml-3">Verify Phone Number</h5>
+                                            <div class="ml-auto">
+                                                <span class="badge badge-secondary" id="verify-status">Not Started</span>
+                                            </div>
+                                        </div>
+                                        <p class="text-muted mb-3">
+                                            Enter the 6-digit verification code you received via SMS.
+                                        </p>
+                                        <form id="verify-form">
+                                            <div class="form-group">
+                                                <label for="verification-code">Verification Code</label>
+                                                <input type="text" class="form-control" id="verification-code" 
+                                                       placeholder="123456" maxlength="6" required>
+                                                <small class="form-text text-muted">
+                                                    Enter the 6-digit code from your SMS
+                                                </small>
+                                            </div>
+                                            <button type="submit" class="btn btn-primary" id="verify-btn" disabled>
+                                                <i class="fas fa-check"></i>
+                                                Verify Phone Number
+                                            </button>
+                                        </form>
+                                    </div>
+
+                                    <hr>
+
+                                    <!-- Step 4: Create Channel -->
+                                    <div class="setup-step" id="step-channel">
+                                        <div class="d-flex align-items-center mb-3">
+                                            <div class="step-number">4</div>
+                                            <h5 class="mb-0 ml-3">Create Signal Channel</h5>
+                                            <div class="ml-auto">
+                                                <span class="badge badge-secondary" id="channel-status">Not Started</span>
+                                            </div>
+                                        </div>
+                                        <p class="text-muted mb-3">
+                                            Create a Signal channel to start receiving and responding to messages.
+                                        </p>
+                                        <form id="channel-form">
+                                            <div class="form-group">
+                                                <label for="channel-name">Channel Name</label>
+                                                <input type="text" class="form-control" id="channel-name" 
+                                                       placeholder="My Signal Channel">
+                                                <small class="form-text text-muted">
+                                                    Optional: Give your channel a descriptive name
+                                                </small>
+                                            </div>
+                                            <div class="form-group">
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="checkbox" 
+                                                           id="auto-response" checked>
+                                                    <label class="form-check-label" for="auto-response">
+                                                        Enable AI Auto-Response
+                                                    </label>
+                                                </div>
+                                                <small class="form-text text-muted">
+                                                    Automatically respond to incoming messages using AI
+                                                </small>
+                                            </div>
+                                            <button type="submit" class="btn btn-success" id="channel-btn" disabled>
+                                                <i class="fas fa-plus"></i>
+                                                Create Signal Channel
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Existing Channels -->
+                    <div class="row mt-4" id="existing-channels" style="display: none;">
+                        <div class="col-12">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h4>Existing Signal Channels</h4>
+                                </div>
+                                <div class="card-body">
+                                    <div class="table-responsive">
+                                        <table class="table table-striped" id="channels-table">
+                                            <thead>
+                                                <tr>
+                                                    <th>Name</th>
+                                                    <th>Phone Number</th>
+                                                    <th>Status</th>
+                                                    <th>Created</th>
+                                                    <th>Actions</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="channels-tbody">
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Test Section -->
+                    <div class="row mt-4" id="test-section" style="display: none;">
+                        <div class="col-12">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h4>Test Signal Integration</h4>
+                                </div>
+                                <div class="card-body">
+                                    <p class="text-muted">
+                                        Test your Signal integration by sending a test message.
+                                    </p>
+                                    <form id="test-form">
+                                        <div class="form-group">
+                                            <label for="test-recipient">Test Recipient</label>
+                                            <input type="tel" class="form-control" id="test-recipient" 
+                                                   placeholder="+1234567890" required>
+                                            <small class="form-text text-muted">
+                                                Phone number to send test message to
+                                            </small>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="test-message">Test Message</label>
+                                            <textarea class="form-control" id="test-message" rows="3" 
+                                                      placeholder="Hello! This is a test message from AI Secretary." required></textarea>
+                                        </div>
+                                        <button type="submit" class="btn btn-info">
+                                            <i class="fas fa-paper-plane"></i>
+                                            Send Test Message
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Loading Modal -->
+<div class="modal fade" id="loading-modal" tabindex="-1" role="dialog" data-backdrop="static">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-body text-center">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="sr-only">Loading...</span>
+                </div>
+                <p class="mt-3 mb-0" id="loading-text">Processing...</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+let currentPhoneNumber = '';
+let setupState = {
+    installed: false,
+    registered: false,
+    verified: false,
+    channelCreated: false
+};
+
+// Initialize page
+$(document).ready(function() {
+    loadSignalStatus();
+    
+    // Form handlers
+    $('#register-form').on('submit', registerPhoneNumber);
+    $('#verify-form').on('submit', verifyPhoneNumber);
+    $('#channel-form').on('submit', createSignalChannel);
+    $('#test-form').on('submit', sendTestMessage);
+    
+    // Input validation
+    $('#verification-code').on('input', function() {
+        this.value = this.value.replace(/\D/g, '').substring(0, 6);
+    });
+});
+
+function loadSignalStatus() {
+    showLoading('Loading Signal status...');
+    
+    $.ajax({
+        url: '/api/v1/signal/status',
+        method: 'GET',
+        headers: {
+            'Authorization': 'Bearer ' + localStorage.getItem('access_token')
+        },
+        success: function(response) {
+            hideLoading();
+            updateStatusDisplay(response.data);
+            updateSetupSteps(response.data);
+        },
+        error: function(xhr) {
+            hideLoading();
+            showError('Failed to load Signal status: ' + getErrorMessage(xhr));
+        }
+    });
+}
+
+function updateStatusDisplay(data) {
+    const installation = data.installation;
+    const channels = data.channels || [];
+    
+    let statusHtml = '';
+    let statusClass = 'alert-info';
+    
+    if (!installation.is_installed) {
+        statusHtml = '<i class="fas fa-exclamation-triangle"></i> Signal CLI is not installed. Please install it to continue.';
+        statusClass = 'alert-warning';
+    } else if (channels.length === 0) {
+        statusHtml = '<i class="fas fa-info-circle"></i> Signal CLI is installed but no channels are configured.';
+        statusClass = 'alert-info';
+    } else {
+        const activeChannels = channels.filter(c => c.is_active).length;
+        statusHtml = `<i class="fas fa-check-circle"></i> Signal integration is active with ${activeChannels} channel(s).`;
+        statusClass = 'alert-success';
+    }
+    
+    $('#status-alert').removeClass('alert-info alert-warning alert-success alert-danger')
+                      .addClass(statusClass)
+                      .html(statusHtml);
+    
+    // Update existing channels
+    if (channels.length > 0) {
+        updateChannelsTable(channels);
+        $('#existing-channels').show();
+        $('#test-section').show();
+    }
+}
+
+function updateSetupSteps(data) {
+    const installation = data.installation;
+    const channels = data.channels || [];
+    
+    // Step 1: Installation
+    if (installation.is_installed) {
+        setupState.installed = true;
+        $('#install-status').removeClass('badge-secondary').addClass('badge-success').text('Completed');
+        $('#install-btn').prop('disabled', true).html('<i class="fas fa-check"></i> Already Installed');
+        $('#register-btn').prop('disabled', false);
+    }
+    
+    // Check if any phone numbers are registered
+    if (installation.is_installed) {
+        // Enable register button
+        $('#register-btn').prop('disabled', false);
+    }
+    
+    // If channels exist, mark steps as completed
+    if (channels.length > 0) {
+        const channel = channels[0];
+        currentPhoneNumber = channel.phone_number;
+        
+        setupState.registered = true;
+        setupState.verified = true;
+        setupState.channelCreated = true;
+        
+        $('#register-status').removeClass('badge-secondary').addClass('badge-success').text('Completed');
+        $('#verify-status').removeClass('badge-secondary').addClass('badge-success').text('Completed');
+        $('#channel-status').removeClass('badge-secondary').addClass('badge-success').text('Completed');
+        
+        $('#phone-number').val(currentPhoneNumber).prop('disabled', true);
+        $('#register-btn').prop('disabled', true).html('<i class="fas fa-check"></i> Already Registered');
+        $('#verify-btn').prop('disabled', true).html('<i class="fas fa-check"></i> Already Verified');
+        $('#channel-btn').prop('disabled', true).html('<i class="fas fa-check"></i> Channel Created');
+    }
+}
+
+function installSignalCLI() {
+    showLoading('Installing Signal CLI...');
+    $('#install-progress').show();
+    
+    // Simulate progress
+    let progress = 0;
+    const progressInterval = setInterval(() => {
+        progress += Math.random() * 20;
+        if (progress > 90) progress = 90;
+        $('#install-progress .progress-bar').css('width', progress + '%');
+    }, 500);
+    
+    $.ajax({
+        url: '/api/v1/signal/install',
+        method: 'POST',
+        headers: {
+            'Authorization': 'Bearer ' + localStorage.getItem('access_token'),
+            'Content-Type': 'application/json'
+        },
+        data: JSON.stringify({
+            version: 'latest'
+        }),
+        success: function(response) {
+            clearInterval(progressInterval);
+            $('#install-progress .progress-bar').css('width', '100%');
+            
+            setTimeout(() => {
+                hideLoading();
+                $('#install-progress').hide();
+                showSuccess(response.message);
+                loadSignalStatus();
+            }, 1000);
+        },
+        error: function(xhr) {
+            clearInterval(progressInterval);
+            hideLoading();
+            $('#install-progress').hide();
+            showError('Installation failed: ' + getErrorMessage(xhr));
+        }
+    });
+}
+
+function registerPhoneNumber(e) {
+    e.preventDefault();
+    
+    const phoneNumber = $('#phone-number').val().trim();
+    const captcha = $('#captcha').val().trim();
+    
+    if (!phoneNumber) {
+        showError('Please enter a phone number');
+        return;
+    }
+    
+    showLoading('Registering phone number...');
+    
+    $.ajax({
+        url: '/api/v1/signal/register',
+        method: 'POST',
+        headers: {
+            'Authorization': 'Bearer ' + localStorage.getItem('access_token'),
+            'Content-Type': 'application/json'
+        },
+        data: JSON.stringify({
+            phone_number: phoneNumber,
+            captcha: captcha || null
+        }),
+        success: function(response) {
+            hideLoading();
+            currentPhoneNumber = phoneNumber;
+            setupState.registered = true;
+            
+            $('#register-status').removeClass('badge-secondary').addClass('badge-success').text('SMS Sent');
+            $('#verify-btn').prop('disabled', false);
+            
+            showSuccess(response.message);
+        },
+        error: function(xhr) {
+            hideLoading();
+            const error = getErrorMessage(xhr);
+            
+            if (error.includes('captcha')) {
+                $('#captcha-group').show();
+                showError('Captcha required. Please solve the captcha and try again.');
+            } else {
+                showError('Registration failed: ' + error);
+            }
+        }
+    });
+}
+
+function verifyPhoneNumber(e) {
+    e.preventDefault();
+    
+    const verificationCode = $('#verification-code').val().trim();
+    
+    if (!verificationCode || verificationCode.length !== 6) {
+        showError('Please enter a valid 6-digit verification code');
+        return;
+    }
+    
+    showLoading('Verifying phone number...');
+    
+    $.ajax({
+        url: '/api/v1/signal/verify',
+        method: 'POST',
+        headers: {
+            'Authorization': 'Bearer ' + localStorage.getItem('access_token'),
+            'Content-Type': 'application/json'
+        },
+        data: JSON.stringify({
+            phone_number: currentPhoneNumber,
+            verification_code: verificationCode
+        }),
+        success: function(response) {
+            hideLoading();
+            setupState.verified = true;
+            
+            $('#verify-status').removeClass('badge-secondary').addClass('badge-success').text('Verified');
+            $('#channel-btn').prop('disabled', false);
+            
+            showSuccess(response.message);
+        },
+        error: function(xhr) {
+            hideLoading();
+            showError('Verification failed: ' + getErrorMessage(xhr));
+        }
+    });
+}
+
+function createSignalChannel(e) {
+    e.preventDefault();
+    
+    const channelName = $('#channel-name').val().trim();
+    const autoResponse = $('#auto-response').is(':checked');
+    
+    showLoading('Creating Signal channel...');
+    
+    $.ajax({
+        url: '/api/v1/signal/channels',
+        method: 'POST',
+        headers: {
+            'Authorization': 'Bearer ' + localStorage.getItem('access_token'),
+            'Content-Type': 'application/json'
+        },
+        data: JSON.stringify({
+            phone_number: currentPhoneNumber,
+            name: channelName,
+            auto_response: autoResponse,
+            polling_interval: 2
+        }),
+        success: function(response) {
+            hideLoading();
+            setupState.channelCreated = true;
+            
+            $('#channel-status').removeClass('badge-secondary').addClass('badge-success').text('Created');
+            
+            showSuccess(response.message);
+            loadSignalStatus();
+        },
+        error: function(xhr) {
+            hideLoading();
+            showError('Channel creation failed: ' + getErrorMessage(xhr));
+        }
+    });
+}
+
+function updateChannelsTable(channels) {
+    const tbody = $('#channels-tbody');
+    tbody.empty();
+    
+    channels.forEach(channel => {
+        const statusBadge = channel.is_active ? 
+            '<span class="badge badge-success">Active</span>' : 
+            '<span class="badge badge-secondary">Inactive</span>';
+        
+        const createdDate = new Date(channel.created_at).toLocaleDateString();
+        
+        const row = `
+            <tr>
+                <td>${channel.name}</td>
+                <td>${channel.phone_number}</td>
+                <td>${statusBadge}</td>
+                <td>${createdDate}</td>
+                <td>
+                    <button class="btn btn-sm btn-info" onclick="testChannel(${channel.id})">
+                        <i class="fas fa-vial"></i> Test
+                    </button>
+                    <button class="btn btn-sm btn-warning" onclick="editChannel(${channel.id})">
+                        <i class="fas fa-edit"></i> Edit
+                    </button>
+                </td>
+            </tr>
+        `;
+        
+        tbody.append(row);
+    });
+}
+
+function sendTestMessage(e) {
+    e.preventDefault();
+    
+    const recipient = $('#test-recipient').val().trim();
+    const message = $('#test-message').val().trim();
+    
+    if (!recipient || !message) {
+        showError('Please fill in all fields');
+        return;
+    }
+    
+    showLoading('Sending test message...');
+    
+    $.ajax({
+        url: '/api/v1/signal/send',
+        method: 'POST',
+        headers: {
+            'Authorization': 'Bearer ' + localStorage.getItem('access_token'),
+            'Content-Type': 'application/json'
+        },
+        data: JSON.stringify({
+            recipient: recipient,
+            message: message
+        }),
+        success: function(response) {
+            hideLoading();
+            showSuccess('Test message sent successfully!');
+            $('#test-form')[0].reset();
+        },
+        error: function(xhr) {
+            hideLoading();
+            showError('Failed to send test message: ' + getErrorMessage(xhr));
+        }
+    });
+}
+
+// Utility functions
+function showLoading(text) {
+    $('#loading-text').text(text);
+    $('#loading-modal').modal('show');
+}
+
+function hideLoading() {
+    $('#loading-modal').modal('hide');
+}
+
+function showSuccess(message) {
+    toastr.success(message);
+}
+
+function showError(message) {
+    toastr.error(message);
+}
+
+function getErrorMessage(xhr) {
+    try {
+        const response = JSON.parse(xhr.responseText);
+        return response.error?.message || response.message || 'Unknown error';
+    } catch (e) {
+        return xhr.statusText || 'Unknown error';
+    }
+}
+</script>
+
+<style>
+.setup-step {
+    padding: 20px;
+    border-left: 4px solid #e9ecef;
+    margin-bottom: 20px;
+}
+
+.setup-step.completed {
+    border-left-color: #28a745;
+    background-color: #f8fff9;
+}
+
+.step-number {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: #6c757d;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    flex-shrink: 0;
+}
+
+.setup-step.completed .step-number {
+    background-color: #28a745;
+}
+
+.form-group label {
+    font-weight: 600;
+}
+
+.badge {
+    font-size: 0.8em;
+}
+
+#install-progress {
+    height: 8px;
+}
+
+.table th {
+    border-top: none;
+    font-weight: 600;
+}
+</style>
+{% endblock %}

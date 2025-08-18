@@ -1,8 +1,7 @@
 """Thread model for conversation management."""
 from sqlalchemy import Column, String, Text, Integer, ForeignKey, Boolean, JSON
 from sqlalchemy.orm import relationship
-from app.models.base import TenantAwareModel, SoftDeleteMixin, AuditMixin
-from app.utils.schema import get_schema_name
+from app.models.base import TenantAwareModel, SoftDeleteMixin, AuditMixin, get_fk_reference
 
 
 class Thread(TenantAwareModel, SoftDeleteMixin, AuditMixin):
@@ -11,7 +10,7 @@ class Thread(TenantAwareModel, SoftDeleteMixin, AuditMixin):
     __tablename__ = 'threads'
     
     # Channel relationship
-    channel_id = Column(Integer, ForeignKey(f'{get_schema_name()}.channels.id'), nullable=False, index=True)
+    channel_id = Column(Integer, ForeignKey(get_fk_reference('channels')), nullable=False, index=True)
     channel = relationship('Channel', back_populates='threads')
     
     # Customer information
@@ -26,8 +25,12 @@ class Thread(TenantAwareModel, SoftDeleteMixin, AuditMixin):
     priority = Column(String(20), default='normal', nullable=False)  # low, normal, high, urgent
     
     # Assignment
-    assigned_to_id = Column(Integer, ForeignKey(f'{get_schema_name()}.users.id'), nullable=True, index=True)
+    assigned_to_id = Column(Integer, ForeignKey(get_fk_reference('users')), nullable=True, index=True)
     assigned_to = relationship('User', foreign_keys=[assigned_to_id])
+    
+    # Lead relationship (optional - for linking conversations to CRM leads)
+    lead_id = Column(Integer, ForeignKey(get_fk_reference('leads')), nullable=True, index=True)
+    lead = relationship('Lead', back_populates='threads')
     
     # AI handling
     ai_enabled = Column(Boolean, default=True, nullable=False)
@@ -40,7 +43,7 @@ class Thread(TenantAwareModel, SoftDeleteMixin, AuditMixin):
     last_agent_message_at = Column(String(50), nullable=True)
     
     # Metadata
-    metadata = Column(JSON, default=dict, nullable=False)  # Additional thread data
+    extra_data = Column(JSON, default=dict, nullable=False)  # Additional thread data
     tags = Column(JSON, default=list, nullable=False)  # Thread tags
     
     # Relationships
@@ -51,13 +54,13 @@ class Thread(TenantAwareModel, SoftDeleteMixin, AuditMixin):
     
     def get_metadata(self, key, default=None):
         """Get metadata value."""
-        return self.metadata.get(key, default) if self.metadata else default
+        return self.extra_data.get(key, default) if self.extra_data else default
     
     def set_metadata(self, key, value):
         """Set metadata value."""
-        if self.metadata is None:
-            self.metadata = {}
-        self.metadata[key] = value
+        if self.extra_data is None:
+            self.extra_data = {}
+        self.extra_data[key] = value
         return self
     
     def add_tag(self, tag):
@@ -143,6 +146,66 @@ class Thread(TenantAwareModel, SoftDeleteMixin, AuditMixin):
         self.ai_context = {}
         return self
     
+    def link_to_lead(self, lead_id):
+        """Link thread to a CRM lead."""
+        self.lead_id = lead_id
+        return self
+    
+    def unlink_from_lead(self):
+        """Unlink thread from CRM lead."""
+        self.lead_id = None
+        return self
+    
+    def create_lead_from_conversation(self, title, pipeline_id=None, **kwargs):
+        """Create a new lead from this conversation thread."""
+        from app.models.lead import Lead
+        from app.models.contact import Contact
+        from app.models.pipeline import Pipeline
+        
+        # Find or create contact based on customer information
+        contact = None
+        if self.customer_email:
+            contact, _ = Contact.find_or_create_by_email(
+                tenant_id=self.tenant_id,
+                email=self.customer_email,
+                first_name=self.customer_name.split(' ')[0] if self.customer_name else None,
+                last_name=' '.join(self.customer_name.split(' ')[1:]) if self.customer_name and ' ' in self.customer_name else None,
+                phone=self.customer_phone
+            )
+        elif self.customer_phone:
+            contact = Contact.find_by_phone(self.tenant_id, self.customer_phone)
+            if not contact:
+                contact = Contact.create(
+                    tenant_id=self.tenant_id,
+                    first_name=self.customer_name.split(' ')[0] if self.customer_name else None,
+                    last_name=' '.join(self.customer_name.split(' ')[1:]) if self.customer_name and ' ' in self.customer_name else None,
+                    phone=self.customer_phone
+                )
+        
+        # Get default pipeline if not specified
+        if not pipeline_id:
+            default_pipeline = Pipeline.get_default(self.tenant_id)
+            if default_pipeline:
+                pipeline_id = default_pipeline.id
+            else:
+                raise ValueError("No pipeline specified and no default pipeline found")
+        
+        # Create lead
+        lead = Lead.create_from_contact(
+            tenant_id=self.tenant_id,
+            contact_id=contact.id if contact else None,
+            title=title,
+            pipeline_id=pipeline_id,
+            source=f"{self.channel.type}_conversation" if self.channel else "conversation",
+            **kwargs
+        )
+        
+        # Link thread to lead
+        self.link_to_lead(lead.id)
+        self.save()
+        
+        return lead
+    
     def to_dict(self, exclude=None):
         """Convert to dictionary."""
         exclude = exclude or []
@@ -165,6 +228,12 @@ class Thread(TenantAwareModel, SoftDeleteMixin, AuditMixin):
         if self.assigned_to:
             data['assigned_to_name'] = self.assigned_to.full_name
             data['assigned_to_email'] = self.assigned_to.email
+        
+        # Add linked lead info
+        if self.lead:
+            data['lead_title'] = self.lead.title
+            data['lead_id'] = self.lead.id
+            data['lead_value'] = self.lead.value
         
         return data
     

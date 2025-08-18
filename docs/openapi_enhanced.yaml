@@ -1,0 +1,8 @@
+openapi: 3.0.3
+info:
+  title: AI Secretary SaaS API
+  description: |
+    # AI Secretary SaaS Platform API
+    
+    Comprehensive API for the AI Secretary SaaS platform - an omnichannel solution for SMBs that provides 
+    multi

@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+
+{% block title %}{{ _('API Tester - AI Secretary') }}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h1>{{ _('API Endpoint Tester') }}</h1>
+        <p class="text-muted">{{ _('Test and explore the available API endpoints.') }}</p>
+    </div>
+</div>
+
+<div class="api-tester">
+    <!-- Welcome Endpoint -->
+    <div class="endpoint-card">
+        <div class="endpoint-header">
+            <span class="badge bg-success me-2">GET</span>
+            <strong>/</strong> - {{ _('Welcome Endpoint') }}
+            <span class="status-badge" id="status-welcome">-</span>
+        </div>
+        <div class="endpoint-body">
+            <p>{{ _('Returns API information and available endpoints.') }}</p>
+            <button class="btn-test" data-endpoint="/">{{ _('Test') }}</button>
+            <div class="response-box"></div>
+        </div>
+    </div>
+
+    <!-- Health Endpoint -->
+    <div class="endpoint-card">
+        <div class="endpoint-header">
+            <span class="badge bg-success me-2">GET</span>
+            <strong>/api/v1/health</strong> - {{ _('Health Check') }}
+            <span class="status-badge" id="status-health">-</span>
+        </div>
+        <div class="endpoint-body">
+            <p>{{ _('Returns system health status including database and Redis connectivity.') }}</p>
+            <button class="btn-test" data-endpoint="/api/v1/health">{{ _('Test') }}</button>
+            <div class="response-box"></div>
+        </div>
+    </div>
+
+    <!-- Version Endpoint -->
+    <div class="endpoint-card">
+        <div class="endpoint-header">
+            <span class="badge bg-success me-2">GET</span>
+            <strong>/api/v1/version</strong> - {{ _('Version Information') }}
+            <span class="status-badge" id="status-version">-</span>
+        </div>
+        <div class="endpoint-body">
+            <p>{{ _('Returns API version, environment, and build information.') }}</p>
+            <button class="btn-test" data-endpoint="/api/v1/version">{{ _('Test') }}</button>
+            <div class="response-box"></div>
+        </div>
+    </div>
+
+    <!-- Status Endpoint -->
+    <div class="endpoint-card">
+        <div class="endpoint-header">
+            <span class="badge bg-success me-2">GET</span>
+            <strong>/api/v1/status</strong> - {{ _('System Status') }}
+            <span class="status-badge" id="status-status">-</span>
+        </div>
+        <div class="endpoint-body">
+            <p>{{ _('Returns detailed system status with component information.') }}</p>
+            <button class="btn-test" data-endpoint="/api/v1/status">{{ _('Test') }}</button>
+            <div class="response-box"></div>
+        </div>
+    </div>
+
+    <!-- Languages Endpoint -->
+    <div class="endpoint-card">
+        <div class="endpoint-header">
+            <span class="badge bg-success me-2">GET</span>
+            <strong>/api/v1/languages</strong> - {{ _('Available Languages') }}
+            <span class="status-badge" id="status-languages">-</span>
+        </div>
+        <div class="endpoint-body">
+            <p>{{ _('Returns list of available languages for internationalization.') }}</p>
+            <button class="btn-test" data-endpoint="/api/v1/languages">{{ _('Test') }}</button>
+            <div class="response-box"></div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="alert alert-info">
+            <h5>{{ _('API Documentation') }}</h5>
+            <p class="mb-0">
+                {{ _('For complete API documentation, visit') }} 
+                <a href="/api/v1/docs" target="_blank">/api/v1/docs</a>
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %}

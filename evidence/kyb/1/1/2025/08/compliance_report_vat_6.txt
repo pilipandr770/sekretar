@@ -1,0 +1,33 @@
+KYB COMPLIANCE EVIDENCE REPORT
+==================================================
+Generated: 2025-08-14T18:57:42.658080
+Snapshot ID: 6
+Counterparty: Test Company GmbH
+Check Type: vat
+Source: VIES
+Status: valid
+Data Hash: 849fbad128fb95b589a2979d80e0dd20ee267a1172c4a70af7d57c1f0d593746
+
+PROCESSED DATA:
+--------------------
+check_type: vat
+status: valid
+checked_at: 2025-08-14T18:57:41.999798Z
+valid: True
+company_name: Modified Company Name
+address: Test Street 1, 12345 Berlin
+vat_number: DE123456789
+
+RAW DATA:
+--------------------
+{
+  "status": "valid",
+  "valid": true,
+  "name": "Modified Company Name",
+  "address": "Test Street 1, 12345 Berlin",
+  "country_code": "DE",
+  "vat_number": "DE123456789",
+  "response_time_ms": 150,
+  "source": "VIES",
+  "checked_at": "2025-08-14T18:57:41.999798Z"
+}

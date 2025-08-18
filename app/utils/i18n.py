@@ -44,7 +44,6 @@ def get_user_language():
     return 'en'
 
 
-@babel.localeselector
 def get_locale():
     """Select locale for current request."""
     return get_user_language()
@@ -52,7 +51,7 @@ def get_locale():
 
 def init_babel(app):
     """Initialize Babel with Flask app."""
-    babel.init_app(app)
+    babel.init_app(app, locale_selector=get_user_language)
     
     # Set default locale and timezone
     app.config.setdefault('LANGUAGES', LANGUAGES)

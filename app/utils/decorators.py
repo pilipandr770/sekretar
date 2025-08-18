@@ -63,6 +63,29 @@ def require_tenant():
     return decorator
 
 
+def tenant_required(f):
+    """Decorator to require tenant context (simplified version)."""
+    @wraps(f)
+    @jwt_required()
+    def decorated_function(*args, **kwargs):
+        from flask_jwt_extended import get_jwt_identity
+        
+        # Get tenant_id from JWT token
+        tenant_id = get_jwt_identity()
+        if not tenant_id:
+            return error_response(
+                error_code='AUTHORIZATION_ERROR',
+                message=_('Tenant context required'),
+                status_code=403
+            )
+        
+        # Set tenant_id in g for use in the function
+        g.tenant_id = tenant_id
+        
+        return f(*args, **kwargs)
+    return decorated_function
+
+
 def require_role(*allowed_roles):
     """Decorator to require specific user roles."""
     def decorator(f):
@@ -97,6 +120,108 @@ def require_permission(permission):
             if not user.has_permission(permission):
                 return forbidden_response(
                     _('Permission required: %(permission)s', permission=permission)
+                )
+            
+            return f(*args, **kwargs)
+        return decorated_function
+    return decorator
+
+
+def require_permissions(*permissions):
+    """Decorator to require multiple permissions (all must be present)."""
+    def decorator(f):
+        @wraps(f)
+        @jwt_required()
+        def decorated_function(*args, **kwargs):
+            user = get_current_user()
+            if not user:
+                return unauthorized_response(_('Authentication required'))
+            
+            missing_permissions = []
+            for permission in permissions:
+                if not user.has_permission(permission):
+                    missing_permissions.append(permission)
+            
+            if missing_permissions:
+                return forbidden_response(
+                    _('Missing required permissions: %(permissions)s', 
+                      permissions=', '.join(missing_permissions))
+                )
+            
+            return f(*args, **kwargs)
+        return decorated_function
+    return decorator
+
+
+def require_any_permission(*permissions):
+    """Decorator to require at least one of the specified permissions."""
+    def decorator(f):
+        @wraps(f)
+        @jwt_required()
+        def decorated_function(*args, **kwargs):
+            user = get_current_user()
+            if not user:
+                return unauthorized_response(_('Authentication required'))
+            
+            has_permission = any(user.has_permission(perm) for perm in permissions)
+            
+            if not has_permission:
+                return forbidden_response(
+                    _('One of the following permissions is required: %(permissions)s', 
+                      permissions=', '.join(permissions))
+                )
+            
+            return f(*args, **kwargs)
+        return decorated_function
+    return decorator
+
+
+def require_owner_or_permission(permission):
+    """Decorator to require either owner role or specific permission."""
+    def decorator(f):
+        @wraps(f)
+        @jwt_required()
+        def decorated_function(*args, **kwargs):
+            user = get_current_user()
+            if not user:
+                return unauthorized_response(_('Authentication required'))
+            
+            if not (user.is_owner or user.has_permission(permission)):
+                return forbidden_response(
+                    _('Owner role or permission required: %(permission)s', 
+                      permission=permission)
+                )
+            
+            return f(*args, **kwargs)
+        return decorated_function
+    return decorator
+
+
+def require_self_or_permission(permission, user_id_param='user_id'):
+    """Decorator to allow access to own resources or require permission for others."""
+    def decorator(f):
+        @wraps(f)
+        @jwt_required()
+        def decorated_function(*args, **kwargs):
+            user = get_current_user()
+            if not user:
+                return unauthorized_response(_('Authentication required'))
+            
+            # Get target user ID from URL parameters or request data
+            target_user_id = kwargs.get(user_id_param)
+            if not target_user_id and request.is_json:
+                data = request.get_json()
+                target_user_id = data.get(user_id_param)
+            
+            # Allow access to own resources
+            if target_user_id and str(target_user_id) == str(user.id):
+                return f(*args, **kwargs)
+            
+            # Otherwise require permission
+            if not user.has_permission(permission):
+                return forbidden_response(
+                    _('Permission required to access other users: %(permission)s', 
+                      permission=permission)
                 )
             
             return f(*args, **kwargs)

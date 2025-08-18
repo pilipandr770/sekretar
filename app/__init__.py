@@ -51,11 +51,32 @@ def create_app(config_name=None):
     from app.utils.middleware import init_middleware
     init_middleware(app)
     
+    # Initialize rate limiting
+    from app.utils.rate_limiter import init_rate_limiting
+    init_rate_limiting(app)
+    
+    # Initialize monitoring services
+    from app.services.monitoring_service import init_monitoring
+    from app.services.alerting_service import init_alerting
+    from app.services.error_tracking_service import init_error_tracking
+    from app.services.dashboard_service import init_dashboard_service
+    from app.services.signal_cli_service import init_signal_cli_service
+    
+    init_monitoring(app)
+    init_alerting(app)
+    init_error_tracking(app)
+    init_dashboard_service(app)
+    init_signal_cli_service(app)
+    
+    # Initialize performance logging
+    from app.utils.performance_logger import init_performance_logging
+    init_performance_logging(app, threshold_ms=app.config.get('PERFORMANCE_LOG_THRESHOLD_MS', 1000))
+    
     # Configure structured logging
     configure_logging(app)
     
-    # Initialize database schema
-    initialize_database_schema(app)
+    # Initialize database schema (commented out for now)
+    # initialize_database_schema(app)
     
     # Initialize middleware
     initialize_middleware(app)
@@ -68,6 +89,9 @@ def create_app(config_name=None):
     
     # Register JWT handlers
     register_jwt_handlers(app)
+    
+    # Register CLI commands
+    register_cli_commands(app)
     
     return app
 
@@ -121,7 +145,10 @@ def register_blueprints(app):
     """Register application blueprints."""
     from app.api import api_bp
     from app.api.i18n import i18n_bp
+    from app.api.tenant import tenant_bp
+    from app.api.gdpr import gdpr_bp
     from app.auth import auth_bp
+    from app.admin import admin_bp
     from app.channels import channels_bp
     from app.inbox import inbox_bp
     from app.crm import crm_bp
@@ -129,10 +156,19 @@ def register_blueprints(app):
     from app.knowledge import knowledge_bp
     from app.billing import billing_bp
     from app.kyb import kyb_bp
+    from app.main import main_bp
+    from app.secretary import secretary_bp
+    from app.api.notifications import notifications_bp
+    from app.api.signal import signal_bp
+    from app.api.monitoring import monitoring_bp
+    from app.api.docs import docs_bp
     
     app.register_blueprint(api_bp, url_prefix='/api/v1')
     app.register_blueprint(i18n_bp, url_prefix='/api/v1/i18n')
+    app.register_blueprint(tenant_bp, url_prefix='/api/v1/tenant')
+    app.register_blueprint(gdpr_bp)  # GDPR blueprint has its own url_prefix
     app.register_blueprint(auth_bp, url_prefix='/api/v1/auth')
+    app.register_blueprint(admin_bp, url_prefix='/api/v1/admin')
     app.register_blueprint(channels_bp, url_prefix='/api/v1/channels')
     app.register_blueprint(inbox_bp, url_prefix='/api/v1/inbox')
     app.register_blueprint(crm_bp, url_prefix='/api/v1/crm')
@@ -140,6 +176,46 @@ def register_blueprints(app):
     app.register_blueprint(knowledge_bp, url_prefix='/api/v1/knowledge')
     app.register_blueprint(billing_bp, url_prefix='/api/v1/billing')
     app.register_blueprint(kyb_bp, url_prefix='/api/v1/kyb')
+    app.register_blueprint(notifications_bp)
+    app.register_blueprint(signal_bp, url_prefix='/api/v1/signal')
+    app.register_blueprint(secretary_bp, url_prefix='/api/v1/secretary')
+    app.register_blueprint(monitoring_bp, url_prefix='/api/v1/monitoring')
+    app.register_blueprint(docs_bp, url_prefix='/api/v1/docs')
+    app.register_blueprint(main_bp)
+    
+    # Register root welcome endpoint
+    register_root_routes(app)
+
+
+def register_root_routes(app):
+    """Register root-level routes."""
+    from app.utils.response import welcome_response, error_response
+    
+    @app.route('/')
+    def welcome():
+        """Welcome endpoint providing API information and available endpoints."""
+        try:
+            endpoints = {
+                "health": "/api/v1/health",
+                "version": "/api/v1/version",
+                "auth": "/api/v1/auth",
+                "docs": "/api/v1/docs"
+            }
+            
+            return welcome_response(
+                message="Welcome to AI Secretary API",
+                version=app.config.get('API_VERSION', '1.0.0'),
+                environment=app.config.get('FLASK_ENV', 'development'),
+                endpoints=endpoints
+            )
+            
+        except Exception as e:
+            return error_response(
+                error_code="WELCOME_ENDPOINT_FAILED",
+                message="Failed to load welcome information",
+                status_code=500,
+                details=str(e)
+            )
 
 
 def register_error_handlers(app):
@@ -167,3 +243,9 @@ def initialize_middleware(app):
     """Initialize middleware."""
     from app.utils.middleware import init_middleware
     init_middleware(app)
+
+
+def register_cli_commands(app):
+    """Register CLI commands."""
+    from app.cli import init_app as init_cli
+    init_cli(app)

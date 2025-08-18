@@ -419,3 +419,108 @@ class TestNote:
             
             assert public_note.can_be_edited_by(user1) is True  # Owner can edit
             assert public_note.can_be_edited_by(user2) is True  # Manager can edit public
+
+
+class TestLeadConversationIntegration:
+    """Test Lead-Conversation integration."""
+    
+    def test_link_thread_to_lead(self, app):
+        """Test linking conversation thread to lead."""
+        with app.app_context():
+            from app.models.channel import Channel
+            from app.models.thread import Thread
+            
+            tenant = Tenant(name="Test", slug="test")
+            tenant.save()
+            
+            # Create channel and thread
+            channel = Channel(tenant_id=tenant.id, name="Test", type="telegram")
+            channel.save()
+            
+            thread = Thread(
+                tenant_id=tenant.id,
+                channel_id=channel.id,
+                customer_id="customer123",
+                customer_name="John Doe",
+                customer_email="john@example.com"
+            )
+            thread.save()
+            
+            # Create lead
+            pipeline = Pipeline.create_default(tenant_id=tenant.id)
+            contact = Contact(tenant_id=tenant.id, email="john@example.com")
+            contact.save()
+            
+            lead = Lead.create_from_contact(
+                tenant_id=tenant.id,
+                contact_id=contact.id,
+                title="Sales Opportunity"
+            )
+            
+            # Link thread to lead
+            thread.link_to_lead(lead.id)
+            thread.save()
+            
+            # Refresh objects
+            db.session.refresh(thread)
+            db.session.refresh(lead)
+            
+            # Test relationships
+            assert thread.lead_id == lead.id
+            assert thread.lead.title == "Sales Opportunity"
+            assert lead.get_thread_count() == 1
+            assert len(lead.threads) == 1
+            assert lead.threads[0].id == thread.id
+    
+    def test_create_lead_from_conversation(self, app):
+        """Test creating lead from conversation thread."""
+        with app.app_context():
+            from app.models.channel import Channel
+            from app.models.thread import Thread
+            
+            tenant = Tenant(name="Test", slug="test")
+            tenant.save()
+            
+            # Create default pipeline
+            pipeline = Pipeline.create_default(tenant_id=tenant.id)
+            
+            # Create channel and thread
+            channel = Channel(tenant_id=tenant.id, name="Test", type="telegram")
+            channel.save()
+            
+            thread = Thread(
+                tenant_id=tenant.id,
+                channel_id=channel.id,
+                customer_id="customer123",
+                customer_name="Jane Smith",
+                customer_email="jane@example.com",
+                customer_phone="+1234567890"
+            )
+            thread.save()
+            
+            # Create lead from conversation
+            lead = thread.create_lead_from_conversation(
+                title="Inquiry from Telegram",
+                value=2500
+            )
+            
+            # Refresh objects
+            db.session.refresh(thread)
+            db.session.refresh(lead)
+            
+            # Test lead creation
+            assert lead.title == "Inquiry from Telegram"
+            assert lead.value == 2500
+            assert lead.source == "telegram_conversation"
+            assert lead.contact is not None
+            assert lead.contact.email == "jane@example.com"
+            assert lead.contact.first_name == "Jane"
+            assert lead.contact.last_name == "Smith"
+            
+            # Test thread linking
+            assert thread.lead_id == lead.id
+            assert thread.lead.id == lead.id
+            
+            # Test lead relationships
+            assert lead.get_thread_count() == 1
+            assert lead.threads[0].id == thread.id

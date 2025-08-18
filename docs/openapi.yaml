@@ -1,0 +1,4964 @@
+openapi: 3.0.3
+info:
+  title: AI Secretary SaaS API
+  description: |
+    Comprehensive API for the AI Secretary SaaS platform - an omnichannel solution for SMBs that provides 
+    multi-agent AI secretary system with Inbox management, CRM functionality, Calendar scheduling, 
+    RAG-based knowledge management, Stripe invoicing, and KYB counterparty monitoring.
+    
+    ## Features
+    - Multi-channel communication (Telegram, Signal, Web widget)
+    - AI-powered message routing and responses
+    - CRM with lead management and pipeline tracking
+    - Google Calendar integration
+    - Knowledge base with RAG search
+    - Stripe billing and subscription management
+    - KYB monitoring with external data sources
+    - Multi-tenant architecture with RBAC
+    - GDPR compliance features
+    
+    ## Authentication
+    This API uses JWT Bearer tokens for authentication. Include the token in the Authorization header:
+    ```
+    Authorization: Bearer <your-jwt-token>
+    ```
+    
+    To obtain tokens, use the `/auth/login` endpoint with your credentials.
+    
+    ## Rate Limiting
+    API requests are rate limited per tenant and user. Rate limit headers are included in responses:
+    - `X-RateLimit-Limit`: Request limit per window
+    - `X-RateLimit-Remaining`: Remaining requests in current window
+    - `X-RateLimit-Reset`: Time when the rate limit resets
+    
+    ## Pagination
+    List endpoints support pagination with the following parameters:
+    - `page`: Page number (default: 1)
+    - `per_page`: Items per page (default: 20, max: 100)
+    
+    Pagination metadata is included in the response under the `pagination` key.
+    
+    ## Error Handling
+    The API uses standard HTTP status codes and returns error details in a consistent format:
+    ```json
+    {
+      "error": {
+        "code": "ERROR_CODE",
+        "message": "Human readable error message",
+        "details": {},
+        "request_id": "req_123456789"
+      }
+    }
+    ```
+    
+    ## Internationalization
+    The API supports multiple languages (English, German, Ukrainian). Set language preference via:
+    - URL parameter: `?lang=en`
+    - POST `/language` endpoint
+    - Accept-Language header
+    
+    ## Webhooks
+    The API supports webhooks for real-time notifications. Configure webhook endpoints in your tenant settings.
+    
+  version: 1.0.0
+  contact:
+    name: API Support
+    email: api-support@ai-secretary.com
+    url: https://docs.ai-secretary.com
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
+servers:
+  - url: https://api.ai-secretary.com/api/v1
+    description: Production server
+  - url: https://staging-api.ai-secretary.com/api/v1
+    description: Staging server
+  - url: http://localhost:5000/api/v1
+    description: Development server
+
+security:
+  - BearerAuth: []
+
+paths:
+  # Health and System Endpoints
+  /:
+    get:
+      tags:
+        - System
+      summary: Welcome endpoint
+      description: Returns API information and available endpoints
+      security: []
+      responses:
+        '200':
+          description: API information
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Welcome to AI Secretary API"
+                  version:
+                    type: string
+                    example: "1.0.0"
+                  environment:
+                    type: string
+                    example: "production"
+                  endpoints:
+                    type: object
+                    additionalProperties:
+                      type: string
+                  timestamp:
+                    type: string
+                    format: date-time
+
+  /health:
+    get:
+      tags:
+        - System
+      summary: Health check
+      description: Returns system health status
+      security: []
+      responses:
+        '200':
+          description: System is healthy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+        '503':
+          description: System is unhealthy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+
+  /version:
+    get:
+      tags:
+        - System
+      summary: API version
+      description: Returns API version information
+      security: []
+      responses:
+        '200':
+          description: Version information
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  version:
+                    type: string
+                    example: "1.0.0"
+                  environment:
+                    type: string
+                    example: "production"
+                  python_version:
+                    type: string
+                    example: "3.11.0"
+                  flask_version:
+                    type: string
+                    example: "2.3.0"
+                  build_date:
+                    type: string
+                    format: date-time
+                    nullable: true
+
+  /status:
+    get:
+      tags:
+        - System
+      summary: System status
+      description: Returns detailed system status with component information
+      security: []
+      responses:
+        '200':
+          description: System status
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  data:
+                    type: object
+                    properties:
+                      service:
+                        type: string
+                      version:
+                        type: string
+                      components:
+                        type: object
+                        additionalProperties:
+                          type: string
+                      language:
+                        type: string
+
+  /languages:
+    get:
+      tags:
+        - System
+      summary: Available languages
+      description: Get list of supported languages for internationalization
+      security: []
+      responses:
+        '200':
+          description: Available languages
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  data:
+                    type: object
+                    properties:
+                      languages:
+                        type: object
+                        additionalProperties:
+                          type: string
+                      current:
+                        type: string
+
+  /language:
+    post:
+      tags:
+        - System
+      summary: Set language
+      description: Set user language preference
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - language
+              properties:
+                language:
+                  type: string
+                  enum: [en, de, uk]
+                  example: "en"
+      responses:
+        '200':
+          description: Language updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  data:
+                    type: object
+                    properties:
+                      language:
+                        type: string
+
+  # Authentication Endpoints
+  /auth/register:
+    post:
+      tags:
+        - Authentication
+      summary: Register new tenant
+      description: Register new tenant and owner user
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+                - organization_name
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: "owner@example.com"
+                password:
+                  type: string
+                  format: password
+                  minLength: 8
+                  example: "securepassword123"
+                organization_name:
+                  type: string
+                  minLength: 2
+                  example: "Example Corp"
+                first_name:
+                  type: string
+                  example: "John"
+                last_name:
+                  type: string
+                  example: "Doe"
+                language:
+                  type: string
+                  enum: [en, de, uk]
+                  default: en
+      responses:
+        '201':
+          description: Registration successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  data:
+                    type: object
+                    properties:
+                      user:
+                        $ref: '#/components/schemas/User'
+                      tenant:
+                        $ref: '#/components/schemas/Tenant'
+                      access_token:
+                        type: string
+                      refresh_token:
+                        type: string
+                      token_type:
+                        type: string
+                        example: "Bearer"
+        '409':
+          description: User already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /auth/login:
+    post:
+      tags:
+        - Authentication
+      summary: User login
+      description: Authenticate user and return JWT tokens
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: "user@example.com"
+                password:
+                  type: string
+                  format: password
+                  example: "securepassword123"
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  data:
+                    type: object
+                    properties:
+                      user:
+                        $ref: '#/components/schemas/User'
+                      tenant:
+                        $ref: '#/components/schemas/Tenant'
+                      access_token:
+                        type: string
+                        example: "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9..."
+                      refresh_token:
+                        type: string
+                        example: "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9..."
+                      token_type:
+                        type: string
+                        example: "Bearer"
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /auth/logout:
+    post:
+      tags:
+        - Authentication
+      summary: User logout
+      description: Invalidate current session tokens
+      responses:
+        '200':
+          description: Logout successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                    example: "Logged out successfully"
+
+  /auth/refresh:
+    post:
+      tags:
+        - Authentication
+      summary: Refresh access token
+      description: Get new access token using refresh token
+      security:
+        - RefreshAuth: []
+      responses:
+        '200':
+          description: Token refreshed successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  data:
+                    type: object
+                    properties:
+                      access_token:
+                        type: string
+                        example: "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9..."
+                      token_type:
+                        type: string
+                        example: "Bearer"
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /auth/me:
+    get:
+      tags:
+        - Authentication
+      summary: Get current user profile
+      description: Get current user profile and permissions
+      responses:
+        '200':
+          description: Profile retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  data:
+                    type: object
+                    properties:
+                      user:
+                        $ref: '#/components/schemas/User'
+                      tenant:
+                        $ref: '#/components/schemas/Tenant'
+                      permissions:
+                        type: object
+                        properties:
+                          can_manage_users:
+                            type: boolean
+                          can_access_billing:
+                            type: boolean
+                          can_manage_settings:
+                            type: boolean
+
+    put:
+      tags:
+        - Authentication
+      summary: Update user profile
+      description: Update current user profile information
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                first_name:
+                  type: string
+                last_name:
+                  type: string
+                timezone:
+                  type: string
+                language:
+                  type: string
+                  enum: [en, de, uk]
+                notification_preferences:
+                  type: object
+                  additionalProperties: true
+      responses:
+        '200':
+          description: Profile updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  data:
+                    $ref: '#/components/schemas/User'
+
+  # Tenant Management
+  /tenant:
+    get:
+      tags:
+        - Tenant Management
+      summary: Get tenant information
+      description: Get current tenant information and statistics
+      responses:
+        '200':
+          description: Tenant information retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  data:
+                    type: object
+                    properties:
+                      tenant:
+                        $ref: '#/components/schemas/Tenant'
+                      stats:
+                        type: object
+                        properties:
+                          user_count:
+                            type: integer
+                          active_user_count:
+                            type: integer
+                          subscription_status:
+                            type: string
+                          is_trial:
+                            type: boolean
+                          trial_expired:
+                            type: boolean
+
+    put:
+      tags:
+        - Tenant Management
+      summary: Update tenant information
+      description: Update tenant information (requires manage_settings permission)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                domain:
+                  type: string
+                email:
+                  type: string
+                  format: email
+                phone:
+                  type: string
+                address:
+                  type: string
+      responses:
+        '200':
+          description: Tenant updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  data:
+                    $ref: '#/components/schemas/Tenant'
+
+  /tenant/settings:
+    get:
+      tags:
+        - Tenant Management
+      summary: Get tenant settings
+      description: Get tenant settings and configuration
+      responses:
+        '200':
+          description: Tenant settings retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  data:
+                    type: object
+                    properties:
+                      settings:
+                        type: object
+                        additionalProperties: true
+                      subscription_status:
+                        type: string
+                      trial_ends_at:
+                        type: string
+                        format: date-time
+                        nullable: true
+
+    put:
+      tags:
+        - Tenant Management
+      summary: Update tenant settings
+      description: Update tenant settings and configuration
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - settings
+              properties:
+                settings:
+                  type: object
+                  additionalProperties: true
+      responses:
+        '200':
+          description: Tenant settings updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  data:
+                    type: object
+                    properties:
+                      settings:
+                        type: object
+                        additionalProperties: true
+
+  /tenant/users:
+    get:
+      tags:
+        - Tenant Management
+      summary: List tenant users
+      description: List users in the current tenant with pagination and filtering
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PerPage'
+        - name: role
+          in: query
+          description: Filter by user role
+          schema:
+            type: string
+            enum: [owner, manager, support, accounting, read_only]
+        - name: is_active
+          in: query
+          description: Filter by active status
+          schema:
+            type: boolean
+        - name: search
+          in: query
+          description: Search in user names and emails
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Users retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/User'
+                  pagination:
+                    $ref: '#/components/schemas/Pagination'
+
+    post:
+      tags:
+        - Tenant Management
+      summary: Create tenant user
+      description: Create new user in the current tenant
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - role
+              properties:
+                email:
+                  type: string
+                  format: email
+                role:
+                  type: string
+                  enum: [owner, manager, support, accounting, read_only]
+                first_name:
+                  type: string
+                last_name:
+                  type: string
+                language:
+                  type: string
+                  enum: [en, de, uk]
+                  default: en
+                is_active:
+                  type: boolean
+                  default: true
+      responses:
+        '201':
+          description: User created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  data:
+                    type: object
+                    properties:
+                      user:
+                        $ref: '#/components/schemas/User'
+                      temporary_password:
+                        type: string
+                        description: "Temporary password (remove in production)"
+
+  /tenant/users/{user_id}:
+    get:
+      tags:
+        - Tenant Management
+      summary: Get tenant user
+      description: Get specific user in the current tenant
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: User retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  data:
+                    $ref: '#/components/schemas/User'
+
+    put:
+      tags:
+        - Tenant Management
+      summary: Update tenant user
+      description: Update user information in the current tenant
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                first_name:
+                  type: string
+                last_name:
+                  type: string
+                role:
+                  type: string
+                  enum: [owner, manager, support, accounting, read_only]
+                is_active:
+                  type: boolean
+                language:
+                  type: string
+                  enum: [en, de, uk]
+      responses:
+        '200':
+          description: User updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  data:
+                    $ref: '#/components/schemas/User'
+
+    delete:
+      tags:
+        - Tenant Management
+      summary: Delete tenant user
+      description: Delete (deactivate) user in the current tenant
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: User deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+
+  # CRM Endpoints
+  /crm/leads:
+    get:
+      tags:
+        - CRM
+      summary: List leads
+      description: Get paginated list of leads with filtering options
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PerPage'
+        - name: status
+          in: query
+          description: Filter by lead status
+          schema:
+            type: string
+            enum: [new, qualified, proposal, negotiation, closed_won, closed_lost]
+        - name: source
+          in: query
+          description: Filter by lead source
+          schema:
+            type: string
+        - name: assigned_to
+          in: query
+          description: Filter by assigned user ID
+          schema:
+            type: integer
+        - name: pipeline_id
+          in: query
+          description: Filter by pipeline ID
+          schema:
+            type: integer
+        - name: stage_id
+          in: query
+          description: Filter by stage ID
+          schema:
+            type: integer
+        - name: search
+          in: query
+          description: Search in lead and contact information
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of leads
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Lead'
+                  pagination:
+                    $ref: '#/components/schemas/Pagination'
+
+    post:
+      tags:
+        - CRM
+      summary: Create lead
+      description: Create new lead with contact information
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - contact
+                - source
+              properties:
+                contact:
+                  type: object
+                  required:
+                    - name
+                    - email
+                  properties:
+                    name:
+                      type: string
+                      example: "John Prospect"
+                    email:
+                      type: string
+                      format: email
+                      example: "john@prospect.com"
+                    phone:
+                      type: string
+                      example: "+1234567890"
+                    company:
+                      type: string
+                      example: "Prospect Corp"
+                source:
+                  type: string
+                  example: "website"
+                value:
+                  type: number
+                  example: 5000
+                pipeline_id:
+                  type: integer
+                  example: 1
+                stage_id:
+                  type: integer
+                  example: 1
+                assigned_to:
+                  type: integer
+                  example: 123
+                notes:
+                  type: string
+                  example: "Initial inquiry about our services"
+      responses:
+        '201':
+          description: Lead created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  data:
+                    $ref: '#/components/schemas/Lead'
+
+  /crm/leads/{lead_id}:
+    get:
+      tags:
+        - CRM
+      summary: Get lead
+      description: Get specific lead by ID with full details
+      parameters:
+        - name: lead_id
+          in: path
+          required: true
+          schema:
+            type: integer
+            example: 123
+      responses:
+        '200':
+          description: Lead details
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  data:
+                    $ref: '#/components/schemas/Lead'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    put:
+      tags:
+        - CRM
+      summary: Update lead
+      description: Update lead information and status
+      parameters:
+        - name: lead_id
+          in: path
+          required: true
+          schema:
+            type: integer
+            example: 123
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status:
+                  type: string
+                  enum: [new, qualified, proposal, negotiation, closed_won, closed_lost]
+                value:
+                  type: number
+                stage_id:
+                  type: integer
+                assigned_to:
+                  type: integer
+                notes:
+                  type: string
+      responses:
+        '200':
+          description: Lead updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  data:
+                    $ref: '#/components/schemas/Lead'
+
+    delete:
+      tags:
+        - CRM
+      summary: Delete lead
+      description: Delete (soft delete) a lead
+      parameters:
+        - name: lead_id
+          in: path
+          required: true
+          schema:
+            type: integer
+            example: 123
+      responses:
+        '200':
+          description: Lead deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+
+  /crm/tasks:
+    get:
+      tags:
+        - CRM
+      summary: List tasks
+      description: Get paginated list of tasks with filtering options
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PerPage'
+        - name: status
+          in: query
+          description: Filter by task status
+          schema:
+            type: string
+            enum: [pending, in_progress, completed, cancelled]
+        - name: lead_id
+          in: query
+          description: Filter by lead ID
+          schema:
+            type: integer
+        - name: assigned_to_id
+          in: query
+          description: Filter by assigned user ID
+          schema:
+            type: integer
+        - name: priority
+          in: query
+          description: Filter by priority
+          schema:
+            type: string
+            enum: [low, medium, high, urgent]
+        - name: task_type
+          in: query
+          description: Filter by task type
+          schema:
+            type: string
+        - name: overdue
+          in: query
+          description: Filter overdue tasks
+          schema:
+            type: boolean
+        - name: due_today
+          in: query
+          description: Filter tasks due today
+          schema:
+            type: boolean
+        - name: search
+          in: query
+          description: Search in task title and description
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of tasks
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Task'
+                  pagination:
+                    $ref: '#/components/schemas/Pagination'
+
+    post:
+      tags:
+        - CRM
+      summary: Create task
+      description: Create new task
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - title
+              properties:
+                title:
+                  type: string
+                  example: "Follow up with prospect"
+                description:
+                  type: string
+                  example: "Call to discuss pricing options"
+                lead_id:
+                  type: integer
+                  example: 123
+                assigned_to_id:
+                  type: integer
+                  example: 456
+                priority:
+                  type: string
+                  enum: [low, medium, high, urgent]
+                  default: medium
+                task_type:
+                  type: string
+                  default: general
+                category:
+                  type: string
+                due_date:
+                  type: string
+                  format: date-time
+                extra_data:
+                  type: object
+                  additionalProperties: true
+                tags:
+                  type: array
+                  items:
+                    type: string
+      responses:
+        '201':
+          description: Task created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  data:
+                    $ref: '#/components/schemas/Task'
+
+  /crm/tasks/{task_id}:
+    get:
+      tags:
+        - CRM
+      summary: Get task
+      description: Get specific task by ID
+      parameters:
+        - name: task_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Task details
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  data:
+                    $ref: '#/components/schemas/Task'
+
+    put:
+      tags:
+        - CRM
+      summary: Update task
+      description: Update task information
+      parameters:
+        - name: task_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                description:
+                  type: string
+                priority:
+                  type: string
+                  enum: [low, medium, high, urgent]
+                task_type:
+                  type: string
+                category:
+                  type: string
+                due_date:
+                  type: string
+                  format: date-time
+                assigned_to_id:
+                  type: integer
+                extra_data:
+                  type: object
+                  additionalProperties: true
+                tags:
+                  type: array
+                  items:
+                    type: string
+      responses:
+        '200':
+          description: Task updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  data:
+                    $ref: '#/components/schemas/Task'
+
+    delete:
+      tags:
+        - CRM
+      summary: Delete task
+      description: Delete (soft delete) a task
+      parameters:
+        - name: task_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Task deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+
+  /crm/tasks/{task_id}/status:
+    put:
+      tags:
+        - CRM
+      summary: Update task status
+      description: Update task status with automatic timestamp handling
+      parameters:
+        - name: task_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - status
+              properties:
+                status:
+                  type: string
+                  enum: [pending, in_progress, completed, cancelled]
+      responses:
+        '200':
+          description: Task status updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  data:
+                    $ref: '#/components/schemas/Task'
+
+  /crm/notes:
+    get:
+      tags:
+        - CRM
+      summary: List notes
+      description: Get paginated list of notes with filtering options
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PerPage'
+        - name: lead_id
+          in: query
+          description: Filter by lead ID
+          schema:
+            type: integer
+        - name: user_id
+          in: query
+          description: Filter by user ID
+          schema:
+            type: integer
+        - name: note_type
+          in: query
+          description: Filter by note type
+          schema:
+            type: string
+        - name: is_pinned
+          in: query
+          description: Filter pinned notes
+          schema:
+            type: boolean
+        - name: search
+          in: query
+          description: Search in note title and content
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of notes
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Note'
+                  pagination:
+                    $ref: '#/components/schemas/Pagination'
+
+    post:
+      tags:
+        - CRM
+      summary: Create note
+      description: Create new note
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - content
+              properties:
+                title:
+                  type: string
+                  example: "Meeting notes"
+                content:
+                  type: string
+                  example: "Discussed pricing and implementation timeline"
+                lead_id:
+                  type: integer
+                  example: 123
+                note_type:
+                  type: string
+                  default: general
+                is_private:
+                  type: boolean
+                  default: false
+                is_pinned:
+                  type: boolean
+                  default: false
+                extra_data:
+                  type: object
+                  additionalProperties: true
+                tags:
+                  type: array
+                  items:
+                    type: string
+      responses:
+        '201':
+          description: Note created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  data:
+                    $ref: '#/components/schemas/Note'
+
+  /crm/notes/{note_id}:
+    get:
+      tags:
+        - CRM
+      summary: Get note
+      description: Get specific note by ID
+      parameters:
+        - name: note_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Note details
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  data:
+                    $ref: '#/components/schemas/Note'
+
+    put:
+      tags:
+        - CRM
+      summary: Update note
+      description: Update note information
+      parameters:
+        - name: note_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                content:
+                  type: string
+                note_type:
+                  type: string
+                is_private:
+                  type: boolean
+                is_pinned:
+                  type: boolean
+                extra_data:
+                  type: object
+                  additionalProperties: true
+                tags:
+                  type: array
+                  items:
+                    type: string
+      responses:
+        '200':
+          description: Note updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  data:
+                    $ref: '#/components/schemas/Note'
+
+    delete:
+      tags:
+        - CRM
+      summary: Delete note
+      description: Delete (soft delete) a note
+      parameters:
+        - name: note_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Note deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+
+  # Inbox Management
+  /inbox/messages:
+    get:
+      tags:
+        - Inbox
+      summary: List inbox messages
+      description: Get paginated list of inbox messages with filtering options
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PerPage'
+        - name: channel
+          in: query
+          description: Filter by channel
+          schema:
+            type: string
+            enum: [telegram, signal, web_widget]
+        - name: status
+          in: query
+          description: Filter by message status
+          schema:
+            type: string
+            enum: [new, in_progress, resolved, closed]
+        - name: assigned_to
+          in: query
+          description: Filter by assigned user ID
+          schema:
+            type: integer
+        - name: thread_id
+          in: query
+          description: Filter by thread ID
+          schema:
+            type: integer
+        - name: search
+          in: query
+          description: Search in message content
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of inbox messages
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/InboxMessage'
+                  pagination:
+                    $ref: '#/components/schemas/Pagination'
+
+    post:
+      tags:
+        - Inbox
+      summary: Create inbox message
+      description: Create new inbox message (typically from external channels)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - content
+                - channel
+              properties:
+                content:
+                  type: string
+                  example: "Hello, I need help with your services"
+                channel:
+                  type: string
+                  enum: [telegram, signal, web_widget]
+                  example: "web_widget"
+                customer_email:
+                  type: string
+                  format: email
+                  example: "customer@example.com"
+                customer_name:
+                  type: string
+                  example: "John Customer"
+                thread_id:
+                  type: integer
+                  description: "Optional thread ID for continuing conversations"
+                metadata:
+                  type: object
+                  additionalProperties: true
+      responses:
+        '201':
+          description: Message created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  data:
+                    $ref: '#/components/schemas/InboxMessage'
+
+  /inbox/messages/{message_id}:
+    get:
+      tags:
+        - Inbox
+      summary: Get inbox message
+      description: Get specific inbox message by ID
+      parameters:
+        - name: message_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Message details
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  data:
+                    $ref: '#/components/schemas/InboxMessage'
+
+    put:
+      tags:
+        - Inbox
+      summary: Update inbox message
+      description: Update inbox message status and response
+      parameters:
+        - name: message_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status:
+                  type: string
+                  enum: [new, in_progress, resolved, closed]
+                ai_response:
+                  type: string
+                assigned_to:
+                  type: integer
+                metadata:
+                  type: object
+                  additionalProperties: true
+      responses:
+        '200':
+          description: Message updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  data:
+                    $ref: '#/components/schemas/InboxMessage'
+omponents:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+    RefreshAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  parameters:
+    Page:
+      name: page
+      in: query
+      description: Page number
+      schema:
+        type: integer
+        minimum: 1
+        default: 1
+        example: 1
+
+    PerPage:
+      name: per_page
+      in: query
+      description: Items per page
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+        default: 20
+        example: 20
+
+  responses:
+    Unauthorized:
+      description: Authentication required or invalid token
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error:
+              code: "UNAUTHORIZED"
+              message: "Authentication required"
+              request_id: "req_123456789"
+
+    Forbidden:
+      description: Insufficient permissions
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error:
+              code: "FORBIDDEN"
+              message: "Insufficient permissions"
+              request_id: "req_123456789"
+
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error:
+              code: "NOT_FOUND"
+              message: "Resource not found"
+              request_id: "req_123456789"
+
+    ValidationError:
+      description: Validation error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error:
+              code: "VALIDATION_ERROR"
+              message: "Invalid input data"
+              details:
+                field: "email"
+                reason: "Invalid email format"
+              request_id: "req_123456789"
+
+  schemas:
+    Error:
+      type: object
+      properties:
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+              example: "ERROR_CODE"
+            message:
+              type: string
+              example: "Human readable error message"
+            details:
+              type: object
+              additionalProperties: true
+            request_id:
+              type: string
+              example: "req_123456789"
+
+    HealthResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [healthy, unhealthy]
+          example: "healthy"
+        timestamp:
+          type: string
+          format: date-time
+        version:
+          type: string
+          example: "1.0.0"
+        checks:
+          type: object
+          additionalProperties:
+            type: object
+            properties:
+              status:
+                type: string
+                enum: [healthy, unhealthy]
+              response_time_ms:
+                type: integer
+                nullable: true
+              error:
+                type: string
+                nullable: true
+
+    Pagination:
+      type: object
+      properties:
+        current_page:
+          type: integer
+          example: 1
+        per_page:
+          type: integer
+          example: 20
+        total:
+          type: integer
+          example: 150
+        pages:
+          type: integer
+          example: 8
+        has_next:
+          type: boolean
+          example: true
+        has_prev:
+          type: boolean
+          example: false
+
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 123
+        tenant_id:
+          type: integer
+          example: 1
+        email:
+          type: string
+          format: email
+          example: "user@example.com"
+        first_name:
+          type: string
+          example: "John"
+        last_name:
+          type: string
+          example: "Doe"
+        role:
+          type: string
+          enum: [owner, manager, support, accounting, read_only]
+          example: "manager"
+        is_active:
+          type: boolean
+          example: true
+        created_at:
+          type: string
+          format: date-time
+        last_login:
+          type: string
+          format: date-time
+          nullable: true
+
+    InboxMessage:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 123
+        tenant_id:
+          type: integer
+          example: 1
+        thread_id:
+          type: integer
+          example: 456
+        channel:
+          type: string
+          enum: [telegram, signal, web_widget]
+          example: "web_widget"
+        content:
+          type: string
+          example: "Hello, I need help with your services"
+        customer_email:
+          type: string
+          format: email
+          example: "customer@example.com"
+        customer_name:
+          type: string
+          example: "John Customer"
+        ai_response:
+          type: string
+          nullable: true
+          example: "Thank you for your inquiry! I'd be happy to help."
+        status:
+          type: string
+          enum: [new, in_progress, resolved, closed]
+          example: "new"
+        assigned_to:
+          type: integer
+          nullable: true
+          example: 789
+        metadata:
+          type: object
+          additionalProperties: true
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    Lead:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 123
+        tenant_id:
+          type: integer
+          example: 1
+        contact:
+          $ref: '#/components/schemas/Contact'
+        pipeline_id:
+          type: integer
+          example: 1
+        stage_id:
+          type: integer
+          example: 2
+        source:
+          type: string
+          example: "website"
+        value:
+          type: number
+          example: 5000
+        status:
+          type: string
+          enum: [new, qualified, proposal, negotiation, closed_won, closed_lost]
+          example: "qualified"
+        assigned_to:
+          type: integer
+          nullable: true
+          example: 456
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    Contact:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 123
+        tenant_id:
+          type: integer
+          example: 1
+        name:
+          type: string
+          example: "John Prospect"
+        email:
+          type: string
+          format: email
+          example: "john@prospect.com"
+        phone:
+          type: string
+          example: "+1234567890"
+        company:
+          type: string
+          example: "Prospect Corp"
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+tags:
+  - name: System
+    description: System health and information endpoints
+  - name: Authentication
+    description: User authentication and authorization
+  - name: CRM
+    description: Customer relationship management
+  - name: Inbox
+    description: Unified inbox and message management  # C
+alendar Integration
+  /calendar/connection/status:
+    get:
+      tags:
+        - Calendar
+      summary: Get calendar connection status
+      description: Get Google Calendar connection status and configuration
+      responses:
+        '200':
+          description: Calendar connection status retrieved
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  data:
+                    type: object
+                    properties:
+                      connected:
+                        type: boolean
+                      configured:
+                        type: boolean
+                      expires_at:
+                        type: string
+                        format: date-time
+                        nullable: true
+                      is_expired:
+                        type: boolean
+                        nullable: true
+                      error:
+                        type: string
+                        nullable: true
+
+  /calendar/calendars:
+    get:
+      tags:
+        - Calendar
+      summary: List calendars
+      description: List user's Google calendars
+      responses:
+        '200':
+          description: Calendars retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  data:
+                    type: object
+                    properties:
+                      calendars:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Calendar'
+                      count:
+                        type: integer
+
+  /calendar/events:
+    get:
+      tags:
+        - Calendar
+      summary: List calendar events
+      description: List calendar events with filtering options
+      parameters:
+        - name: calendar_id
+          in: query
+          description: Calendar ID (default: primary)
+          schema:
+            type: string
+            default: primary
+        - name: start_date
+          in: query
+          description: Start date for event filtering (ISO 8601)
+          schema:
+            type: string
+            format: date-time
+        - name: end_date
+          in: query
+          description: End date for event filtering (ISO 8601)
+          schema:
+            type: string
+            format: date-time
+        - name: max_results
+          in: query
+          description: Maximum number of events to return (1-250)
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 250
+            default: 50
+      responses:
+        '200':
+          description: Events retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  data:
+                    type: object
+                    properties:
+                      events:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/CalendarEvent'
+                      count:
+                        type: integer
+                      calendar_id:
+                        type: string
+                      time_range:
+                        type: object
+                        properties:
+                          start:
+                            type: string
+                            format: date-time
+                          end:
+                            type: string
+                            format: date-time
+
+    post:
+      tags:
+        - Calendar
+      summary: Create calendar event
+      description: Create new calendar event
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - title
+                - start_time
+                - end_time
+              properties:
+                title:
+                  type: string
+                  example: "Product Demo"
+                description:
+                  type: string
+                  example: "Demo call with prospect"
+                start_time:
+                  type: string
+                  format: date-time
+                  example: "2025-08-20T10:00:00Z"
+                end_time:
+                  type: string
+                  format: date-time
+                  example: "2025-08-20T11:00:00Z"
+                calendar_id:
+                  type: string
+                  default: primary
+                attendees:
+                  type: array
+                  items:
+                    oneOf:
+                      - type: string
+                        format: email
+                      - type: object
+                        properties:
+                          email:
+                            type: string
+                            format: email
+                          name:
+                            type: string
+                location:
+                  type: string
+                send_notifications:
+                  type: boolean
+                  default: true
+      responses:
+        '201':
+          description: Event created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  data:
+                    type: object
+                    properties:
+                      event:
+                        $ref: '#/components/schemas/CalendarEvent'
+
+  /calendar/events/{event_id}:
+    put:
+      tags:
+        - Calendar
+      summary: Update calendar event
+      description: Update existing calendar event
+      parameters:
+        - name: event_id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                description:
+                  type: string
+                start_time:
+                  type: string
+                  format: date-time
+                end_time:
+                  type: string
+                  format: date-time
+                calendar_id:
+                  type: string
+                  default: primary
+                attendees:
+                  type: array
+                  items:
+                    oneOf:
+                      - type: string
+                        format: email
+                      - type: object
+                        properties:
+                          email:
+                            type: string
+                            format: email
+                          name:
+                            type: string
+                location:
+                  type: string
+      responses:
+        '200':
+          description: Event updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  data:
+                    type: object
+                    properties:
+                      event:
+                        $ref: '#/components/schemas/CalendarEvent'
+
+    delete:
+      tags:
+        - Calendar
+      summary: Delete calendar event
+      description: Delete calendar event
+      parameters:
+        - name: event_id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: calendar_id
+          in: query
+          description: Calendar ID (default: primary)
+          schema:
+            type: string
+            default: primary
+        - name: send_notifications
+          in: query
+          description: Send notifications to attendees
+          schema:
+            type: boolean
+            default: true
+      responses:
+        '200':
+          description: Event deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+
+  /calendar/availability:
+    get:
+      tags:
+        - Calendar
+      summary: Check calendar availability
+      description: Check calendar availability for booking appointments
+      parameters:
+        - name: calendar_id
+          in: query
+          description: Calendar ID (default: primary)
+          schema:
+            type: string
+            default: primary
+        - name: start_date
+          in: query
+          required: true
+          description: Start date for availability check (ISO 8601)
+          schema:
+            type: string
+            format: date-time
+        - name: end_date
+          in: query
+          required: true
+          description: End date for availability check (ISO 8601)
+          schema:
+            type: string
+            format: date-time
+        - name: duration
+          in: query
+          description: Duration in minutes (15-480)
+          schema:
+            type: integer
+            minimum: 15
+            maximum: 480
+            default: 60
+        - name: working_hours_start
+          in: query
+          description: Working hours start time (HH:MM format)
+          schema:
+            type: string
+            pattern: '^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$'
+            default: "09:00"
+        - name: working_hours_end
+          in: query
+          description: Working hours end time (HH:MM format)
+          schema:
+            type: string
+            pattern: '^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$'
+            default: "17:00"
+      responses:
+        '200':
+          description: Availability checked successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  data:
+                    type: object
+                    properties:
+                      is_available:
+                        type: boolean
+                      available_slots:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            start:
+                              type: string
+                              format: date-time
+                            end:
+                              type: string
+                              format: date-time
+                      busy_periods:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            start:
+                              type: string
+                              format: date-time
+                            end:
+                              type: string
+                              format: date-time
+                            title:
+                              type: string
+
+  /calendar/book:
+    post:
+      tags:
+        - Calendar
+      summary: Book appointment
+      description: Book an appointment slot with availability check
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - start_time
+                - end_time
+                - customer_email
+              properties:
+                title:
+                  type: string
+                  example: "Appointment with John Customer"
+                description:
+                  type: string
+                start_time:
+                  type: string
+                  format: date-time
+                  example: "2025-08-20T10:00:00Z"
+                end_time:
+                  type: string
+                  format: date-time
+                  example: "2025-08-20T11:00:00Z"
+                calendar_id:
+                  type: string
+                  default: primary
+                customer_email:
+                  type: string
+                  format: email
+                  example: "customer@example.com"
+                customer_name:
+                  type: string
+                  example: "John Customer"
+                location:
+                  type: string
+                send_notifications:
+                  type: boolean
+                  default: true
+      responses:
+        '201':
+          description: Appointment booked successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  data:
+                    type: object
+                    properties:
+                      event:
+                        $ref: '#/components/schemas/CalendarEvent'
+        '409':
+          description: Time slot not available
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  # Knowledge Management
+  /knowledge/sources:
+    get:
+      tags:
+        - Knowledge Management
+      summary: List knowledge sources
+      description: Get knowledge sources for the current tenant
+      parameters:
+        - name: status
+          in: query
+          description: Filter by source status
+          schema:
+            type: string
+            enum: [pending, processing, completed, error]
+      responses:
+        '200':
+          description: Knowledge sources retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  data:
+                    type: object
+                    properties:
+                      sources:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/KnowledgeSource'
+                      total:
+                        type: integer
+
+    post:
+      tags:
+        - Knowledge Management
+      summary: Create knowledge source
+      description: Create new knowledge source (document or URL)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+                - source_type
+              properties:
+                name:
+                  type: string
+                  example: "Product Documentation"
+                source_type:
+                  type: string
+                  enum: [document, url]
+                  example: "document"
+                description:
+                  type: string
+                  example: "Comprehensive product documentation"
+                tags:
+                  type: array
+                  items:
+                    type: string
+                url:
+                  type: string
+                  format: uri
+                  description: "Required for URL sources"
+                  example: "https://docs.example.com"
+                crawl_frequency:
+                  type: string
+                  enum: [manual, daily, weekly, monthly]
+                  default: manual
+                  description: "For URL sources only"
+                max_depth:
+                  type: integer
+                  minimum: 1
+                  maximum: 5
+                  default: 1
+                  description: "For URL sources only"
+      responses:
+        '201':
+          description: Knowledge source created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  data:
+                    type: object
+                    properties:
+                      source:
+                        $ref: '#/components/schemas/KnowledgeSource'
+
+  /knowledge/sources/{source_id}:
+    get:
+      tags:
+        - Knowledge Management
+      summary: Get knowledge source
+      description: Get specific knowledge source by ID
+      parameters:
+        - name: source_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Knowledge source retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  data:
+                    type: object
+                    properties:
+                      source:
+                        $ref: '#/components/schemas/KnowledgeSource'
+
+    delete:
+      tags:
+        - Knowledge Management
+      summary: Delete knowledge source
+      description: Delete knowledge source and all associated documents
+      parameters:
+        - name: source_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Knowledge source deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  data:
+                    type: object
+                    properties:
+                      deleted:
+                        type: boolean
+
+  /knowledge/sources/{source_id}/documents:
+    get:
+      tags:
+        - Knowledge Management
+      summary: Get source documents
+      description: Get documents for a specific knowledge source
+      parameters:
+        - name: source_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Source documents retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  data:
+                    type: object
+                    properties:
+                      documents:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Document'
+                      total:
+                        type: integer
+
+  /knowledge/sources/{source_id}/upload:
+    post:
+      tags:
+        - Knowledge Management
+      summary: Upload document
+      description: Upload document to knowledge source
+      parameters:
+        - name: source_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - file
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: "Document file (PDF, DOC, DOCX, TXT, MD)"
+                title:
+                  type: string
+                  description: "Optional document title"
+      responses:
+        '201':
+          description: Document uploaded successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  data:
+                    type: object
+                    properties:
+                      document:
+                        $ref: '#/components/schemas/Document'
+
+  /knowledge/sources/{source_id}/crawl:
+    post:
+      tags:
+        - Knowledge Management
+      summary: Crawl URL source
+      description: Crawl URL for knowledge source content
+      parameters:
+        - name: source_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                url:
+                  type: string
+                  format: uri
+                  description: "Optional URL override (uses source URL if not provided)"
+      responses:
+        '200':
+          description: URL crawled successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  data:
+                    type: object
+                    properties:
+                      documents:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Document'
+                      total:
+                        type: integer
+
+  /knowledge/documents/{document_id}:
+    get:
+      tags:
+        - Knowledge Management
+      summary: Get document
+      description: Get specific document by ID with full content
+      parameters:
+        - name: document_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Document retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  data:
+                    type: object
+                    properties:
+                      document:
+                        allOf:
+                          - $ref: '#/components/schemas/Document'
+                          - type: object
+                            properties:
+                              content:
+                                type: string
+                                description: "Full document content"
+
+    delete:
+      tags:
+        - Knowledge Management
+      summary: Delete document
+      description: Delete document and associated embeddings
+      parameters:
+        - name: document_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Document deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  data:
+                    type: object
+                    properties:
+                      deleted:
+                        type: boolean
+
+  /knowledge/search:
+    post:
+      tags:
+        - Knowledge Management
+      summary: Search knowledge base
+      description: Search knowledge base using semantic similarity
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - query
+              properties:
+                query:
+                  type: string
+                  example: "How do I integrate the API?"
+                limit:
+                  type: integer
+                  minimum: 1
+                  maximum: 50
+                  default: 10
+                min_similarity:
+                  type: number
+                  minimum: 0
+                  maximum: 1
+                  default: 0.7
+                model:
+                  type: string
+                  description: "Optional embedding model override"
+                source_ids:
+                  type: array
+                  items:
+                    type: integer
+                  description: "Optional source filtering"
+      responses:
+        '200':
+          description: Knowledge search completed successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  data:
+                    type: object
+                    properties:
+                      query:
+                        type: string
+                      results:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            content:
+                              type: string
+                            similarity:
+                              type: number
+                            source:
+                              type: object
+                              properties:
+                                id:
+                                  type: integer
+                                name:
+                                  type: string
+                                type:
+                                  type: string
+                            document:
+                              type: object
+                              properties:
+                                id:
+                                  type: integer
+                                title:
+                                  type: string
+                            chunk:
+                              type: object
+                              properties:
+                                id:
+                                  type: integer
+                                position:
+                                  type: integer
+                      total:
+                        type: integer
+                      limit:
+                        type: integer
+                      min_similarity:
+                        type: number
+                      model_used:
+                        type: string
+                        nullable: true
+                      source_ids_filter:
+                        type: array
+                        items:
+                          type: integer
+                        nullable: true
+
+  /knowledge/sources/{source_id}/embeddings:
+    post:
+      tags:
+        - Knowledge Management
+      summary: Generate source embeddings
+      description: Generate embeddings for all documents in a knowledge source
+      parameters:
+        - name: source_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Embeddings generated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  data:
+                    type: object
+                    properties:
+                      processed_documents:
+                        type: integer
+                      generated_embeddings:
+                        type: integer
+                      skipped_documents:
+                        type: integer
+
+  /knowledge/sources/{source_id}/reindex:
+    post:
+      tags:
+        - Knowledge Management
+      summary: Re-index source embeddings
+      description: Re-generate embeddings for a knowledge source
+      parameters:
+        - name: source_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Embeddings re-indexed successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  data:
+                    type: object
+                    properties:
+                      processed_documents:
+                        type: integer
+                      generated_embeddings:
+                        type: integer
+                      deleted_old_embeddings:
+                        type: integer
+
+  /knowledge/documents/{document_id}/embeddings:
+    post:
+      tags:
+        - Knowledge Management
+      summary: Generate document embeddings
+      description: Generate embeddings for a specific document
+      parameters:
+        - name: document_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Document embeddings generated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  data:
+                    type: object
+                    properties:
+                      document_id:
+                        type: integer
+                      generated_chunks:
+                        type: integer
+                      generated_embeddings:
+                        type: integer
+
+  /knowledge/models:
+    get:
+      tags:
+        - Knowledge Management
+      summary: Get embedding models
+      description: Get available embedding models
+      security: []
+      responses:
+        '200':
+          description: Available embedding models retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  data:
+                    type: object
+                    properties:
+                      models:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            name:
+                              type: string
+                            description:
+                              type: string
+                            dimensions:
+                              type: integer
+                            max_tokens:
+                              type: integer
+                      default_model:
+                        type: string
+
+  /knowledge/stats:
+    get:
+      tags:
+        - Knowledge Management
+      summary: Get knowledge statistics
+      description: Get knowledge base statistics for the current tenant
+      responses:
+        '200':
+          description: Knowledge statistics retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  data:
+                    type: object
+                    properties:
+                      sources:
+                        type: object
+                        properties:
+                          total:
+                            type: integer
+                          by_status:
+                            type: object
+                            additionalProperties:
+                              type: integer
+                          active:
+                            type: integer
+                          processing:
+                            type: integer
+                          pending:
+                            type: integer
+                          error:
+                            type: integer
+                      documents:
+                        type: object
+                        properties:
+                          total:
+                            type: integer
+                          total_tokens:
+                            type: integer
+                      chunks:
+                        type: object
+                        properties:
+                          total:
+                            type: integer
+                      embeddings:
+                        type: object
+                        properties:
+                          total_embeddings:
+                            type: integer
+                          embeddings_by_model:
+                            type: object
+                            additionalProperties:
+                              type: integer
+                          total_chunks:
+                            type: integer
+                          embedded_chunks:
+                            type: integer
+                          embedding_coverage:
+                            type: number
+
+  # Billing and Invoices
+  /billing/invoices:
+    get:
+      tags:
+        - Billing
+      summary: List invoices
+      description: Get paginated list of invoices with filtering options
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PerPage'
+        - name: status
+          in: query
+          description: Filter by invoice status
+          schema:
+            type: string
+            enum: [draft, open, paid, void, uncollectible]
+        - name: subscription_id
+          in: query
+          description: Filter by subscription ID
+          schema:
+            type: integer
+        - name: start_date
+          in: query
+          description: Filter by creation date (start)
+          schema:
+            type: string
+            format: date-time
+        - name: end_date
+          in: query
+          description: Filter by creation date (end)
+          schema:
+            type: string
+            format: date-time
+        - name: sort_by
+          in: query
+          description: Sort field
+          schema:
+            type: string
+            enum: [created_at, amount_total, due_date]
+            default: created_at
+        - name: sort_order
+          in: query
+          description: Sort order
+          schema:
+            type: string
+            enum: [asc, desc]
+            default: desc
+      responses:
+        '200':
+          description: Invoices retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Invoice'
+                  pagination:
+                    $ref: '#/components/schemas/Pagination'
+                  summary:
+                    type: object
+                    properties:
+                      total_amount:
+                        type: number
+                      paid_amount:
+                        type: number
+                      outstanding_amount:
+                        type: number
+                      currency:
+                        type: string
+
+    post:
+      tags:
+        - Billing
+      summary: Create invoice
+      description: Create new invoice
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - customer_id
+              properties:
+                customer_id:
+                  type: string
+                  example: "cus_stripe_customer_id"
+                subscription_id:
+                  type: integer
+                  description: "Optional subscription ID"
+                amount:
+                  type: number
+                  description: "Optional fixed amount"
+                  example: 99.99
+                currency:
+                  type: string
+                  default: USD
+                  example: "USD"
+                description:
+                  type: string
+                  example: "Monthly subscription fee"
+                metadata:
+                  type: object
+                  additionalProperties: true
+      responses:
+        '201':
+          description: Invoice created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  data:
+                    $ref: '#/components/schemas/Invoice'
+
+  /billing/invoices/{invoice_id}:
+    get:
+      tags:
+        - Billing
+      summary: Get invoice
+      description: Get specific invoice by ID
+      parameters:
+        - name: invoice_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Invoice retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  data:
+                    $ref: '#/components/schemas/Invoice'
+
+  /billing/invoices/{invoice_id}/finalize:
+    post:
+      tags:
+        - Billing
+      summary: Finalize invoice
+      description: Finalize a draft invoice
+      parameters:
+        - name: invoice_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Invoice finalized successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  data:
+                    $ref: '#/components/schemas/Invoice'
+
+  /billing/invoices/{invoice_id}/send:
+    post:
+      tags:
+        - Billing
+      summary: Send invoice
+      description: Send invoice to customer
+      parameters:
+        - name: invoice_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Invoice sent successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  data:
+                    $ref: '#/components/schemas/Invoice'
+
+  /billing/invoices/{invoice_id}/void:
+    post:
+      tags:
+        - Billing
+      summary: Void invoice
+      description: Void an invoice
+      parameters:
+        - name: invoice_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Invoice voided successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  data:
+                    $ref: '#/components/schemas/Invoice'
+
+  /billing/invoices/{invoice_id}/payment-link:
+    post:
+      tags:
+        - Billing
+      summary: Create payment link
+      description: Create payment link for invoice
+      parameters:
+        - name: invoice_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Payment link created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  data:
+                    type: object
+                    properties:
+                      payment_url:
+                        type: string
+                        format: uri
+                      invoice_id:
+                        type: integer
+
+  /billing/invoices/reports/summary:
+    get:
+      tags:
+        - Billing
+      summary: Get invoice summary
+      description: Get invoice summary and statistics
+      parameters:
+        - name: start_date
+          in: query
+          description: Start date for summary period
+          schema:
+            type: string
+            format: date-time
+        - name: end_date
+          in: query
+          description: End date for summary period
+          schema:
+            type: string
+            format: date-time
+      responses:
+        '200':
+          description: Invoice summary retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  data:
+                    type: object
+                    properties:
+                      period:
+                        type: object
+                        properties:
+                          start_date:
+                            type: string
+                            format: date-time
+                            nullable: true
+                          end_date:
+                            type: string
+                            format: date-time
+                            nullable: true
+                      totals:
+                        type: object
+                        properties:
+                          invoice_count:
+                            type: integer
+                          total_amount:
+                            type: number
+                          paid_amount:
+                            type: number
+                          outstanding_amount:
+                            type: number
+                          overdue_amount:
+                            type: number
+                          currency:
+                            type: string
+                      status_breakdown:
+                        type: object
+                        additionalProperties:
+                          type: integer
+                      overdue:
+                        type: object
+                        properties:
+                          count:
+                            type: integer
+                          amount:
+                            type: number
+                      monthly_breakdown:
+                        type: object
+                        additionalProperties:
+                          type: object
+                          properties:
+                            count:
+                              type: integer
+                            total_amount:
+                              type: number
+                            paid_amount:
+                              type: number
+
+  # Monitoring and Admin
+  /monitoring/metrics:
+    get:
+      tags:
+        - Monitoring
+      summary: Get system metrics
+      description: Get comprehensive system and application metrics (admin only)
+      responses:
+        '200':
+          description: Metrics retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  data:
+                    type: object
+                    properties:
+                      system:
+                        type: object
+                        properties:
+                          cpu_percent:
+                            type: number
+                          memory_percent:
+                            type: number
+                          disk_usage_percent:
+                            type: number
+                      application:
+                        type: object
+                        properties:
+                          request_count:
+                            type: integer
+                          error_count:
+                            type: integer
+                          response_time_avg:
+                            type: number
+                          response_time_p95:
+                            type: number
+                          response_time_p99:
+                            type: number
+                          database_connections:
+                            type: integer
+                          redis_connections:
+                            type: integer
+                      health_status:
+                        type: string
+                        enum: [healthy, unhealthy]
+                      timestamp:
+                        type: string
+                        format: date-time
+
+  /monitoring/health/detailed:
+    get:
+      tags:
+        - Monitoring
+      summary: Get detailed health information
+      description: Get detailed health information including metrics (admin only)
+      responses:
+        '200':
+          description: Detailed health information retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  data:
+                    type: object
+                    properties:
+                      status:
+                        type: string
+                        enum: [healthy, unhealthy]
+                      timestamp:
+                        type: string
+                        format: date-time
+                      checks:
+                        type: object
+                        additionalProperties:
+                          type: object
+                          properties:
+                            status:
+                              type: string
+                              enum: [healthy, unhealthy]
+                            response_time_ms:
+                              type: integer
+                              nullable: true
+                            error:
+                              type: string
+                              nullable: true
+                      metrics:
+                        type: object
+                        description: "System metrics (same as /monitoring/metrics)"
+
+  # Notifications
+  /notifications:
+    get:
+      tags:
+        - Notifications
+      summary: List notifications
+      description: Get paginated list of notifications for current user
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PerPage'
+        - name: type
+          in: query
+          description: Filter by notification type
+          schema:
+            type: string
+        - name: is_read
+          in: query
+          description: Filter by read status
+          schema:
+            type: boolean
+        - name: priority
+          in: query
+          description: Filter by priority
+          schema:
+            type: string
+            enum: [low, medium, high, urgent]
+      responses:
+        '200':
+          description: Notifications retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Notification'
+                  pagination:
+                    $ref: '#/components/schemas/Pagination'
+
+    post:
+      tags:
+        - Notifications
+      summary: Create notification
+      description: Create new notification
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - title
+                - message
+                - type
+              properties:
+                title:
+                  type: string
+                  example: "New lead assigned"
+                message:
+                  type: string
+                  example: "You have been assigned a new lead: John Prospect"
+                type:
+                  type: string
+                  example: "lead_assignment"
+                priority:
+                  type: string
+                  enum: [low, medium, high, urgent]
+                  default: medium
+                recipient_id:
+                  type: integer
+                  description: "Optional specific recipient (defaults to current user)"
+                metadata:
+                  type: object
+                  additionalProperties: true
+      responses:
+        '201':
+          description: Notification created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  data:
+                    $ref: '#/components/schemas/Notification'
+
+  /notifications/{notification_id}:
+    get:
+      tags:
+        - Notifications
+      summary: Get notification
+      description: Get specific notification by ID
+      parameters:
+        - name: notification_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Notification retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    typ
+"eriodfter grace pecuted a be exeletion will: "Dion    descript                  me
+  t: date-ti  forma                 tring
+         type: s            
+        _deletion:heduled      sc              ing
+  type: str                       uest_id:
+ eq  r            :
+        tiesproper                 
+   e: object      typ       :
+            data         ng
+    ri   type: st            :
+      message           
+      : boolean   type               s:
+       succes       ies:
+        propert         ject
+      obype:    t           ema:
+ sch         on:
+     plication/js     ap   t:
+       contented
+       t accepon requesdeletia n: Datscriptio         de
+       '202':sponses:
+  e
+      reexample: tru                "
+  stetion requerm delto confie true : "Must biption descr             oolean
+       type: b          :
+     rmationfi  con      
+        onsentof_c withdrawal_default:                 her]
+ sing, otes_procnlawful uecessary, no_longer_nent,f_cons_ohdrawal enum: [wit            
+      stringe:     typ           
+   reason:            ties:
+   roper     p    
+     type: object                 schema:
+         :
+cation/jsonlipp         at:
+ tencon
+        uestBody:
+      reqcle 17)tiDPR Arletion (Gdemplete data : Request coption   descri  deletion
+ quest data  summary: Re     pliance
+PR Com       - GD   tags:
+ ost:
+   
+    pletion:pr/data-degd  /te-time
+
+ daformat:                        ring
+ype: st      t                  pletion:
+commated_ esti                     string
+type:                         d:
+_i  request                    erties:
+       prop          ct
+   bjepe: o      ty         
+           data:         tring
+        type: s             ssage:
+           me   lean
+         type: boo            
+     ss:ce      suc            ties:
+oper         pr
+       e: object  typ         a:
+     chem         sson:
+     ation/j applic     ent:
+           cont     ccepted
+est aport requata extion: D     descrip
+     '202':  s:
+       responsee
+     ault: tru  def          an
+      e: boole     typ    :
+         _metadataclude        in        lt: json
+au  def         
+       xml][json, csv, : enum              tring
+      type: s                at:
+ form            :
+   iesert  prop            ct
+  type: obje          a:
+         schemon:
+     jsion/licatpp    a:
+        contentody:
+      stBque      reticle 20)
+rt (GDPR Arta expocomplete da Request ption:  descri
+     exporttast dary: Reque    summaliance
+  PR Comp       - GDgs:
+ t:
+      tat:
+    posdata-exporgdpr/
+  /e
+lable: tru        nul                   ime
+   e-tmat: dat         for              
+        stringtype:                   
+           _at:  expires                      
+    true  nullable:                           
+  -timeformat: date                            tring
+    type: s                            _at:
+thdrawn         wi                e: true
+   nullabl                          ime
+    mat: date-t         for                 tring
+    : s    type                      d_at:
+          grante                 ean
+     e: bool         typ                    ranted:
+      g                
+       ringtype: st                              purpose:
+                         ng
+   : stri    type                     
+     _type:sent     con              
+         perties:       pro            
+       bjecte: o  typ                       :
+    items             
+        ype: array           t        ts:
+     onsen           c           perties:
+        pro        
+    ype: object      t       a:
+             dat          
+  string      type:        :
+       message                 an
+ : boole type                  ccess:
+  su              
+   roperties: p            t
+   ec type: obj             ema:
+         sch     on:
+  cation/jsli       appnt:
+     onte c         fully
+essved succ retrietatusnt sseon: Concripti         des:
+ 00'
+        '2responses:ries
+      tegoall caus for nt statrrent conseion: Get cuscript     detus
+ onsent sta csummary: Get      iance
+DPR Compl      - Gtags:
+       
+    get:
+ tatus:t/snsencor/
+  /gdptime
+ date-rmat:    fo                 tring
+     type: s                     t:
+ awn_a      withdr                operties:
+pr                  ect
+    type: obj           ta:
+            da           ng
+  striype:     t         
+       ssage:        me  
+        oleanpe: bo       ty        :
+       success            :
+    perties   pro           ct
+  type: obje         :
+       ema        sch:
+      jsoncation/   appli     t:
+      conten        cessfully
+drawn sucnsent withtion: Coipescr        d0':
+          '20s:
+nsepo"
+      resationsg communicketinn marrested ir inteo longemple: "N         exa       
+  stringype:         t        
+  eason:          r      sary]
+al, necesunctionlytics, frketing, anaum: [ma    en       ng
+        type: stri              ype:
+   _t     consent           erties:
+prop             ype
+ sent_t  - con          uired:
+             req     
+ectobj     type:        schema:
+              tion/json:
+     applicaent:
+        cont
+     ed: true requir
+       requestBody:  ssing
+     proceor dataonsent f GDPR c: Withdraw description   sent
+  Withdraw conry: summa     iance
+ - GDPR Compl   s:
+     
+      tagost:
+    p/withdraw:r/consent
+
+  /gdp-timeformat: date                       
+ tring   type: s              
+       anted_at:         gr           nteger
+  type: i                        onsent_id:
+  c               es:
+     ti   proper                 object
+: pe     ty               a:
+  dat          ng
+       type: stri                   message:
+            
+      lean type: boo                  ss:
+  succe              es:
+   ti proper        
+       ype: object t           hema:
+           sc    json:
+   ation/licpp          aent:
+     contlly
+       ccessfusuted sent granContion: escrip     d    '200':
+    :
+      responses5
+     le: 36    examp             ys"
+ daeriod in ention pion: "Ret   descript             
+  ger inteype:          t  iod:
+      perretention_              "]
+  ncesrefere", "pame "nail",ple: ["em exam                 tring
+   type: s                 :
+ items              ay
+   pe: arr      ty       s:
+     categorie  data_    
+          tions"caommuni ctingarkee: "Email mmpl      exa       ring
+         type: st            se:
+  purpo                ecessary]
+nctional, nlytics, fuing, ana: [market       enum          ring
+    type: st           e:
+    t_typ consen           es:
+    erti        prop
+      se     - purpo    ype
+       onsent_t - c        
+        required:          ject
+   ob    type:    
+          schema:       n/json:
+  plicatio  ap   ent:
+     contue
+        required: tr        uestBody:
+
+      req processingt for dataDPR consenion: Grant Gscript
+      det consentary: Gransumm  
+    Compliance GDPR         -
+tags:      
+ost:nt:
+    pgrant/ /gdpr/conseiance
+ ompl# GDPR C
+
+  ooleantype: b                          ties:
+tionalProper  addi                    : object
+      type            
+        types:on_otificati         n       ean
+      type: bool                   
+     ions:atotific      sms_n              
+  eanype: bool           t    
+         ations:h_notific      pus                boolean
+:       type                :
+  fications  email_noti         
+           s:opertie       pr           ject
+  ob  type:         
+            data:            string
+     type:                   sage:
+    mes        n
+       boolea   type:                  cess:
+    suc              operties:
+      pr        : object
+  pe   ty        ma:
+        sche      n:
+     soication/j  appl     
+        content:ly
+       ccessfulpdated sureferences ution pon: Notificaiptiscr   de':
+               '200ses:
+  respon   boolean
+        type:         
+     Properties:  additional              ect
+  obje:       typ       :
+     tion_types    notifica            
+lean boo   type:              :
+ otifications      sms_n        oolean
+       type: b          ns:
+   ioficatpush_noti           olean
+      type: bo          s:
+       ficationnoti  email_     
+         perties:      pro   
+     e: object       typma:
+         sche          ion/json:
+  applicat         content:
+ue
+       ed: tr requir  
+     equestBody:    r
+  preferenceson s notificatir'see current ution: Updatescripes
+      drenction prefee notificammary: Updat      suions
+ficat   - Notiags:
+         tpost:
+      an
+
+pe: boole       ty                   operties:
+dditionalPr    a                bject
+    pe: o     ty                   types:
+on_tificati        no            
+  eanpe: bool        ty             s:
+   otification sms_n                
+     eanpe: bool       ty            
+     fications:   push_noti                 
+  e: boolean typ                  
+     :tifications_no     email                :
+   properties               object
+   ype:  t           
+             data:          string
+        type:            :
+    message               an
+   oole   type: b                uccess:
+  s                 s:
+opertiepr           ject
+      type: ob                schema:
+             json:
+cation/li      appnt:
+        conte      essfully
+  ved succnces retrie prefereonificatition: Not   descrip
+       :200'  'ses:
+      pon  resces
+    preferenication otifent user's nGet currion: escripts
+      dceerenion prefotificat: Get n summary
+     ons- Notificati
+        tags:      t:
+
+    geferences:ons/preotificati
+
+  /nification'mas/Nothets/sconen#/comp$ref: '                    :
+       data          string
+   type:                ge:
+         messa           an
+ ole    type: bo            ess:
+            succ     ies:
+     opert        pr  ect
+      pe: obj ty          ma:
+             sche
+      :ication/json       appl     tent:
+        conly
+   successfulatedion updNotificaton: ipti      descr0':
+           '20esponses:
+ e
+      rperties: truditionalPro        ad
+          : objectype         t     ata:
+        metad            oolean
+ be:  typ                is_read:
+         :
+       rties      prope    t
+    : objec    type      chema:
+          s  :
+    onon/jscati   applint:
+              conte true
+ red:equi      restBody:
+     requ  nteger
+ ype: i       t   
+  chema: s         rue
+ t   required:th
+             in: pa
+    on_idtificati name: no   -    ters:
+     parame
+  rk as read)o ma(typically totification on: Update nscriptin
+      decatiootifipdate nry: Umaumns
+      sNotificatio -        tags:
+    put:
+  on'
+
+    icatichemas/Notifnents/s'#/compoef: $r                     data:
+           
+      ring: st    type             e:
+     messag              boolean
+  e: c
+omponents:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT Bearer token obtained from /auth/login
+    RefreshAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT Refresh token for token renewal
+
+  parameters:
+    Page:
+      name: page
+      in: query
+      description: Page number for pagination
+      schema:
+        type: integer
+        minimum: 1
+        default: 1
+        example: 1
+
+    PerPage:
+      name: per_page
+      in: query
+      description: Number of items per page
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+        default: 20
+        example: 20
+
+  responses:
+    Unauthorized:
+      description: Authentication required or invalid token
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error:
+              code: "UNAUTHORIZED"
+              message: "Authentication required"
+              request_id: "req_123456789"
+
+    Forbidden:
+      description: Insufficient permissions
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error:
+              code: "FORBIDDEN"
+              message: "Insufficient permissions"
+              request_id: "req_123456789"
+
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error:
+              code: "NOT_FOUND"
+              message: "Resource not found"
+              request_id: "req_123456789"
+
+    ValidationError:
+      description: Validation error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error:
+              code: "VALIDATION_ERROR"
+              message: "Invalid input data"
+              details:
+                field: "email"
+                reason: "Invalid email format"
+              request_id: "req_123456789"
+
+    RateLimitExceeded:
+      description: Rate limit exceeded
+      headers:
+        X-RateLimit-Limit:
+          description: Request limit per window
+          schema:
+            type: integer
+        X-RateLimit-Remaining:
+          description: Remaining requests in current window
+          schema:
+            type: integer
+        X-RateLimit-Reset:
+          description: Time when the rate limit resets (Unix timestamp)
+          schema:
+            type: integer
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error:
+              code: "RATE_LIMIT_EXCEEDED"
+              message: "Too many requests"
+              request_id: "req_123456789"
+
+  schemas:
+    Error:
+      type: object
+      properties:
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+              example: "ERROR_CODE"
+              description: "Machine-readable error code"
+            message:
+              type: string
+              example: "Human readable error message"
+              description: "Human-readable error message"
+            details:
+              type: object
+              additionalProperties: true
+              description: "Additional error details"
+            request_id:
+              type: string
+              example: "req_123456789"
+              description: "Unique request identifier for debugging"
+
+    SuccessResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: "Operation completed successfully"
+        data:
+          type: object
+          additionalProperties: true
+          description: "Response data"
+
+    HealthResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [healthy, unhealthy]
+          example: "healthy"
+        timestamp:
+          type: string
+          format: date-time
+        version:
+          type: string
+          example: "1.0.0"
+        checks:
+          type: object
+          additionalProperties:
+            type: object
+            properties:
+              status:
+                type: string
+                enum: [healthy, unhealthy]
+              response_time_ms:
+                type: integer
+                nullable: true
+              error:
+                type: string
+                nullable: true
+
+    Pagination:
+      type: object
+      properties:
+        current_page:
+          type: integer
+          example: 1
+        per_page:
+          type: integer
+          example: 20
+        total:
+          type: integer
+          example: 150
+        pages:
+          type: integer
+          example: 8
+        has_next:
+          type: boolean
+          example: true
+        has_prev:
+          type: boolean
+          example: false
+
+    Tenant:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        name:
+          type: string
+          example: "Example Corp"
+        domain:
+          type: string
+          example: "example.com"
+          nullable: true
+        email:
+          type: string
+          format: email
+          example: "admin@example.com"
+          nullable: true
+        phone:
+          type: string
+          example: "+1234567890"
+          nullable: true
+        address:
+          type: string
+          example: "123 Business St, City, State 12345"
+          nullable: true
+        subscription_status:
+          type: string
+          enum: [trial, active, past_due, canceled, unpaid]
+          example: "active"
+        trial_ends_at:
+          type: string
+          format: date-time
+          nullable: true
+        settings:
+          type: object
+          additionalProperties: true
+        is_active:
+          type: boolean
+          example: true
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 123
+        tenant_id:
+          type: integer
+          example: 1
+        email:
+          type: string
+          format: email
+          example: "user@example.com"
+        first_name:
+          type: string
+          example: "John"
+          nullable: true
+        last_name:
+          type: string
+          example: "Doe"
+          nullable: true
+        role:
+          type: string
+          enum: [owner, manager, support, accounting, read_only]
+          example: "manager"
+        language:
+          type: string
+          enum: [en, de, uk]
+          example: "en"
+        timezone:
+          type: string
+          example: "UTC"
+          nullable: true
+        is_active:
+          type: boolean
+          example: true
+        google_calendar_connected:
+          type: boolean
+          example: false
+        notification_preferences:
+          type: object
+          additionalProperties: true
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        last_login:
+          type: string
+          format: date-time
+          nullable: true
+
+    Contact:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 123
+        tenant_id:
+          type: integer
+          example: 1
+        name:
+          type: string
+          example: "John Prospect"
+        email:
+          type: string
+          format: email
+          example: "john@prospect.com"
+        phone:
+          type: string
+          example: "+1234567890"
+          nullable: true
+        company:
+          type: string
+          example: "Prospect Corp"
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    Lead:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 123
+        tenant_id:
+          type: integer
+          example: 1
+        contact:
+          $ref: '#/components/schemas/Contact'
+        pipeline_id:
+          type: integer
+          example: 1
+          nullable: true
+        stage_id:
+          type: integer
+          example: 2
+          nullable: true
+        source:
+          type: string
+          example: "website"
+        value:
+          type: number
+          example: 5000
+          nullable: true
+        status:
+          type: string
+          enum: [new, qualified, proposal, negotiation, closed_won, closed_lost]
+          example: "qualified"
+        assigned_to:
+          type: integer
+          example: 456
+          nullable: true
+        notes:
+          type: string
+          example: "Initial inquiry about our services"
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    Task:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 123
+        tenant_id:
+          type: integer
+          example: 1
+        title:
+          type: string
+          example: "Follow up with prospect"
+        description:
+          type: string
+          example: "Call to discuss pricing options"
+          nullable: true
+        lead_id:
+          type: integer
+          example: 456
+          nullable: true
+        assigned_to_id:
+          type: integer
+          example: 789
+          nullable: true
+        status:
+          type: string
+          enum: [pending, in_progress, completed, cancelled]
+          example: "pending"
+        priority:
+          type: string
+          enum: [low, medium, high, urgent]
+          example: "medium"
+        task_type:
+          type: string
+          example: "call"
+        category:
+          type: string
+          example: "sales"
+          nullable: true
+        due_date:
+          type: string
+          format: date-time
+          nullable: true
+        completed_at:
+          type: string
+          format: date-time
+          nullable: true
+        extra_data:
+          type: object
+          additionalProperties: true
+        tags:
+          type: array
+          items:
+            type: string
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    Note:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 123
+        tenant_id:
+          type: integer
+          example: 1
+        user_id:
+          type: integer
+          example: 456
+        title:
+          type: string
+          example: "Meeting notes"
+          nullable: true
+        content:
+          type: string
+          example: "Discussed pricing and implementation timeline"
+        lead_id:
+          type: integer
+          example: 789
+          nullable: true
+        note_type:
+          type: string
+          example: "meeting"
+        is_private:
+          type: boolean
+          example: false
+        is_pinned:
+          type: boolean
+          example: false
+        extra_data:
+          type: object
+          additionalProperties: true
+        tags:
+          type: array
+          items:
+            type: string
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    InboxMessage:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 123
+        tenant_id:
+          type: integer
+          example: 1
+        thread_id:
+          type: integer
+          example: 456
+          nullable: true
+        channel:
+          type: string
+          enum: [telegram, signal, web_widget]
+          example: "web_widget"
+        content:
+          type: string
+          example: "Hello, I need help with your services"
+        customer_email:
+          type: string
+          format: email
+          example: "customer@example.com"
+          nullable: true
+        customer_name:
+          type: string
+          example: "John Customer"
+          nullable: true
+        ai_response:
+          type: string
+          example: "Thank you for your inquiry! I'd be happy to help."
+          nullable: true
+        status:
+          type: string
+          enum: [new, in_progress, resolved, closed]
+          example: "new"
+        assigned_to:
+          type: integer
+          example: 789
+          nullable: true
+        metadata:
+          type: object
+          additionalProperties: true
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    Calendar:
+      type: object
+      properties:
+        id:
+          type: string
+          example: "primary"
+        summary:
+          type: string
+          example: "John Doe"
+        description:
+          type: string
+          example: "Primary calendar"
+          nullable: true
+        time_zone:
+          type: string
+          example: "America/New_York"
+        access_role:
+          type: string
+          example: "owner"
+        primary:
+          type: boolean
+          example: true
+
+    CalendarEvent:
+      type: object
+      properties:
+        id:
+          type: string
+          example: "event_123456"
+        summary:
+          type: string
+          example: "Product Demo"
+        description:
+          type: string
+          example: "Demo call with prospect"
+          nullable: true
+        start:
+          type: object
+          properties:
+            dateTime:
+              type: string
+              format: date-time
+              example: "2025-08-20T10:00:00Z"
+            timeZone:
+              type: string
+              example: "UTC"
+        end:
+          type: object
+          properties:
+            dateTime:
+              type: string
+              format: date-time
+              example: "2025-08-20T11:00:00Z"
+            timeZone:
+              type: string
+              example: "UTC"
+        location:
+          type: string
+          example: "Zoom Meeting"
+          nullable: true
+        attendees:
+          type: array
+          items:
+            type: object
+            properties:
+              email:
+                type: string
+                format: email
+              displayName:
+                type: string
+              responseStatus:
+                type: string
+                enum: [needsAction, declined, tentative, accepted]
+        creator:
+          type: object
+          properties:
+            email:
+              type: string
+              format: email
+            displayName:
+              type: string
+        organizer:
+          type: object
+          properties:
+            email:
+              type: string
+              format: email
+            displayName:
+              type: string
+        status:
+          type: string
+          enum: [tentative, confirmed, cancelled]
+        htmlLink:
+          type: string
+          format: uri
+        created:
+          type: string
+          format: date-time
+        updated:
+          type: string
+          format: date-time
+
+    KnowledgeSource:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 123
+        tenant_id:
+          type: integer
+          example: 1
+        name:
+          type: string
+          example: "Product Documentation"
+        description:
+          type: string
+          example: "Comprehensive product documentation"
+          nullable: true
+        source_type:
+          type: string
+          enum: [document, url]
+          example: "document"
+        url:
+          type: string
+          format: uri
+          example: "https://docs.example.com"
+          nullable: true
+        status:
+          type: string
+          enum: [pending, processing, completed, error]
+          example: "completed"
+        crawl_frequency:
+          type: string
+          enum: [manual, daily, weekly, monthly]
+          example: "manual"
+          nullable: true
+        max_depth:
+          type: integer
+          example: 1
+          nullable: true
+        last_crawled:
+          type: string
+          format: date-time
+          nullable: true
+        document_count:
+          type: integer
+          example: 25
+        tags:
+          type: array
+          items:
+            type: string
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    Document:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 123
+        tenant_id:
+          type: integer
+          example: 1
+        source_id:
+          type: integer
+          example: 456
+        title:
+          type: string
+          example: "API Integration Guide"
+        url:
+          type: string
+          format: uri
+          example: "https://docs.example.com/api"
+          nullable: true
+        file_path:
+          type: string
+          example: "/uploads/documents/guide.pdf"
+          nullable: true
+        mime_type:
+          type: string
+          example: "application/pdf"
+          nullable: true
+        file_size:
+          type: integer
+          example: 1024000
+          nullable: true
+        token_count:
+          type: integer
+          example: 5000
+          nullable: true
+        chunk_count:
+          type: integer
+          example: 25
+        status:
+          type: string
+          enum: [pending, processing, completed, error]
+          example: "completed"
+        metadata:
+          type: object
+          additionalProperties: true
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    Invoice:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 123
+        tenant_id:
+          type: integer
+          example: 1
+        stripe_invoice_id:
+          type: string
+          example: "in_1234567890"
+        subscription_id:
+          type: integer
+          example: 456
+          nullable: true
+        customer_id:
+          type: string
+          example: "cus_stripe_customer_id"
+        status:
+          type: string
+          enum: [draft, open, paid, void, uncollectible]
+          example: "open"
+        currency:
+          type: string
+          example: "USD"
+        amount_total:
+          type: number
+          example: 99.99
+        amount_paid:
+          type: number
+          example: 0
+        amount_due:
+          type: number
+          example: 99.99
+        description:
+          type: string
+          example: "Monthly subscription fee"
+          nullable: true
+        due_date:
+          type: string
+          format: date-time
+          nullable: true
+        paid_at:
+          type: string
+          format: date-time
+          nullable: true
+        hosted_invoice_url:
+          type: string
+          format: uri
+          nullable: true
+        invoice_pdf:
+          type: string
+          format: uri
+          nullable: true
+        metadata:
+          type: object
+          additionalProperties: true
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    Notification:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 123
+        tenant_id:
+          type: integer
+          example: 1
+        user_id:
+          type: integer
+          example: 456
+        title:
+          type: string
+          example: "New lead assigned"
+        message:
+          type: string
+          example: "You have been assigned a new lead: John Prospect"
+        type:
+          type: string
+          example: "lead_assignment"
+        priority:
+          type: string
+          enum: [low, medium, high, urgent]
+          example: "medium"
+        is_read:
+          type: boolean
+          example: false
+        read_at:
+          type: string
+          format: date-time
+          nullable: true
+        metadata:
+          type: object
+          additionalProperties: true
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+tags:
+  - name: System
+    description: System health, version, and configuration endpoints
+  - name: Authentication
+    description: User authentication and authorization
+  - name: Tenant Management
+    description: Multi-tenant organization and user management
+  - name: CRM
+    description: Customer relationship management - leads, tasks, and notes
+  - name: Inbox
+    description: Unified inbox and message management across channels
+  - name: Calendar
+    description: Google Calendar integration and appointment booking
+  - name: Knowledge Management
+    description: RAG-based knowledge base with document processing and search
+  - name: Billing
+    description: Stripe integration for invoicing and payment processing
+  - name: Monitoring
+    description: System monitoring, metrics, and health checks (admin only)
+  - name: Notifications
+    description: User notifications and preferences management
+  - name: GDPR Compliance
+    description: GDPR/DSGVO compliance features for data protection
+
+externalDocs:
+  description: Find more information about the AI Secretary SaaS API
+  url: https://docs.ai-secretary.com

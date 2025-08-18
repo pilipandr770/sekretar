@@ -1,8 +1,7 @@
 """Note model for CRM."""
 from sqlalchemy import Column, String, Text, Integer, ForeignKey, Boolean, JSON
 from sqlalchemy.orm import relationship
-from app.models.base import TenantAwareModel, SoftDeleteMixin, AuditMixin
-from app.utils.schema import get_schema_name
+from app.models.base import TenantAwareModel, SoftDeleteMixin, AuditMixin, get_fk_reference
 
 
 class Note(TenantAwareModel, SoftDeleteMixin, AuditMixin):
@@ -11,12 +10,12 @@ class Note(TenantAwareModel, SoftDeleteMixin, AuditMixin):
     __tablename__ = 'notes'
     
     # Lead relationship (optional - notes can exist without leads)
-    lead_id = Column(Integer, ForeignKey(f'{get_schema_name()}.leads.id'), nullable=True, index=True)
+    lead_id = Column(Integer, ForeignKey(get_fk_reference('leads')), nullable=True, index=True)
     lead = relationship('Lead', back_populates='notes')
     
     # User who created the note
-    user_id = Column(Integer, ForeignKey(f'{get_schema_name()}.users.id'), nullable=False, index=True)
-    user = relationship('User', back_populates='notes')
+    user_id = Column(Integer, ForeignKey(get_fk_reference('users')), nullable=False, index=True)
+    user = relationship('User', foreign_keys=[user_id], back_populates='notes')
     
     # Note content
     title = Column(String(255), nullable=True)
@@ -28,7 +27,7 @@ class Note(TenantAwareModel, SoftDeleteMixin, AuditMixin):
     is_pinned = Column(Boolean, default=False, nullable=False)  # Pinned to top
     
     # Metadata
-    metadata = Column(JSON, default=dict, nullable=False)
+    extra_data = Column(JSON, default=dict, nullable=False)
     tags = Column(JSON, default=list, nullable=False)
     
     def __repr__(self):
@@ -63,13 +62,13 @@ class Note(TenantAwareModel, SoftDeleteMixin, AuditMixin):
     
     def get_metadata(self, key, default=None):
         """Get metadata value."""
-        return self.metadata.get(key, default) if self.metadata else default
+        return self.extra_data.get(key, default) if self.extra_data else default
     
     def set_metadata(self, key, value):
         """Set metadata value."""
-        if self.metadata is None:
-            self.metadata = {}
-        self.metadata[key] = value
+        if self.extra_data is None:
+            self.extra_data = {}
+        self.extra_data[key] = value
         return self
     
     def add_tag(self, tag):

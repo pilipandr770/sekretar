@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Secretary SaaS API Documentation</title>
+    <link rel="stylesheet" type="text/css" href="https://unpkg.com/swagger-ui-dist@5.10.3/swagger-ui.css" />
+    <style>
+        html {
+            box-sizing: border-box;
+            overflow: -moz-scrollbars-vertical;
+            overflow-y: scroll;
+        }
+        *, *:before, *:after {
+            box-sizing: inherit;
+        }
+        body {
+            margin: 0;
+            background: #fafafa;
+        }
+        .swagger-ui .topbar {
+            background-color: #2c3e50;
+        }
+        .swagger-ui .topbar .download-url-wrapper .select-label {
+            color: #ffffff;
+        }
+        .swagger-ui .topbar .download-url-wrapper input[type=text] {
+            border: 2px solid #34495e;
+        }
+        .swagger-ui .info .title {
+            color: #2c3e50;
+        }
+        .custom-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .custom-header h1 {
+            margin: 0;
+            font-size: 2.5em;
+            font-weight: 300;
+        }
+        .custom-header p {
+            margin: 10px 0 0 0;
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+        .api-info {
+            background: white;
+            padding: 20px;
+            margin: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .api-info h2 {
+            color: #2c3e50;
+            margin-top: 0;
+        }
+        .api-info .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        .info-card {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 6px;
+            border-left: 4px solid #667eea;
+        }
+        .info-card h3 {
+            margin: 0 0 10px 0;
+            color: #2c3e50;
+        }
+        .info-card ul {
+            margin: 0;
+            padding-left: 20px;
+        }
+        .info-card li {
+            margin: 5px 0;
+        }
+        .auth-info {
+            background: #e8f4fd;
+            border: 1px solid #bee5eb;
+            border-radius: 6px;
+            padding: 15px;
+            margin: 20px;
+        }
+        .auth-info h3 {
+            color: #0c5460;
+            margin-top: 0;
+        }
+        .auth-example {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            padding: 10px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            margin: 10px 0;
+        }
+        .server-selector {
+            background: white;
+            padding: 15px;
+            margin: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .server-selector h3 {
+            margin: 0 0 10px 0;
+            color: #2c3e50;
+        }
+        .server-selector select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="custom-header">
+        <h1>AI Secretary SaaS API</h1>
+        <p>Comprehensive API Documentation for Multi-Agent AI Secretary Platform</p>
+    </div>
+
+    <div class="api-info">
+        <h2>API Overview</h2>
+        <p>The AI Secretary SaaS API provides a complete omnichannel solution for SMBs with multi-agent AI capabilities, CRM functionality, calendar integration, knowledge management, billing, and compliance monitoring.</p>
+        
+        <div class="info-grid">
+            <div class="info-card">
+                <h3>🤖 AI Agents</h3>
+                <ul>
+                    <li>Router Agent for intent detection</li>
+                    <li>Supervisor Agent for content filtering</li>
+                    <li>Specialized agents (Sales, Support, Billing, Operations)</li>
+                    <li>Multi-language support</li>
+                </ul>
+            </div>
+            
+            <div class="info-card">
+                <h3>📱 Communication Channels</h3>
+                <ul>
+                    <li>Telegram Bot integration</li>
+                    <li>Signal messaging support</li>
+                    <li>Web widget for websites</li>
+                    <li>Real-time WebSocket communication</li>
+                </ul>
+            </div>
+            
+            <div class="info-card">
+                <h3>🎯 CRM Features</h3>
+                <ul>
+                    <li>Lead management and pipeline tracking</li>
+                    <li>Task creation and assignment</li>
+                    <li>Note-taking and history</li>
+                    <li>Contact management</li>
+                </ul>
+            </div>
+            
+            <div class="info-card">
+                <h3>📅 Calendar Integration</h3>
+                <ul>
+                    <li>Google Calendar synchronization</li>
+                    <li>Appointment booking</li>
+                    <li>Availability checking</li>
+                    <li>Event creation and invitations</li>
+                </ul>
+            </div>
+            
+            <div class="info-card">
+                <h3>📚 Knowledge Management</h3>
+                <ul>
+                    <li>Document upload and processing</li>
+                    <li>URL content extraction</li>
+                    <li>RAG-based search with citations</li>
+                    <li>Vector embeddings for semantic search</li>
+                </ul>
+            </div>
+            
+            <div class="info-card">
+                <h3>💳 Billing & Subscriptions</h3>
+                <ul>
+                    <li>Stripe integration</li>
+                    <li>Usage metering and quotas</li>
+                    <li>3-day trial period</li>
+                    <li>Tiered subscription plans</li>
+                </ul>
+            </div>
+            
+            <div class="info-card">
+                <h3>🔍 KYB Monitoring</h3>
+                <ul>
+                    <li>VIES VAT validation</li>
+                    <li>GLEIF LEI verification</li>
+                    <li>Sanctions list monitoring</li>
+                    <li>Insolvency tracking</li>
+                </ul>
+            </div>
+            
+            <div class="info-card">
+                <h3>🛡️ Security & Compliance</h3>
+                <ul>
+                    <li>Multi-tenant architecture</li>
+                    <li>Role-based access control</li>
+                    <li>GDPR compliance features</li>
+                    <li>Data retention policies</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div class="auth-info">
+        <h3>🔐 Authentication</h3>
+        <p>This API uses JWT Bearer tokens for authentication. To get started:</p>
+        <ol>
+            <li>Register a new tenant account or login with existing credentials</li>
+            <li>Use the access token in the Authorization header for all authenticated requests</li>
+            <li>Refresh tokens when they expire using the refresh endpoint</li>
+        </ol>
+        <div class="auth-example">
+            Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...
+        </div>
+    </div>
+
+    <div class="server-selector">
+        <h3>🌐 Server Environment</h3>
+        <select id="server-select">
+            <option value="http://localhost:5000/api/v1">Development (localhost:5000)</option>
+            <option value="https://staging-api.ai-secretary.com/api/v1">Staging</option>
+            <option value="https://api.ai-secretary.com/api/v1">Production</option>
+        </select>
+    </div>
+
+    <div id="swagger-ui"></div>
+
+    <script src="https://unpkg.com/swagger-ui-dist@5.10.3/swagger-ui-bundle.js"></script>
+    <script src="https://unpkg.com/swagger-ui-dist@5.10.3/swagger-ui-standalone-preset.js"></script>
+    <script>
+        window.onload = function() {
+            // Determine the spec URL based on current location
+            const currentHost = window.location.host;
+            let specUrl = './openapi_complete.yaml';
+            
+            // If running on localhost, use relative path
+            if (currentHost.includes('localhost') || currentHost.includes('127.0.0.1')) {
+                specUrl = '/docs/openapi_complete.yaml';
+            }
+
+            const ui = SwaggerUIBundle({
+                url: specUrl,
+                dom_id: '#swagger-ui',
+                deepLinking: true,
+                presets: [
+                    SwaggerUIBundle.presets.apis,
+                    SwaggerUIStandalonePreset
+                ],
+                plugins: [
+                    SwaggerUIBundle.plugins.DownloadUrl
+                ],
+                layout: "StandaloneLayout",
+                defaultModelsExpandDepth: 1,
+                defaultModelExpandDepth: 1,
+                docExpansion: "list",
+                filter: true,
+                showExtensions: true,
+                showCommonExtensions: true,
+                tryItOutEnabled: true,
+                requestInterceptor: function(request) {
+                    // Add custom headers or modify requests here
+                    request.headers['X-API-Client'] = 'SwaggerUI';
+                    return request;
+                },
+                responseInterceptor: function(response) {
+                    // Handle responses here
+                    return response;
+                },
+                onComplete: function() {
+                    console.log('Swagger UI loaded successfully');
+                },
+                onFailure: function(error) {
+                    console.error('Failed to load Swagger UI:', error);
+                }
+            });
+
+            // Handle server selection
+            const serverSelect = document.getElementById('server-select');
+            serverSelect.addEventListener('change', function() {
+                const selectedServer = this.value;
+                ui.specActions.updateUrl(specUrl);
+                ui.specActions.updateSpec(specUrl);
+            });
+
+            window.ui = ui;
+        };
+    </script>
+</body>
+</html>

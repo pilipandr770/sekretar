@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Secretary SaaS API Documentation</title>
+    <link rel="stylesheet" type="text/css" href="https://unpkg.com/swagger-ui-dist@5.9.0/swagger-ui.css" />
+    <style>
+        html {
+            box-sizing: border-box;
+            overflow: -moz-scrollbars-vertical;
+            overflow-y: scroll;
+        }
+        *, *:before, *:after {
+            box-sizing: inherit;
+        }
+        body {
+            margin: 0;
+            background: #fafafa;
+        }
+        .swagger-ui .topbar {
+            background-color: #2c3e50;
+        }
+        .swagger-ui .topbar .download-url-wrapper .select-label {
+            color: #ffffff;
+        }
+        .swagger-ui .topbar .download-url-wrapper input[type=text] {
+            border: 2px solid #34495e;
+        }
+        .swagger-ui .info .title {
+            color: #2c3e50;
+        }
+        .custom-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 2rem 0;
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        .custom-header h1 {
+            margin: 0;
+            font-size: 2.5rem;
+            font-weight: 300;
+        }
+        .custom-header p {
+            margin: 0.5rem 0 0 0;
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+        .quick-links {
+            background: white;
+            padding: 1rem;
+            margin: 0 2rem 2rem 2rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .quick-links h3 {
+            margin-top: 0;
+            color: #2c3e50;
+        }
+        .quick-links ul {
+            list-style: none;
+            padding: 0;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+        .quick-links li {
+            background: #ecf0f1;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            border-left: 4px solid #3498db;
+        }
+        .quick-links a {
+            text-decoration: none;
+            color: #2c3e50;
+            font-weight: 500;
+        }
+        .quick-links a:hover {
+            color: #3498db;
+        }
+        #swagger-ui {
+            margin: 0 2rem;
+        }
+        .footer {
+            background: #2c3e50;
+            color: white;
+            text-align: center;
+            padding: 2rem;
+            margin-top: 3rem;
+        }
+        .footer a {
+            color: #3498db;
+            text-decoration: none;
+        }
+        .footer a:hover {
+            text-decoration: underline;
+        }
+        @media (max-width: 768px) {
+            .custom-header h1 {
+                font-size: 2rem;
+            }
+            .custom-header p {
+                font-size: 1rem;
+            }
+            .quick-links {
+                margin: 0 1rem 2rem 1rem;
+            }
+            .quick-links ul {
+                flex-direction: column;
+            }
+            #swagger-ui {
+                margin: 0 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="custom-header">
+        <h1>AI Secretary SaaS API</h1>
+        <p>Comprehensive API Documentation for Multi-Agent AI Secretary Platform</p>
+    </div>
+
+    <div class="quick-links">
+        <h3>Quick Links</h3>
+        <ul>
+            <li><a href="#section/Authentication">Authentication</a></li>
+            <li><a href="#section/System">System Health</a></li>
+            <li><a href="#section/CRM">CRM Management</a></li>
+            <li><a href="#section/Inbox">Inbox & Messages</a></li>
+            <li><a href="#section/Calendar">Calendar Integration</a></li>
+            <li><a href="#section/Knowledge">Knowledge Base</a></li>
+            <li><a href="#section/Billing">Billing & Subscriptions</a></li>
+            <li><a href="#section/KYB">KYB Monitoring</a></li>
+        </ul>
+    </div>
+
+    <div id="swagger-ui"></div>
+
+    <div class="footer">
+        <p>&copy; 2025 AI Secretary SaaS. All rights reserved.</p>
+        <p>
+            <a href="https://ai-secretary.com">Website</a> | 
+            <a href="https://support.ai-secretary.com">Support</a> | 
+            <a href="mailto:api-support@ai-secretary.com">Contact</a>
+        </p>
+    </div>
+
+    <script src="https://unpkg.com/swagger-ui-dist@5.9.0/swagger-ui-bundle.js"></script>
+    <script src="https://unpkg.com/swagger-ui-dist@5.9.0/swagger-ui-standalone-preset.js"></script>
+    <script>
+        window.onload = function() {
+            // Build a system
+            const ui = SwaggerUIBundle({
+                url: './openapi.yaml',
+                dom_id: '#swagger-ui',
+                deepLinking: true,
+                presets: [
+                    SwaggerUIBundle.presets.apis,
+                    SwaggerUIStandalonePreset
+                ],
+                plugins: [
+                    SwaggerUIBundle.plugins.DownloadUrl
+                ],
+                layout: "StandaloneLayout",
+                defaultModelsExpandDepth: 1,
+                defaultModelExpandDepth: 1,
+                docExpansion: "list",
+                filter: true,
+                showExtensions: true,
+                showCommonExtensions: true,
+                tryItOutEnabled: true,
+                requestInterceptor: function(request) {
+                    // Add custom headers or modify requests here
+                    console.log('API Request:', request);
+                    return request;
+                },
+                responseInterceptor: function(response) {
+                    // Handle responses here
+                    console.log('API Response:', response);
+                    return response;
+                },
+                onComplete: function() {
+                    console.log('Swagger UI loaded successfully');
+                    
+                    // Add custom styling or behavior after load
+                    const style = document.createElement('style');
+                    style.textContent = `
+                        .swagger-ui .scheme-container {
+                            background: #f8f9fa;
+                            border: 1px solid #dee2e6;
+                            border-radius: 4px;
+                            padding: 1rem;
+                            margin-bottom: 1rem;
+                        }
+                        .swagger-ui .info .description p {
+                            font-size: 14px;
+                            line-height: 1.6;
+                        }
+                        .swagger-ui .opblock.opblock-post {
+                            border-color: #27ae60;
+                        }
+                        .swagger-ui .opblock.opblock-post .opblock-summary {
+                            border-color: #27ae60;
+                        }
+                        .swagger-ui .opblock.opblock-get {
+                            border-color: #3498db;
+                        }
+                        .swagger-ui .opblock.opblock-get .opblock-summary {
+                            border-color: #3498db;
+                        }
+                        .swagger-ui .opblock.opblock-put {
+                            border-color: #f39c12;
+                        }
+                        .swagger-ui .opblock.opblock-put .opblock-summary {
+                            border-color: #f39c12;
+                        }
+                        .swagger-ui .opblock.opblock-delete {
+                            border-color: #e74c3c;
+                        }
+                        .swagger-ui .opblock.opblock-delete .opblock-summary {
+                            border-color: #e74c3c;
+                        }
+                    `;
+                    document.head.appendChild(style);
+                }
+            });
+
+            // Add authentication helper
+            window.addAuthToken = function(token) {
+                ui.preauthorizeApiKey('BearerAuth', `Bearer ${token}`);
+                console.log('Authentication token added');
+            };
+
+            // Add example data helper
+            window.loadExampleData = function() {
+                console.log('Loading example data...');
+                // You can add example data loading logic here
+            };
+
+            // Add keyboard shortcuts
+            document.addEventListener('keydown', function(e) {
+                // Ctrl/Cmd + K to focus search
+                if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+                    e.preventDefault();
+                    const searchInput = document.querySelector('.swagger-ui .filter input');
+                    if (searchInput) {
+                        searchInput.focus();
+                    }
+                }
+            });
+        };
+
+        // Add utility functions for developers
+        window.apiUtils = {
+            // Generate curl command from Swagger UI request
+            generateCurl: function(request) {
+                let curl = `curl -X ${request.method.toUpperCase()} "${request.url}"`;
+                
+                if (request.headers) {
+                    Object.keys(request.headers).forEach(header => {
+                        curl += ` \\\n  -H "${header}: ${request.headers[header]}"`;
+                    });
+                }
+                
+                if (request.body) {
+                    curl += ` \\\n  -d '${JSON.stringify(request.body, null, 2)}'`;
+                }
+                
+                return curl;
+            },
+            
+            // Copy to clipboard helper
+            copyToClipboard: function(text) {
+                navigator.clipboard.writeText(text).then(() => {
+                    console.log('Copied to clipboard');
+                }).catch(err => {
+                    console.error('Failed to copy: ', err);
+                });
+            },
+            
+            // Format JSON response
+            formatJson: function(obj) {
+                return JSON.stringify(obj, null, 2);
+            }
+        };
+
+        // Add console helpers for developers
+        console.log(`
+🚀 AI Secretary SaaS API Documentation
+
+Helpful commands:
+- addAuthToken('your-jwt-token') - Add authentication token
+- loadExampleData() - Load example data
+- apiUtils.generateCurl(request) - Generate curl command
+- apiUtils.copyToClipboard(text) - Copy text to clipboard
+- Ctrl/Cmd + K - Focus search
+
+Happy coding! 🎉
+        `);
+    </script>
+</body>
+</html>

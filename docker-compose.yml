@@ -1,0 +1,58 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: ai_secretary_db
+    environment:
+      POSTGRES_USER: ai_secretary_user
+      POSTGRES_PASSWORD: ai_secretary_pass
+      POSTGRES_DB: ai_secretary
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ai_secretary_user -d ai_secretary"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    container_name: ai_secretary_redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  app:
+    build: .
+    container_name: ai_secretary_app
+    ports:
+      - "5000:5000"
+    volumes:
+      - .:/app
+      - /app/venv
+    environment:
+      - FLASK_ENV=development
+      - DATABASE_URL=postgresql://ai_secretary_user:ai_secretary_pass@db:5432/ai_secretary
+      - REDIS_URL=redis://redis:6379/0
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    command: python run.py
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  redis_data:

@@ -1,8 +1,7 @@
 """Audit log model for GDPR compliance and security."""
 from sqlalchemy import Column, String, Text, Integer, ForeignKey, JSON
 from sqlalchemy.orm import relationship
-from app.models.base import BaseModel
-from app.utils.schema import get_schema_name
+from app.models.base import BaseModel, get_fk_reference
 
 
 class AuditLog(BaseModel):
@@ -11,11 +10,11 @@ class AuditLog(BaseModel):
     __tablename__ = 'audit_logs'
     
     # Tenant relationship
-    tenant_id = Column(Integer, ForeignKey(f'{get_schema_name()}.tenants.id'), nullable=False, index=True)
+    tenant_id = Column(Integer, ForeignKey(get_fk_reference('tenants')), nullable=False, index=True)
     tenant = relationship('Tenant', back_populates='audit_logs')
     
     # User who performed the action
-    user_id = Column(Integer, ForeignKey(f'{get_schema_name()}.users.id'), nullable=True, index=True)
+    user_id = Column(Integer, ForeignKey(get_fk_reference('users')), nullable=True, index=True)
     user = relationship('User', back_populates='audit_logs')
     
     # Action details
@@ -33,7 +32,7 @@ class AuditLog(BaseModel):
     new_values = Column(JSON, nullable=True)  # New values (for creates/updates)
     
     # Additional metadata
-    metadata = Column(JSON, nullable=True)  # Additional context data
+    extra_data = Column(JSON, nullable=True)  # Additional context data
     
     # Status
     status = Column(String(20), default='success', nullable=False)  # success, failed, error
@@ -44,7 +43,7 @@ class AuditLog(BaseModel):
     
     @classmethod
     def log_action(cls, action, resource_type, tenant_id, user_id=None, resource_id=None,
-                   old_values=None, new_values=None, metadata=None, ip_address=None,
+                   old_values=None, new_values=None, extra_data=None, ip_address=None,
                    user_agent=None, request_id=None, status='success', error_message=None):
         """Create audit log entry."""
         log_entry = cls(
@@ -55,7 +54,7 @@ class AuditLog(BaseModel):
             resource_id=str(resource_id) if resource_id else None,
             old_values=old_values,
             new_values=new_values,
-            metadata=metadata,
+            extra_data=extra_data,
             ip_address=ip_address,
             user_agent=user_agent,
             request_id=request_id,
@@ -67,7 +66,7 @@ class AuditLog(BaseModel):
     
     @classmethod
     def log_user_action(cls, user, action, resource_type, resource_id=None,
-                       old_values=None, new_values=None, metadata=None,
+                       old_values=None, new_values=None, extra_data=None,
                        request_context=None):
         """Log user action with context."""
         ip_address = None
@@ -87,7 +86,7 @@ class AuditLog(BaseModel):
             resource_id=resource_id,
             old_values=old_values,
             new_values=new_values,
-            metadata=metadata,
+            extra_data=extra_data,
             ip_address=ip_address,
             user_agent=user_agent,
             request_id=request_id
@@ -121,24 +120,24 @@ class AuditLog(BaseModel):
         )
     
     @classmethod
-    def log_data_export(cls, user, resource_type, metadata=None):
+    def log_data_export(cls, user, resource_type, extra_data=None):
         """Log data export for GDPR compliance."""
         return cls.log_user_action(
             user=user,
             action='export',
             resource_type=resource_type,
-            metadata=metadata or {}
+            extra_data=extra_data or {}
         )
     
     @classmethod
-    def log_data_deletion(cls, user, resource_type, resource_id, metadata=None):
+    def log_data_deletion(cls, user, resource_type, resource_id, extra_data=None):
         """Log data deletion for GDPR compliance."""
         return cls.log_user_action(
             user=user,
             action='delete',
             resource_type=resource_type,
             resource_id=resource_id,
-            metadata=metadata or {}
+            extra_data=extra_data or {}
         )
     
     def to_dict(self, exclude=None):

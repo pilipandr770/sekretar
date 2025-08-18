@@ -1,0 +1,802 @@
+{% extends "base.html" %}
+
+{% block title %}{{ _('Inbox - AI Secretary') }}{% endblock %}
+
+{% block head %}
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h1 class="mb-1">{{ _('Inbox') }}</h1>
+                <p class="text-muted mb-0">{{ _('Manage all customer communications in one place') }}</p>
+            </div>
+            <div>
+                <button class="btn btn-outline-secondary me-2" onclick="refreshInbox()">
+                    <i class="fas fa-sync-alt"></i> {{ _('Refresh') }}
+                </button>
+                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#composeModal">
+                    <i class="fas fa-plus"></i> {{ _('Compose') }}
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Filters and Search -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col-md-4">
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-search"></i></span>
+                            <input type="text" class="form-control" id="searchInput" placeholder="{{ _('Search messages...') }}">
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <select class="form-select" id="channelFilter">
+                            <option value="">{{ _('All Channels') }}</option>
+                            <option value="telegram">Telegram</option>
+                            <option value="signal">Signal</option>
+                            <option value="web">Web Widget</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <select class="form-select" id="statusFilter">
+                            <option value="">{{ _('All Status') }}</option>
+                            <option value="unread">{{ _('Unread') }}</option>
+                            <option value="read">{{ _('Read') }}</option>
+                            <option value="replied">{{ _('Replied') }}</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <select class="form-select" id="agentFilter">
+                            <option value="">{{ _('All Agents') }}</option>
+                            <option value="ai">{{ _('AI Response') }}</option>
+                            <option value="human">{{ _('Human Response') }}</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <button class="btn btn-outline-primary w-100" onclick="applyFilters()">
+                            {{ _('Filter') }}
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Messages List -->
+<div class="row">
+    <div class="col-lg-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">{{ _('Conversations') }}</h5>
+            </div>
+            <div class="card-body p-0">
+                <div id="conversations-list" style="max-height: 600px; overflow-y: auto;">
+                    <div class="text-center p-4">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">{{ _('Loading...') }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <div id="conversation-header">
+                    <h5 class="mb-0">{{ _('Select a conversation') }}</h5>
+                </div>
+                <div id="conversation-actions" class="d-none">
+                    <button class="btn btn-sm btn-outline-primary me-2" onclick="markAsRead()">
+                        <i class="fas fa-check"></i> {{ _('Mark as Read') }}
+                    </button>
+                    <button class="btn btn-sm btn-outline-warning me-2" onclick="handoffToHuman()">
+                        <i class="fas fa-user"></i> {{ _('Human Handoff') }}
+                    </button>
+                    <button class="btn btn-sm btn-outline-danger" onclick="archiveConversation()">
+                        <i class="fas fa-archive"></i> {{ _('Archive') }}
+                    </button>
+                </div>
+            </div>
+            <div class="card-body">
+                <div id="messages-container" style="height: 400px; overflow-y: auto;">
+                    <div class="text-center text-muted">
+                        <i class="fas fa-comments fa-3x mb-3"></i>
+                        <p>{{ _('Select a conversation to view messages') }}</p>
+                    </div>
+                </div>
+                
+                <!-- Message Input -->
+                <div id="message-input-container" class="d-none">
+                    <hr>
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="input-group">
+                                <textarea class="form-control" id="messageInput" rows="2" placeholder="{{ _('Type your message...') }}"></textarea>
+                                <button class="btn btn-primary" type="button" onclick="sendMessage()">
+                                    <i class="fas fa-paper-plane"></i>
+                                </button>
+                            </div>
+                            <div class="form-check mt-2">
+                                <input class="form-check-input" type="checkbox" id="aiAssist" checked>
+                                <label class="form-check-label" for="aiAssist">
+                                    {{ _('Use AI assistance') }}
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Compose Modal -->
+<div class="modal fade" id="composeModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">{{ _('Compose Message') }}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="composeForm">
+                    <div class="mb-3">
+                        <label for="composeChannel" class="form-label">{{ _('Channel') }}</label>
+                        <select class="form-select" id="composeChannel" required>
+                            <option value="">{{ _('Select channel') }}</option>
+                            <option value="telegram">Telegram</option>
+                            <option value="signal">Signal</option>
+                            <option value="web">Web Widget</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="composeRecipient" class="form-label">{{ _('Recipient') }}</label>
+                        <input type="text" class="form-control" id="composeRecipient" required
+                               placeholder="{{ _('Enter recipient ID or phone number') }}">
+                    </div>
+                    <div class="mb-3">
+                        <label for="composeMessage" class="form-label">{{ _('Message') }}</label>
+                        <textarea class="form-control" id="composeMessage" rows="4" required
+                                  placeholder="{{ _('Enter your message...') }}"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ _('Cancel') }}</button>
+                <button type="button" class="btn btn-primary" onclick="sendComposedMessage()">
+                    <span class="spinner-border spinner-border-sm d-none" role="status"></span>
+                    {{ _('Send Message') }}
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+let currentConversationId = null;
+let conversations = [];
+let messages = [];
+
+// Load conversations
+async function loadConversations() {
+    try {
+        const token = localStorage.getItem('access_token');
+        const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
+        
+        const response = await fetch('/api/v1/inbox/conversations', { headers });
+        
+        if (response.ok) {
+            const data = await response.json();
+            conversations = data.data?.conversations || [];
+            renderConversations();
+        } else {
+            throw new Error('Failed to load conversations');
+        }
+        
+    } catch (error) {
+        console.error('Error loading conversations:', error);
+        document.getElementById('conversations-list').innerHTML = `
+            <div class="alert alert-danger m-3">
+                {{ _('Error loading conversations') }}
+            </div>
+        `;
+    }
+}
+
+// Render conversations list
+function renderConversations() {
+    const container = document.getElementById('conversations-list');
+    
+    if (conversations.length === 0) {
+        container.innerHTML = `
+            <div class="text-center p-4 text-muted">
+                <i class="fas fa-inbox fa-3x mb-3"></i>
+                <p>{{ _('No conversations yet') }}</p>
+            </div>
+        `;
+        return;
+    }
+    
+    const conversationsHtml = conversations.map(conversation => `
+        <div class="conversation-item p-3 border-bottom ${conversation.id === currentConversationId ? 'bg-light' : ''}" 
+             onclick="selectConversation('${conversation.id}')" style="cursor: pointer;">
+            <div class="d-flex">
+                <div class="flex-shrink-0">
+                    <div class="bg-${getChannelColor(conversation.channel_type)} rounded-circle d-flex align-items-center justify-content-center" 
+                         style="width: 40px; height: 40px;">
+                        <i class="fas fa-${getChannelIcon(conversation.channel_type)} text-white"></i>
+                    </div>
+                </div>
+                <div class="flex-grow-1 ms-3">
+                    <div class="d-flex justify-content-between">
+                        <h6 class="mb-1">${conversation.customer_name || 'Unknown'}</h6>
+                        <small class="text-muted">${formatTime(conversation.last_message_at)}</small>
+                    </div>
+                    <p class="mb-1 text-truncate">${conversation.last_message || ''}</p>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <small class="text-muted">${conversation.channel_type}</small>
+                        ${conversation.unread_count > 0 ? `<span class="badge bg-primary">${conversation.unread_count}</span>` : ''}
+                    </div>
+                </div>
+            </div>
+        </div>
+    `).join('');
+    
+    container.innerHTML = conversationsHtml;
+}
+
+// Select conversation
+async function selectConversation(conversationId) {
+    currentConversationId = conversationId;
+    const conversation = conversations.find(c => c.id === conversationId);
+    
+    if (!conversation) return;
+    
+    // Update header
+    document.getElementById('conversation-header').innerHTML = `
+        <div>
+            <h5 class="mb-0">${conversation.customer_name || 'Unknown'}</h5>
+            <small class="text-muted">${conversation.channel_type} • ${conversation.status}</small>
+        </div>
+    `;
+    
+    // Show actions
+    document.getElementById('conversation-actions').classList.remove('d-none');
+    document.getElementById('message-input-container').classList.remove('d-none');
+    
+    // Load messages
+    await loadMessages(conversationId);
+    
+    // Re-render conversations to update selection
+    renderConversations();
+}
+
+// Load messages for conversation
+async function loadMessages(conversationId) {
+    try {
+        const token = localStorage.getItem('access_token');
+        const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
+        
+        const response = await fetch(`/api/v1/inbox/conversations/${conversationId}/messages`, { headers });
+        
+        if (response.ok) {
+            const data = await response.json();
+            messages = data.data?.messages || [];
+            renderMessages();
+        } else {
+            throw new Error('Failed to load messages');
+        }
+        
+    } catch (error) {
+        console.error('Error loading messages:', error);
+        document.getElementById('messages-container').innerHTML = `
+            <div class="alert alert-danger">
+                {{ _('Error loading messages') }}
+            </div>
+        `;
+    }
+}
+
+// Render messages
+function renderMessages() {
+    const container = document.getElementById('messages-container');
+    
+    if (messages.length === 0) {
+        container.innerHTML = `
+            <div class="text-center text-muted">
+                <p>{{ _('No messages in this conversation') }}</p>
+            </div>
+        `;
+        return;
+    }
+    
+    const messagesHtml = messages.map(message => `
+        <div class="message mb-3 ${message.is_from_customer ? 'customer-message' : 'agent-message'}">
+            <div class="d-flex ${message.is_from_customer ? '' : 'justify-content-end'}">
+                <div class="message-bubble p-3 rounded ${message.is_from_customer ? 'bg-light' : 'bg-primary text-white'}" 
+                     style="max-width: 70%;">
+                    <div class="message-content">
+                        ${message.content}
+                    </div>
+                    <div class="message-meta mt-2">
+                        <small class="${message.is_from_customer ? 'text-muted' : 'text-white-50'}">
+                            ${message.sender_name || (message.is_from_customer ? 'Customer' : 'AI Assistant')} • 
+                            ${formatTime(message.created_at)}
+                            ${message.ai_generated ? ' • AI' : ''}
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `).join('');
+    
+    container.innerHTML = messagesHtml;
+    
+    // Scroll to bottom
+    container.scrollTop = container.scrollHeight;
+}
+
+// Send message
+async function sendMessage() {
+    const messageInput = document.getElementById('messageInput');
+    const content = messageInput.value.trim();
+    
+    if (!content || !currentConversationId) return;
+    
+    try {
+        const token = localStorage.getItem('access_token');
+        const headers = {
+            'Content-Type': 'application/json',
+            ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+        };
+        
+        const response = await fetch(`/api/v1/inbox/conversations/${currentConversationId}/messages`, {
+            method: 'POST',
+            headers,
+            body: JSON.stringify({
+                content: content,
+                use_ai_assist: document.getElementById('aiAssist').checked
+            })
+        });
+        
+        if (response.ok) {
+            messageInput.value = '';
+            await loadMessages(currentConversationId);
+            await loadConversations(); // Refresh conversations list
+        } else {
+            throw new Error('Failed to send message');
+        }
+        
+    } catch (error) {
+        console.error('Error sending message:', error);
+        showAlert('danger', '{{ _("Failed to send message") }}');
+    }
+}
+
+// Send composed message
+async function sendComposedMessage() {
+    const form = document.getElementById('composeForm');
+    const submitBtn = form.closest('.modal-content').querySelector('.btn-primary');
+    const spinner = submitBtn.querySelector('.spinner-border');
+    
+    // Validate form
+    if (!form.checkValidity()) {
+        form.reportValidity();
+        return;
+    }
+    
+    // Show loading
+    submitBtn.disabled = true;
+    spinner.classList.remove('d-none');
+    
+    try {
+        const token = localStorage.getItem('access_token');
+        const headers = {
+            'Content-Type': 'application/json',
+            ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+        };
+        
+        const response = await fetch('/api/v1/inbox/messages/send', {
+            method: 'POST',
+            headers,
+            body: JSON.stringify({
+                channel_type: document.getElementById('composeChannel').value,
+                recipient: document.getElementById('composeRecipient').value,
+                content: document.getElementById('composeMessage').value
+            })
+        });
+        
+        if (response.ok) {
+            // Close modal and refresh
+            bootstrap.Modal.getInstance(document.getElementById('composeModal')).hide();
+            form.reset();
+            await loadConversations();
+            showAlert('success', '{{ _("Message sent successfully") }}');
+        } else {
+            throw new Error('Failed to send message');
+        }
+        
+    } catch (error) {
+        console.error('Error sending composed message:', error);
+        showAlert('danger', '{{ _("Failed to send message") }}');
+    } finally {
+        submitBtn.disabled = false;
+        spinner.classList.add('d-none');
+    }
+}
+
+// Utility functions
+function getChannelColor(channelType) {
+    const colors = {
+        'telegram': 'info',
+        'signal': 'success',
+        'web': 'primary'
+    };
+    return colors[channelType] || 'secondary';
+}
+
+function getChannelIcon(channelType) {
+    const icons = {
+        'telegram': 'paper-plane',
+        'signal': 'shield-alt',
+        'web': 'globe'
+    };
+    return icons[channelType] || 'comment';
+}
+
+function formatTime(timestamp) {
+    if (!timestamp) return '';
+    const date = new Date(timestamp);
+    const now = new Date();
+    const diffMs = now - date;
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMs / 3600000);
+    const diffDays = Math.floor(diffMs / 86400000);
+    
+    if (diffMins < 1) return '{{ _("Just now") }}';
+    if (diffMins < 60) return `${diffMins}m`;
+    if (diffHours < 24) return `${diffHours}h`;
+    if (diffDays < 7) return `${diffDays}d`;
+    return date.toLocaleDateString();
+}
+
+function refreshInbox() {
+    loadConversations();
+    if (currentConversationId) {
+        loadMessages(currentConversationId);
+    }
+}
+
+function applyFilters() {
+    // TODO: Implement filtering logic
+    loadConversations();
+}
+
+function markAsRead() {
+    // TODO: Implement mark as read
+    showAlert('info', '{{ _("Marked as read") }}');
+}
+
+function handoffToHuman() {
+    // TODO: Implement human handoff
+    showAlert('info', '{{ _("Handed off to human agent") }}');
+}
+
+function archiveConversation() {
+    // TODO: Implement archive
+    showAlert('info', '{{ _("Conversation archived") }}');
+}
+
+function showAlert(type, message) {
+    const alertDiv = document.createElement('div');
+    alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
+    alertDiv.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    
+    const container = document.querySelector('.container');
+    container.insertBefore(alertDiv, container.firstChild);
+    
+    setTimeout(() => {
+        if (alertDiv.parentNode) {
+            alertDiv.remove();
+        }
+    }, 5000);
+}
+
+// Initialize
+document.addEventListener('DOMContentLoaded', () => {
+    loadConversations();
+    
+    // Enter key to send message
+    document.getElementById('messageInput').addEventListener('keypress', (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            sendMessage();
+        }
+    });
+    
+    // Setup real-time features
+    setupRealTimeFeatures();
+});
+
+// Setup real-time WebSocket features
+function setupRealTimeFeatures() {
+    // Wait for WebSocket client to be available
+    const checkWebSocket = () => {
+        if (window.wsClient && window.wsClient.isConnectedToWebSocket()) {
+            initializeRealTimeFeatures();
+        } else {
+            setTimeout(checkWebSocket, 1000);
+        }
+    };
+    checkWebSocket();
+}
+
+function initializeRealTimeFeatures() {
+    const wsClient = window.wsClient;
+    
+    // Listen for new messages
+    wsClient.on('message:new', (event) => {
+        const data = event.detail;
+        handleRealTimeNewMessage(data);
+    });
+    
+    // Listen for message updates
+    wsClient.on('message:updated', (event) => {
+        const data = event.detail;
+        handleRealTimeMessageUpdate(data);
+    });
+    
+    // Listen for conversation updates
+    wsClient.on('conversation:updated', (event) => {
+        const data = event.detail;
+        handleRealTimeConversationUpdate(data);
+    });
+    
+    // Listen for typing indicators
+    wsClient.on('typing:indicator', (event) => {
+        const data = event.detail;
+        handleTypingIndicator(data);
+    });
+    
+    // Setup typing detection for message input
+    const messageInput = document.getElementById('messageInput');
+    if (messageInput) {
+        let typingTimer = null;
+        
+        messageInput.addEventListener('input', () => {
+            if (currentConversationId && wsClient) {
+                wsClient.startTyping(currentConversationId);
+                
+                // Clear existing timer
+                if (typingTimer) {
+                    clearTimeout(typingTimer);
+                }
+                
+                // Stop typing after 3 seconds of inactivity
+                typingTimer = setTimeout(() => {
+                    wsClient.stopTyping(currentConversationId);
+                }, 3000);
+            }
+        });
+        
+        messageInput.addEventListener('blur', () => {
+            if (currentConversationId && wsClient) {
+                wsClient.stopTyping(currentConversationId);
+            }
+        });
+    }
+}
+
+// Handle real-time new message
+function handleRealTimeNewMessage(data) {
+    const { conversation_id, message } = data;
+    
+    // Update conversations list
+    loadConversations();
+    
+    // If this is the current conversation, add message to the view
+    if (conversation_id === currentConversationId) {
+        addMessageToView(message);
+        
+        // Play notification sound (optional)
+        playNotificationSound();
+    } else {
+        // Show toast notification for other conversations
+        showToastNotification('New Message', `New message in conversation`);
+    }
+}
+
+// Handle real-time message update
+function handleRealTimeMessageUpdate(data) {
+    const { conversation_id, message } = data;
+    
+    if (conversation_id === currentConversationId) {
+        updateMessageInView(message);
+    }
+}
+
+// Handle real-time conversation update
+function handleRealTimeConversationUpdate(data) {
+    // Refresh conversations list
+    loadConversations();
+}
+
+// Handle typing indicator
+function handleTypingIndicator(data) {
+    const { conversation_id, user_id, user_email, typing } = data;
+    
+    if (conversation_id === currentConversationId) {
+        showTypingIndicator(user_email, typing);
+    }
+}
+
+// Add message to current view
+function addMessageToView(message) {
+    const container = document.getElementById('messages-container');
+    if (!container) return;
+    
+    const messageHtml = `
+        <div class="message mb-3 ${message.is_from_customer ? 'customer-message' : 'agent-message'}" id="message-${message.id}">
+            <div class="d-flex ${message.is_from_customer ? '' : 'justify-content-end'}">
+                <div class="message-bubble p-3 rounded ${message.is_from_customer ? 'bg-light' : 'bg-primary text-white'}" 
+                     style="max-width: 70%;">
+                    <div class="message-content">
+                        ${message.content}
+                    </div>
+                    <div class="message-meta mt-2">
+                        <small class="${message.is_from_customer ? 'text-muted' : 'text-white-50'}">
+                            ${message.sender_name || (message.is_from_customer ? 'Customer' : 'AI Assistant')} • 
+                            ${formatTime(message.created_at)}
+                            ${message.ai_generated ? ' • AI' : ''}
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    container.insertAdjacentHTML('beforeend', messageHtml);
+    container.scrollTop = container.scrollHeight;
+    
+    // Add fade-in animation
+    const newMessage = document.getElementById(`message-${message.id}`);
+    if (newMessage) {
+        newMessage.style.opacity = '0';
+        newMessage.style.transform = 'translateY(20px)';
+        setTimeout(() => {
+            newMessage.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+            newMessage.style.opacity = '1';
+            newMessage.style.transform = 'translateY(0)';
+        }, 100);
+    }
+}
+
+// Update message in current view
+function updateMessageInView(message) {
+    const messageElement = document.getElementById(`message-${message.id}`);
+    if (messageElement) {
+        const contentElement = messageElement.querySelector('.message-content');
+        if (contentElement) {
+            contentElement.textContent = message.content;
+        }
+    }
+}
+
+// Show typing indicator
+function showTypingIndicator(userEmail, isTyping) {
+    const container = document.getElementById('messages-container');
+    if (!container) return;
+    
+    const typingId = `typing-${userEmail.replace(/[^a-zA-Z0-9]/g, '')}`;
+    let typingElement = document.getElementById(typingId);
+    
+    if (isTyping) {
+        if (!typingElement) {
+            const typingHtml = `
+                <div class="typing-indicator mb-3" id="${typingId}">
+                    <div class="d-flex">
+                        <div class="message-bubble p-3 rounded bg-light" style="max-width: 70%;">
+                            <div class="typing-animation">
+                                <span class="typing-dot"></span>
+                                <span class="typing-dot"></span>
+                                <span class="typing-dot"></span>
+                            </div>
+                            <small class="text-muted">${userEmail} is typing...</small>
+                        </div>
+                    </div>
+                </div>
+            `;
+            container.insertAdjacentHTML('beforeend', typingHtml);
+            container.scrollTop = container.scrollHeight;
+        }
+    } else {
+        if (typingElement) {
+            typingElement.remove();
+        }
+    }
+}
+
+// Show toast notification
+function showToastNotification(title, message) {
+    // Create toast element
+    const toastHtml = `
+        <div class="toast align-items-center text-white bg-primary border-0" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="d-flex">
+                <div class="toast-body">
+                    <strong>${title}</strong><br>
+                    ${message}
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+            </div>
+        </div>
+    `;
+    
+    // Add to toast container (create if doesn't exist)
+    let toastContainer = document.getElementById('toast-container');
+    if (!toastContainer) {
+        toastContainer = document.createElement('div');
+        toastContainer.id = 'toast-container';
+        toastContainer.className = 'toast-container position-fixed top-0 end-0 p-3';
+        toastContainer.style.zIndex = '1055';
+        document.body.appendChild(toastContainer);
+    }
+    
+    toastContainer.insertAdjacentHTML('beforeend', toastHtml);
+    
+    // Show toast
+    const toastElement = toastContainer.lastElementChild;
+    const toast = new bootstrap.Toast(toastElement, { delay: 5000 });
+    toast.show();
+    
+    // Remove from DOM after hiding
+    toastElement.addEventListener('hidden.bs.toast', () => {
+        toastElement.remove();
+    });
+}
+
+// Play notification sound
+function playNotificationSound() {
+    try {
+        const audio = new Audio('/static/sounds/notification.mp3');
+        audio.volume = 0.3;
+        audio.play().catch(e => {
+            // Ignore errors (user might not have interacted with page yet)
+        });
+    } catch (e) {
+        // Ignore errors
+    }
+}
+
+// Override selectConversation to join WebSocket room
+const originalSelectConversation = selectConversation;
+selectConversation = async function(conversationId) {
+    // Join WebSocket room for real-time updates
+    if (window.wsClient && window.wsClient.isConnectedToWebSocket()) {
+        window.wsClient.joinConversation(conversationId);
+    }
+    
+    // Call original function
+    return await originalSelectConversation(conversationId);
+};
+
+// Auto-refresh every 30 seconds (reduced frequency due to real-time updates)
+setInterval(refreshInbox, 60000);
+</script>
+{% endblock %}

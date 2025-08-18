@@ -67,14 +67,25 @@ def register_jwt_handlers(jwt_manager):
     @jwt_manager.user_identity_loader
     def user_identity_lookup(user):
         """Return user identity for JWT."""
-        return user.id
+        return str(user.id)  # Ensure identity is always a string
     
     @jwt_manager.user_lookup_loader
     def user_lookup_callback(_jwt_header, jwt_data):
         """Load user from JWT."""
         from app.models.user import User
-        identity = jwt_data["sub"]
-        return User.query.filter_by(id=identity).one_or_none()
+        try:
+            identity = jwt_data["sub"]
+            # Convert to int if it's a string representation of a number
+            if isinstance(identity, str) and identity.isdigit():
+                identity = int(identity)
+            elif not isinstance(identity, (int, str)):
+                logger.warning("Invalid JWT subject type", subject=identity, type=type(identity))
+                return None
+            
+            return User.query.filter_by(id=identity).one_or_none()
+        except Exception as e:
+            logger.warning("Failed to load user from JWT", error=str(e), jwt_data=jwt_data)
+            return None
     
     @jwt_manager.additional_claims_loader
     def add_claims_to_jwt(user):

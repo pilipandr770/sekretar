@@ -1,8 +1,7 @@
 """Task model for CRM."""
 from sqlalchemy import Column, String, Text, Integer, ForeignKey, Boolean, JSON
 from sqlalchemy.orm import relationship
-from app.models.base import TenantAwareModel, SoftDeleteMixin, AuditMixin
-from app.utils.schema import get_schema_name
+from app.models.base import TenantAwareModel, SoftDeleteMixin, AuditMixin, get_fk_reference
 
 
 class Task(TenantAwareModel, SoftDeleteMixin, AuditMixin):
@@ -11,7 +10,7 @@ class Task(TenantAwareModel, SoftDeleteMixin, AuditMixin):
     __tablename__ = 'tasks'
     
     # Lead relationship (optional - tasks can exist without leads)
-    lead_id = Column(Integer, ForeignKey(f'{get_schema_name()}.leads.id'), nullable=True, index=True)
+    lead_id = Column(Integer, ForeignKey(get_fk_reference('leads')), nullable=True, index=True)
     lead = relationship('Lead', back_populates='tasks')
     
     # Basic information
@@ -19,7 +18,7 @@ class Task(TenantAwareModel, SoftDeleteMixin, AuditMixin):
     description = Column(Text, nullable=True)
     
     # Assignment
-    assigned_to_id = Column(Integer, ForeignKey(f'{get_schema_name()}.users.id'), nullable=True, index=True)
+    assigned_to_id = Column(Integer, ForeignKey(get_fk_reference('users')), nullable=True, index=True)
     assigned_to = relationship('User', foreign_keys=[assigned_to_id], back_populates='assigned_tasks')
     
     # Status and priority
@@ -35,7 +34,7 @@ class Task(TenantAwareModel, SoftDeleteMixin, AuditMixin):
     category = Column(String(100), nullable=True)
     
     # Metadata
-    metadata = Column(JSON, default=dict, nullable=False)
+    extra_data = Column(JSON, default=dict, nullable=False)
     tags = Column(JSON, default=list, nullable=False)
     
     def __repr__(self):
@@ -74,13 +73,13 @@ class Task(TenantAwareModel, SoftDeleteMixin, AuditMixin):
     
     def get_metadata(self, key, default=None):
         """Get metadata value."""
-        return self.metadata.get(key, default) if self.metadata else default
+        return self.extra_data.get(key, default) if self.extra_data else default
     
     def set_metadata(self, key, value):
         """Set metadata value."""
-        if self.metadata is None:
-            self.metadata = {}
-        self.metadata[key] = value
+        if self.extra_data is None:
+            self.extra_data = {}
+        self.extra_data[key] = value
         return self
     
     def add_tag(self, tag):

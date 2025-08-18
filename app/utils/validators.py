@@ -1,14 +1,52 @@
 """Validation utilities."""
 import re
+from datetime import datetime
 from typing import Any, Dict, List, Optional
 from marshmallow import Schema, ValidationError as MarshmallowValidationError
-from app.utils.errors import ValidationError
+from app.utils.exceptions import ValidationError
 
 
 def validate_email(email: str) -> bool:
     """Validate email format."""
+    if not email or not isinstance(email, str):
+        raise ValidationError("Email is required and must be a string")
+    
     pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
-    return bool(re.match(pattern, email))
+    if not re.match(pattern, email):
+        raise ValidationError("Invalid email format")
+    
+    return True
+
+
+def validate_datetime(datetime_str: str) -> datetime:
+    """Validate and parse datetime string."""
+    if not datetime_str or not isinstance(datetime_str, str):
+        raise ValidationError("Datetime is required and must be a string")
+    
+    # Try different datetime formats
+    formats = [
+        '%Y-%m-%dT%H:%M:%S',
+        '%Y-%m-%dT%H:%M:%SZ',
+        '%Y-%m-%dT%H:%M:%S.%f',
+        '%Y-%m-%dT%H:%M:%S.%fZ',
+        '%Y-%m-%d %H:%M:%S',
+        '%Y-%m-%d %H:%M',
+        '%Y-%m-%dT%H:%M',
+    ]
+    
+    for fmt in formats:
+        try:
+            return datetime.strptime(datetime_str.replace('Z', ''), fmt.replace('Z', ''))
+        except ValueError:
+            continue
+    
+    # Try ISO format parsing
+    try:
+        return datetime.fromisoformat(datetime_str.replace('Z', '+00:00'))
+    except ValueError:
+        pass
+    
+    raise ValidationError(f"Invalid datetime format: {datetime_str}. Use ISO format (YYYY-MM-DDTHH:MM:SS)")
 
 
 def validate_phone(phone: str) -> bool:

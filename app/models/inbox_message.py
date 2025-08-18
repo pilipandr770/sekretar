@@ -1,8 +1,7 @@
 """Inbox message model for unified messaging."""
 from sqlalchemy import Column, String, Text, Integer, ForeignKey, Boolean, JSON, LargeBinary
 from sqlalchemy.orm import relationship
-from app.models.base import TenantAwareModel, SoftDeleteMixin, AuditMixin
-from app.utils.schema import get_schema_name
+from app.models.base import TenantAwareModel, SoftDeleteMixin, AuditMixin, get_fk_reference
 
 
 class InboxMessage(TenantAwareModel, SoftDeleteMixin, AuditMixin):
@@ -11,10 +10,10 @@ class InboxMessage(TenantAwareModel, SoftDeleteMixin, AuditMixin):
     __tablename__ = 'inbox_messages'
     
     # Channel and thread relationships
-    channel_id = Column(Integer, ForeignKey(f'{get_schema_name()}.channels.id'), nullable=False, index=True)
+    channel_id = Column(Integer, ForeignKey(get_fk_reference('channels')), nullable=False, index=True)
     channel = relationship('Channel', back_populates='inbox_messages')
     
-    thread_id = Column(Integer, ForeignKey(f'{get_schema_name()}.threads.id'), nullable=False, index=True)
+    thread_id = Column(Integer, ForeignKey(get_fk_reference('threads')), nullable=False, index=True)
     thread = relationship('Thread', back_populates='messages')
     
     # Message identification
@@ -52,7 +51,7 @@ class InboxMessage(TenantAwareModel, SoftDeleteMixin, AuditMixin):
     read_at = Column(String(50), nullable=True)
     
     # Metadata
-    metadata = Column(JSON, default=dict, nullable=False)  # Channel-specific metadata
+    extra_data = Column(JSON, default=dict, nullable=False)  # Channel-specific metadata
     
     # Relationships
     attachments = relationship('Attachment', back_populates='message', cascade='all, delete-orphan')
@@ -62,13 +61,13 @@ class InboxMessage(TenantAwareModel, SoftDeleteMixin, AuditMixin):
     
     def get_metadata(self, key, default=None):
         """Get metadata value."""
-        return self.metadata.get(key, default) if self.metadata else default
+        return self.extra_data.get(key, default) if self.extra_data else default
     
     def set_metadata(self, key, value):
         """Set metadata value."""
-        if self.metadata is None:
-            self.metadata = {}
-        self.metadata[key] = value
+        if self.extra_data is None:
+            self.extra_data = {}
+        self.extra_data[key] = value
         return self
     
     def mark_as_read(self):
@@ -233,7 +232,7 @@ class Attachment(TenantAwareModel, SoftDeleteMixin):
     __tablename__ = 'attachments'
     
     # Message relationship
-    message_id = Column(Integer, ForeignKey(f'{get_schema_name()}.inbox_messages.id'), nullable=False, index=True)
+    message_id = Column(Integer, ForeignKey(get_fk_reference('inbox_messages')), nullable=False, index=True)
     message = relationship('InboxMessage', back_populates='attachments')
     
     # File information
@@ -250,7 +249,7 @@ class Attachment(TenantAwareModel, SoftDeleteMixin):
     status = Column(String(50), default='uploaded', nullable=False)  # uploaded, processing, ready, failed
     
     # Metadata
-    metadata = Column(JSON, default=dict, nullable=False)
+    extra_data = Column(JSON, default=dict, nullable=False)
     
     def __repr__(self):
         return f'<Attachment {self.filename}>'

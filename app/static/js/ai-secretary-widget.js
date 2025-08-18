@@ -1,0 +1,1022 @@
+/**
+ * AI Secretary Web Widget
+ * Real-time chat widget with WebSocket communication
+ */
+(function() {
+    'use strict';
+
+    // Widget configuration defaults
+    const DEFAULT_CONFIG = {
+        apiUrl: 'http://localhost:5000',
+        socketUrl: 'http://localhost:5000',
+        tenantId: null,
+        apiKey: null,
+        theme: 'light',
+        position: 'bottom-right',
+        width: 350,
+        height: 500,
+        title: 'AI Secretary',
+        subtitle: 'How can I help you today?',
+        placeholder: 'Type your message...',
+        showTypingIndicator: true,
+        showTimestamps: true,
+        autoOpen: false,
+        enableSound: true,
+        customCSS: null,
+        onMessage: null,
+        onConnect: null,
+        onDisconnect: null,
+        onError: null
+    };
+
+    // Widget themes
+    const THEMES = {
+        light: {
+            primaryColor: '#007bff',
+            backgroundColor: '#ffffff',
+            textColor: '#333333',
+            borderColor: '#e0e0e0',
+            headerColor: '#007bff',
+            headerTextColor: '#ffffff',
+            messageUserBg: '#007bff',
+            messageUserColor: '#ffffff',
+            messageAiBg: '#f1f3f4',
+            messageAiColor: '#333333',
+            inputBg: '#ffffff',
+            inputColor: '#333333',
+            inputBorder: '#e0e0e0'
+        },
+        dark: {
+            primaryColor: '#0d6efd',
+            backgroundColor: '#2d3748',
+            textColor: '#e2e8f0',
+            borderColor: '#4a5568',
+            headerColor: '#0d6efd',
+            headerTextColor: '#ffffff',
+            messageUserBg: '#0d6efd',
+            messageUserColor: '#ffffff',
+            messageAiBg: '#4a5568',
+            messageAiColor: '#e2e8f0',
+            inputBg: '#4a5568',
+            inputColor: '#e2e8f0',
+            inputBorder: '#718096'
+        }
+    };
+
+    class AISecretaryWidget {
+        constructor(config = {}) {
+            this.config = { ...DEFAULT_CONFIG, ...config };
+            this.socket = null;
+            this.isConnected = false;
+            this.isOpen = false;
+            this.currentThread = null;
+            this.messages = [];
+            this.typingUsers = new Set();
+            this.typingTimeout = null;
+            this.unreadCount = 0;
+            
+            // Validate required config
+            if (!this.config.tenantId || !this.config.apiKey) {
+                throw new Error('tenantId and apiKey are required');
+            }
+            
+            this.init();
+        }
+
+        init() {
+            this.createWidget();
+            this.applyTheme();
+            this.bindEvents();
+            this.connect();
+            
+            if (this.config.autoOpen) {
+                this.open();
+            }
+        }
+
+        createWidget() {
+            // Create widget container
+            this.container = document.createElement('div');
+            this.container.id = 'ai-secretary-widget';
+            this.container.className = `ai-secretary-widget ${this.config.position}`;
+            
+            // Create widget HTML
+            this.container.innerHTML = `
+                <div class="widget-button" id="widget-button">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M20 2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h4l4 4 4-4h4c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-2 12H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z"/>
+                    </svg>
+                    <span class="unread-badge" id="unread-badge" style="display: none;">0</span>
+                </div>
+                
+                <div class="widget-chat" id="widget-chat" style="display: none;">
+                    <div class="chat-header">
+                        <div class="header-info">
+                            <h3 class="chat-title">${this.config.title}</h3>
+                            <p class="chat-subtitle">${this.config.subtitle}</p>
+                        </div>
+                        <div class="header-actions">
+                            <button class="minimize-btn" id="minimize-btn" title="Minimize">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M19 13H5v-2h14v2z"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="connection-status" id="connection-status">
+                        <span class="status-indicator"></span>
+                        <span class="status-text">Connecting...</span>
+                    </div>
+                    
+                    <div class="chat-messages" id="chat-messages">
+                        <div class="welcome-message">
+                            <div class="message ai-message">
+                                <div class="message-content">
+                                    <p>Hello! I'm your AI Secretary. How can I help you today?</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="typing-indicator" id="typing-indicator" style="display: none;">
+                        <div class="typing-dots">
+                            <span></span>
+                            <span></span>
+                            <span></span>
+                        </div>
+                        <span class="typing-text">AI is typing...</span>
+                    </div>
+                    
+                    <div class="chat-input">
+                        <div class="input-container">
+                            <textarea 
+                                id="message-input" 
+                                placeholder="${this.config.placeholder}"
+                                rows="1"
+                                maxlength="2000"
+                            ></textarea>
+                            <button id="send-btn" class="send-btn" disabled>
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+                                </svg>
+                            </button>
+                        </div>
+                        <div class="input-footer">
+                            <span class="powered-by">Powered by AI Secretary</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(this.container);
+            
+            // Cache DOM elements
+            this.elements = {
+                button: this.container.querySelector('#widget-button'),
+                chat: this.container.querySelector('#widget-chat'),
+                minimizeBtn: this.container.querySelector('#minimize-btn'),
+                connectionStatus: this.container.querySelector('#connection-status'),
+                messages: this.container.querySelector('#chat-messages'),
+                typingIndicator: this.container.querySelector('#typing-indicator'),
+                messageInput: this.container.querySelector('#message-input'),
+                sendBtn: this.container.querySelector('#send-btn'),
+                unreadBadge: this.container.querySelector('#unread-badge')
+            };
+        }
+
+        applyTheme() {
+            const theme = THEMES[this.config.theme] || THEMES.light;
+            const style = document.createElement('style');
+            
+            style.textContent = `
+                .ai-secretary-widget {
+                    position: fixed;
+                    z-index: 10000;
+                    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                    font-size: 14px;
+                    line-height: 1.4;
+                }
+                
+                .ai-secretary-widget.bottom-right {
+                    bottom: 20px;
+                    right: 20px;
+                }
+                
+                .ai-secretary-widget.bottom-left {
+                    bottom: 20px;
+                    left: 20px;
+                }
+                
+                .ai-secretary-widget.top-right {
+                    top: 20px;
+                    right: 20px;
+                }
+                
+                .ai-secretary-widget.top-left {
+                    top: 20px;
+                    left: 20px;
+                }
+                
+                .widget-button {
+                    width: 60px;
+                    height: 60px;
+                    border-radius: 50%;
+                    background: ${theme.primaryColor};
+                    color: white;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    cursor: pointer;
+                    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+                    transition: all 0.3s ease;
+                    position: relative;
+                }
+                
+                .widget-button:hover {
+                    transform: scale(1.1);
+                    box-shadow: 0 6px 20px rgba(0,0,0,0.2);
+                }
+                
+                .unread-badge {
+                    position: absolute;
+                    top: -5px;
+                    right: -5px;
+                    background: #ff4757;
+                    color: white;
+                    border-radius: 50%;
+                    width: 20px;
+                    height: 20px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    font-size: 11px;
+                    font-weight: bold;
+                }
+                
+                .widget-chat {
+                    width: ${this.config.width}px;
+                    height: ${this.config.height}px;
+                    background: ${theme.backgroundColor};
+                    border: 1px solid ${theme.borderColor};
+                    border-radius: 12px;
+                    box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+                    display: flex;
+                    flex-direction: column;
+                    position: absolute;
+                    bottom: 80px;
+                    right: 0;
+                    overflow: hidden;
+                }
+                
+                .chat-header {
+                    background: ${theme.headerColor};
+                    color: ${theme.headerTextColor};
+                    padding: 16px;
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                }
+                
+                .chat-title {
+                    margin: 0;
+                    font-size: 16px;
+                    font-weight: 600;
+                }
+                
+                .chat-subtitle {
+                    margin: 2px 0 0 0;
+                    font-size: 12px;
+                    opacity: 0.8;
+                }
+                
+                .minimize-btn {
+                    background: none;
+                    border: none;
+                    color: ${theme.headerTextColor};
+                    cursor: pointer;
+                    padding: 4px;
+                    border-radius: 4px;
+                    opacity: 0.8;
+                    transition: opacity 0.2s;
+                }
+                
+                .minimize-btn:hover {
+                    opacity: 1;
+                    background: rgba(255,255,255,0.1);
+                }
+                
+                .connection-status {
+                    padding: 8px 16px;
+                    background: #f8f9fa;
+                    border-bottom: 1px solid ${theme.borderColor};
+                    display: flex;
+                    align-items: center;
+                    gap: 8px;
+                    font-size: 12px;
+                }
+                
+                .status-indicator {
+                    width: 8px;
+                    height: 8px;
+                    border-radius: 50%;
+                    background: #ffc107;
+                }
+                
+                .status-indicator.connected {
+                    background: #28a745;
+                }
+                
+                .status-indicator.disconnected {
+                    background: #dc3545;
+                }
+                
+                .chat-messages {
+                    flex: 1;
+                    overflow-y: auto;
+                    padding: 16px;
+                    display: flex;
+                    flex-direction: column;
+                    gap: 12px;
+                }
+                
+                .message {
+                    display: flex;
+                    flex-direction: column;
+                    max-width: 80%;
+                }
+                
+                .message.user-message {
+                    align-self: flex-end;
+                }
+                
+                .message.ai-message {
+                    align-self: flex-start;
+                }
+                
+                .message-content {
+                    padding: 12px 16px;
+                    border-radius: 18px;
+                    word-wrap: break-word;
+                }
+                
+                .user-message .message-content {
+                    background: ${theme.messageUserBg};
+                    color: ${theme.messageUserColor};
+                }
+                
+                .ai-message .message-content {
+                    background: ${theme.messageAiBg};
+                    color: ${theme.messageAiColor};
+                }
+                
+                .message-time {
+                    font-size: 11px;
+                    opacity: 0.6;
+                    margin-top: 4px;
+                    padding: 0 4px;
+                }
+                
+                .user-message .message-time {
+                    text-align: right;
+                }
+                
+                .typing-indicator {
+                    padding: 12px 16px;
+                    display: flex;
+                    align-items: center;
+                    gap: 8px;
+                    background: ${theme.messageAiBg};
+                    margin: 0 16px;
+                    border-radius: 18px;
+                    max-width: 80%;
+                }
+                
+                .typing-dots {
+                    display: flex;
+                    gap: 4px;
+                }
+                
+                .typing-dots span {
+                    width: 6px;
+                    height: 6px;
+                    border-radius: 50%;
+                    background: ${theme.messageAiColor};
+                    opacity: 0.4;
+                    animation: typing 1.4s infinite ease-in-out;
+                }
+                
+                .typing-dots span:nth-child(1) { animation-delay: -0.32s; }
+                .typing-dots span:nth-child(2) { animation-delay: -0.16s; }
+                
+                @keyframes typing {
+                    0%, 80%, 100% { opacity: 0.4; }
+                    40% { opacity: 1; }
+                }
+                
+                .typing-text {
+                    font-size: 12px;
+                    color: ${theme.messageAiColor};
+                    opacity: 0.7;
+                }
+                
+                .chat-input {
+                    border-top: 1px solid ${theme.borderColor};
+                    padding: 16px;
+                }
+                
+                .input-container {
+                    display: flex;
+                    gap: 8px;
+                    align-items: flex-end;
+                }
+                
+                #message-input {
+                    flex: 1;
+                    border: 1px solid ${theme.inputBorder};
+                    border-radius: 20px;
+                    padding: 12px 16px;
+                    background: ${theme.inputBg};
+                    color: ${theme.inputColor};
+                    resize: none;
+                    outline: none;
+                    font-family: inherit;
+                    font-size: 14px;
+                    max-height: 100px;
+                }
+                
+                #message-input:focus {
+                    border-color: ${theme.primaryColor};
+                }
+                
+                .send-btn {
+                    width: 40px;
+                    height: 40px;
+                    border-radius: 50%;
+                    border: none;
+                    background: ${theme.primaryColor};
+                    color: white;
+                    cursor: pointer;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    transition: all 0.2s;
+                }
+                
+                .send-btn:disabled {
+                    opacity: 0.5;
+                    cursor: not-allowed;
+                }
+                
+                .send-btn:not(:disabled):hover {
+                    transform: scale(1.1);
+                }
+                
+                .input-footer {
+                    margin-top: 8px;
+                    text-align: center;
+                }
+                
+                .powered-by {
+                    font-size: 11px;
+                    color: ${theme.textColor};
+                    opacity: 0.5;
+                }
+                
+                .welcome-message {
+                    text-align: center;
+                    padding: 20px 0;
+                }
+                
+                /* Custom scrollbar */
+                .chat-messages::-webkit-scrollbar {
+                    width: 6px;
+                }
+                
+                .chat-messages::-webkit-scrollbar-track {
+                    background: transparent;
+                }
+                
+                .chat-messages::-webkit-scrollbar-thumb {
+                    background: ${theme.borderColor};
+                    border-radius: 3px;
+                }
+                
+                .chat-messages::-webkit-scrollbar-thumb:hover {
+                    background: ${theme.textColor};
+                    opacity: 0.3;
+                }
+                
+                /* Animations */
+                .widget-chat {
+                    animation: slideUp 0.3s ease-out;
+                }
+                
+                @keyframes slideUp {
+                    from {
+                        opacity: 0;
+                        transform: translateY(20px);
+                    }
+                    to {
+                        opacity: 1;
+                        transform: translateY(0);
+                    }
+                }
+                
+                .message {
+                    animation: fadeIn 0.3s ease-out;
+                }
+                
+                @keyframes fadeIn {
+                    from { opacity: 0; }
+                    to { opacity: 1; }
+                }
+                
+                /* Responsive */
+                @media (max-width: 480px) {
+                    .widget-chat {
+                        width: calc(100vw - 40px);
+                        height: calc(100vh - 100px);
+                        position: fixed;
+                        bottom: 80px;
+                        left: 20px;
+                        right: 20px;
+                    }
+                }
+            `;
+            
+            // Apply custom CSS if provided
+            if (this.config.customCSS) {
+                style.textContent += this.config.customCSS;
+            }
+            
+            document.head.appendChild(style);
+        }
+
+        bindEvents() {
+            // Toggle widget
+            this.elements.button.addEventListener('click', () => {
+                this.toggle();
+            });
+            
+            // Minimize widget
+            this.elements.minimizeBtn.addEventListener('click', () => {
+                this.close();
+            });
+            
+            // Send message
+            this.elements.sendBtn.addEventListener('click', () => {
+                this.sendMessage();
+            });
+            
+            // Input events
+            this.elements.messageInput.addEventListener('input', (e) => {
+                this.handleInputChange(e);
+            });
+            
+            this.elements.messageInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    this.sendMessage();
+                } else if (e.key === 'Enter' && e.shiftKey) {
+                    // Allow new line
+                }
+            });
+            
+            // Typing indicators
+            this.elements.messageInput.addEventListener('input', () => {
+                this.handleTyping();
+            });
+            
+            // Auto-resize textarea
+            this.elements.messageInput.addEventListener('input', () => {
+                this.autoResizeTextarea();
+            });
+        }
+
+        connect() {
+            if (this.socket) {
+                this.socket.disconnect();
+            }
+            
+            // Load Socket.IO library if not already loaded
+            if (typeof io === 'undefined') {
+                this.loadSocketIO().then(() => {
+                    this.initializeSocket();
+                });
+            } else {
+                this.initializeSocket();
+            }
+        }
+
+        loadSocketIO() {
+            return new Promise((resolve, reject) => {
+                const script = document.createElement('script');
+                script.src = `${this.config.socketUrl}/socket.io/socket.io.js`;
+                script.onload = resolve;
+                script.onerror = reject;
+                document.head.appendChild(script);
+            });
+        }
+
+        initializeSocket() {
+            this.socket = io(this.config.socketUrl, {
+                auth: {
+                    token: this.config.apiKey
+                },
+                transports: ['websocket', 'polling']
+            });
+            
+            this.socket.on('connect', () => {
+                this.isConnected = true;
+                this.updateConnectionStatus('connected', 'Connected');
+                this.initializeThread();
+                
+                if (this.config.onConnect) {
+                    this.config.onConnect();
+                }
+            });
+            
+            this.socket.on('disconnect', () => {
+                this.isConnected = false;
+                this.updateConnectionStatus('disconnected', 'Disconnected');
+                
+                if (this.config.onDisconnect) {
+                    this.config.onDisconnect();
+                }
+            });
+            
+            this.socket.on('connect_error', (error) => {
+                this.updateConnectionStatus('disconnected', 'Connection failed');
+                
+                if (this.config.onError) {
+                    this.config.onError(error);
+                }
+            });
+            
+            this.socket.on('new_message', (message) => {
+                this.handleNewMessage(message);
+            });
+            
+            this.socket.on('user_typing', (data) => {
+                this.handleTypingIndicator(data);
+            });
+            
+            this.socket.on('thread_messages', (data) => {
+                this.handleThreadMessages(data);
+            });
+            
+            this.socket.on('error', (error) => {
+                console.error('Socket error:', error);
+                this.showError(error.message || 'An error occurred');
+            });
+        }
+
+        initializeThread() {
+            // Create or get existing thread for this widget session
+            // For simplicity, we'll use a single thread per tenant
+            // In a real implementation, you might want to create separate threads per user session
+            
+            this.currentThread = {
+                id: `widget_${this.config.tenantId}_${Date.now()}`,
+                tenant_id: this.config.tenantId
+            };
+            
+            // Join thread room
+            this.socket.emit('join_thread', {
+                thread_id: this.currentThread.id
+            });
+            
+            // Load existing messages
+            this.socket.emit('get_thread_messages', {
+                thread_id: this.currentThread.id,
+                limit: 50,
+                offset: 0
+            });
+        }
+
+        sendMessage() {
+            const content = this.elements.messageInput.value.trim();
+            if (!content || !this.isConnected || !this.currentThread) {
+                return;
+            }
+            
+            // Add message to UI immediately
+            this.addMessage({
+                content: content,
+                direction: 'outbound',
+                sender_id: 'user',
+                sent_at: new Date().toISOString(),
+                is_from_customer: false,
+                is_from_agent: true
+            });
+            
+            // Send via WebSocket
+            this.socket.emit('send_message', {
+                thread_id: this.currentThread.id,
+                content: content,
+                content_type: 'text'
+            });
+            
+            // Clear input
+            this.elements.messageInput.value = '';
+            this.elements.sendBtn.disabled = true;
+            this.autoResizeTextarea();
+            
+            // Stop typing indicator
+            this.stopTyping();
+            
+            // Scroll to bottom
+            this.scrollToBottom();
+        }
+
+        handleNewMessage(message) {
+            this.addMessage(message);
+            
+            // Update unread count if widget is closed
+            if (!this.isOpen && message.direction === 'inbound') {
+                this.unreadCount++;
+                this.updateUnreadBadge();
+            }
+            
+            // Play sound if enabled
+            if (this.config.enableSound && message.direction === 'inbound') {
+                this.playNotificationSound();
+            }
+            
+            // Trigger callback
+            if (this.config.onMessage) {
+                this.config.onMessage(message);
+            }
+        }
+
+        handleThreadMessages(data) {
+            // Clear existing messages except welcome
+            const welcomeMessage = this.elements.messages.querySelector('.welcome-message');
+            this.elements.messages.innerHTML = '';
+            if (welcomeMessage && data.messages.length === 0) {
+                this.elements.messages.appendChild(welcomeMessage);
+            }
+            
+            // Add messages in chronological order
+            data.messages.reverse().forEach(message => {
+                this.addMessage(message, false);
+            });
+            
+            this.scrollToBottom();
+        }
+
+        addMessage(message, animate = true) {
+            const messageEl = document.createElement('div');
+            messageEl.className = `message ${message.direction === 'inbound' ? 'ai-message' : 'user-message'}`;
+            
+            if (animate) {
+                messageEl.style.animation = 'fadeIn 0.3s ease-out';
+            }
+            
+            const contentEl = document.createElement('div');
+            contentEl.className = 'message-content';
+            contentEl.textContent = message.content;
+            
+            messageEl.appendChild(contentEl);
+            
+            // Add timestamp if enabled
+            if (this.config.showTimestamps) {
+                const timeEl = document.createElement('div');
+                timeEl.className = 'message-time';
+                timeEl.textContent = this.formatTime(message.sent_at || message.created_at);
+                messageEl.appendChild(timeEl);
+            }
+            
+            // Remove welcome message if this is the first real message
+            const welcomeMessage = this.elements.messages.querySelector('.welcome-message');
+            if (welcomeMessage && this.messages.length === 0) {
+                welcomeMessage.remove();
+            }
+            
+            this.elements.messages.appendChild(messageEl);
+            this.messages.push(message);
+            
+            if (animate) {
+                this.scrollToBottom();
+            }
+        }
+
+        handleTypingIndicator(data) {
+            if (data.typing) {
+                this.typingUsers.add(data.user_name);
+            } else {
+                this.typingUsers.delete(data.user_name);
+            }
+            
+            this.updateTypingIndicator();
+        }
+
+        updateTypingIndicator() {
+            const typingArray = Array.from(this.typingUsers);
+            
+            if (typingArray.length > 0) {
+                let text = 'AI is typing...';
+                if (typingArray.length === 1) {
+                    text = `${typingArray[0]} is typing...`;
+                } else if (typingArray.length === 2) {
+                    text = `${typingArray[0]} and ${typingArray[1]} are typing...`;
+                } else {
+                    text = `${typingArray.length} people are typing...`;
+                }
+                
+                this.elements.typingIndicator.querySelector('.typing-text').textContent = text;
+                this.elements.typingIndicator.style.display = 'flex';
+            } else {
+                this.elements.typingIndicator.style.display = 'none';
+            }
+            
+            this.scrollToBottom();
+        }
+
+        handleInputChange(e) {
+            const hasContent = e.target.value.trim().length > 0;
+            this.elements.sendBtn.disabled = !hasContent || !this.isConnected;
+        }
+
+        handleTyping() {
+            if (!this.isConnected || !this.currentThread) {
+                return;
+            }
+            
+            // Send typing start
+            this.socket.emit('typing_start', {
+                thread_id: this.currentThread.id
+            });
+            
+            // Clear existing timeout
+            if (this.typingTimeout) {
+                clearTimeout(this.typingTimeout);
+            }
+            
+            // Set timeout to send typing stop
+            this.typingTimeout = setTimeout(() => {
+                this.stopTyping();
+            }, 3000);
+        }
+
+        stopTyping() {
+            if (this.typingTimeout) {
+                clearTimeout(this.typingTimeout);
+                this.typingTimeout = null;
+            }
+            
+            if (this.isConnected && this.currentThread) {
+                this.socket.emit('typing_stop', {
+                    thread_id: this.currentThread.id
+                });
+            }
+        }
+
+        autoResizeTextarea() {
+            const textarea = this.elements.messageInput;
+            textarea.style.height = 'auto';
+            textarea.style.height = Math.min(textarea.scrollHeight, 100) + 'px';
+        }
+
+        updateConnectionStatus(status, text) {
+            const indicator = this.elements.connectionStatus.querySelector('.status-indicator');
+            const statusText = this.elements.connectionStatus.querySelector('.status-text');
+            
+            indicator.className = `status-indicator ${status}`;
+            statusText.textContent = text;
+            
+            // Hide status after connection is established
+            if (status === 'connected') {
+                setTimeout(() => {
+                    this.elements.connectionStatus.style.display = 'none';
+                }, 2000);
+            } else {
+                this.elements.connectionStatus.style.display = 'flex';
+            }
+        }
+
+        updateUnreadBadge() {
+            if (this.unreadCount > 0) {
+                this.elements.unreadBadge.textContent = this.unreadCount > 99 ? '99+' : this.unreadCount;
+                this.elements.unreadBadge.style.display = 'flex';
+            } else {
+                this.elements.unreadBadge.style.display = 'none';
+            }
+        }
+
+        playNotificationSound() {
+            // Simple notification sound using Web Audio API
+            try {
+                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+                
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+                
+                oscillator.frequency.value = 800;
+                oscillator.type = 'sine';
+                
+                gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+                
+                oscillator.start(audioContext.currentTime);
+                oscillator.stop(audioContext.currentTime + 0.5);
+            } catch (e) {
+                // Fallback: no sound
+            }
+        }
+
+        formatTime(timestamp) {
+            const date = new Date(timestamp);
+            return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        }
+
+        scrollToBottom() {
+            setTimeout(() => {
+                this.elements.messages.scrollTop = this.elements.messages.scrollHeight;
+            }, 100);
+        }
+
+        showError(message) {
+            // Create error message
+            const errorEl = document.createElement('div');
+            errorEl.className = 'message ai-message';
+            errorEl.innerHTML = `
+                <div class="message-content" style="background: #fee; color: #c33; border: 1px solid #fcc;">
+                    <strong>Error:</strong> ${message}
+                </div>
+            `;
+            
+            this.elements.messages.appendChild(errorEl);
+            this.scrollToBottom();
+        }
+
+        // Public API methods
+        open() {
+            this.isOpen = true;
+            this.elements.chat.style.display = 'flex';
+            this.elements.button.style.display = 'none';
+            this.unreadCount = 0;
+            this.updateUnreadBadge();
+            
+            // Focus input
+            setTimeout(() => {
+                this.elements.messageInput.focus();
+            }, 300);
+        }
+
+        close() {
+            this.isOpen = false;
+            this.elements.chat.style.display = 'none';
+            this.elements.button.style.display = 'flex';
+            this.stopTyping();
+        }
+
+        toggle() {
+            if (this.isOpen) {
+                this.close();
+            } else {
+                this.open();
+            }
+        }
+
+        destroy() {
+            if (this.socket) {
+                this.socket.disconnect();
+            }
+            
+            if (this.container && this.container.parentNode) {
+                this.container.parentNode.removeChild(this.container);
+            }
+            
+            if (this.typingTimeout) {
+                clearTimeout(this.typingTimeout);
+            }
+        }
+
+        // Configuration methods
+        updateConfig(newConfig) {
+            this.config = { ...this.config, ...newConfig };
+            // Re-apply theme if changed
+            if (newConfig.theme) {
+                this.applyTheme();
+            }
+        }
+
+        setTheme(theme) {
+            this.config.theme = theme;
+            this.applyTheme();
+        }
+    }
+
+    // Global API
+    window.AISecretaryWidget = AISecretaryWidget;
+
+    // Auto-initialize if config is provided
+    if (window.aiSecretaryConfig) {
+        window.aiSecretaryWidget = new AISecretaryWidget(window.aiSecretaryConfig);
+    }
+
+})();

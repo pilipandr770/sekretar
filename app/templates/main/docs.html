@@ -1,0 +1,280 @@
+{% extends "base.html" %}
+
+{% block title %}Documentation - AI Secretary{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h1>📚 AI Secretary Documentation</h1>
+        <p class="text-muted">Complete guide to using AI Secretary API and web interface.</p>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-4 mb-4">
+        <div class="card h-100">
+            <div class="card-header">
+                <h5 class="mb-0">🔧 API Documentation</h5>
+            </div>
+            <div class="card-body">
+                <p>Complete API reference with endpoints, request/response formats, and examples.</p>
+                <ul class="list-unstyled">
+                    <li>✅ All endpoints documented</li>
+                    <li>✅ Request/response examples</li>
+                    <li>✅ Error codes and handling</li>
+                    <li>✅ Authentication info</li>
+                </ul>
+                <a href="#api-docs" class="btn btn-primary">View API Docs</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4 mb-4">
+        <div class="card h-100">
+            <div class="card-header">
+                <h5 class="mb-0">👤 User Guide</h5>
+            </div>
+            <div class="card-body">
+                <p>Step-by-step guide for end users on how to use the web interface and features.</p>
+                <ul class="list-unstyled">
+                    <li>✅ Quick start guide</li>
+                    <li>✅ Web interface overview</li>
+                    <li>✅ Troubleshooting</li>
+                    <li>✅ FAQ section</li>
+                </ul>
+                <a href="#user-guide" class="btn btn-outline-primary">View User Guide</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4 mb-4">
+        <div class="card h-100">
+            <div class="card-header">
+                <h5 class="mb-0">🧪 Interactive Testing</h5>
+            </div>
+            <div class="card-body">
+                <p>Test API endpoints directly from your browser with real-time responses.</p>
+                <ul class="list-unstyled">
+                    <li>✅ Live API testing</li>
+                    <li>✅ Response visualization</li>
+                    <li>✅ Status code monitoring</li>
+                    <li>✅ JSON formatting</li>
+                </ul>
+                <a href="{{ url_for('main.api_tester') }}" class="btn btn-success">Open API Tester</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0" id="api-docs">🔧 API Documentation</h5>
+            </div>
+            <div class="card-body">
+                <div id="api-documentation">
+                    <div class="text-center">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0" id="user-guide">👤 Quick Start Guide</h5>
+            </div>
+            <div class="card-body">
+                <h6>🚀 Getting Started</h6>
+                <ol>
+                    <li><strong>Access the Web Interface:</strong> Navigate to <code>http://localhost:5000/web</code></li>
+                    <li><strong>Check System Status:</strong> Visit the Dashboard to see system health</li>
+                    <li><strong>Test API Endpoints:</strong> Use the API Tester to interact with the API</li>
+                    <li><strong>Change Language:</strong> Use the language selector in the navigation</li>
+                </ol>
+
+                <h6 class="mt-4">🌐 Available Interfaces</h6>
+                <div class="row">
+                    <div class="col-md-6">
+                        <ul class="list-group list-group-flush">
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <span><strong>Main Interface</strong></span>
+                                <a href="{{ url_for('main.index') }}" class="btn btn-sm btn-outline-primary">Open</a>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <span><strong>Dashboard</strong></span>
+                                <a href="{{ url_for('main.dashboard') }}" class="btn btn-sm btn-outline-primary">Open</a>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <span><strong>API Tester</strong></span>
+                                <a href="{{ url_for('main.api_tester') }}" class="btn btn-sm btn-outline-primary">Open</a>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <ul class="list-group list-group-flush">
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <span><strong>API Root</strong></span>
+                                <a href="/" target="_blank" class="btn btn-sm btn-outline-secondary">Open</a>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <span><strong>Health Check</strong></span>
+                                <a href="/api/v1/health" target="_blank" class="btn btn-sm btn-outline-secondary">Open</a>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <span><strong>Version Info</strong></span>
+                                <a href="/api/v1/version" target="_blank" class="btn btn-sm btn-outline-secondary">Open</a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+                <h6 class="mt-4">🌍 Supported Languages</h6>
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="text-center p-3 border rounded">
+                            <h5>🇺🇸</h5>
+                            <strong>English</strong><br>
+                            <small class="text-muted">Default language</small>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="text-center p-3 border rounded">
+                            <h5>🇩🇪</h5>
+                            <strong>Deutsch</strong><br>
+                            <small class="text-muted">German language</small>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="text-center p-3 border rounded">
+                            <h5>🇺🇦</h5>
+                            <strong>Українська</strong><br>
+                            <small class="text-muted">Ukrainian language</small>
+                        </div>
+                    </div>
+                </div>
+
+                <h6 class="mt-4">🔍 System Status Indicators</h6>
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="alert alert-success">
+                            <strong>🟢 Healthy</strong><br>
+                            Component is working normally
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="alert alert-warning">
+                            <strong>🟡 Warning</strong><br>
+                            Component has issues but system works
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="alert alert-danger">
+                            <strong>🔴 Unhealthy</strong><br>
+                            Component is not working
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="alert alert-info">
+            <h5>📞 Need Help?</h5>
+            <p class="mb-0">
+                For detailed documentation, check out the complete guides:
+                <a href="/docs/API_DOCUMENTATION.md" target="_blank" class="alert-link">API Documentation</a> |
+                <a href="/docs/USER_GUIDE.md" target="_blank" class="alert-link">User Guide</a>
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+async function loadAPIDocumentation() {
+    try {
+        const response = await fetch('/api/v1/docs');
+        const data = await response.json();
+        
+        if (data.success) {
+            const apiData = data.data;
+            
+            const docHtml = `
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>API Information</h6>
+                        <ul class="list-unstyled">
+                            <li><strong>Title:</strong> ${apiData.title}</li>
+                            <li><strong>Version:</strong> ${apiData.version}</li>
+                            <li><strong>Environment:</strong> 
+                                <span class="badge bg-${apiData.environment === 'production' ? 'success' : 'warning'}">
+                                    ${apiData.environment}
+                                </span>
+                            </li>
+                            <li><strong>Base URL:</strong> <code>${apiData.base_url}</code></li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Available Endpoints</h6>
+                        <div class="table-responsive">
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>Method</th>
+                                        <th>Path</th>
+                                        <th>Description</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${Object.entries(apiData.endpoints).map(([key, endpoint]) => `
+                                        <tr>
+                                            <td><span class="badge bg-${endpoint.method === 'GET' ? 'success' : 'primary'}">${endpoint.method}</span></td>
+                                            <td><code>${endpoint.path}</code></td>
+                                            <td>${endpoint.description}</td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row mt-3">
+                    <div class="col-12">
+                        <h6>Supported Languages</h6>
+                        <div class="d-flex gap-2">
+                            ${Object.entries(apiData.supported_languages).map(([code, name]) => `
+                                <span class="badge bg-secondary">${code}: ${name}</span>
+                            `).join('')}
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('api-documentation').innerHTML = docHtml;
+        }
+    } catch (error) {
+        document.getElementById('api-documentation').innerHTML = `
+            <div class="alert alert-danger">
+                Failed to load API documentation: ${error.message}
+            </div>
+        `;
+    }
+}
+
+// Load API documentation on page load
+document.addEventListener('DOMContentLoaded', loadAPIDocumentation);
+</script>
+{% endblock %}

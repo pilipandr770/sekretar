@@ -1,8 +1,7 @@
 """Lead model for CRM."""
 from sqlalchemy import Column, String, Text, Integer, ForeignKey, Boolean, JSON, Numeric
 from sqlalchemy.orm import relationship
-from app.models.base import TenantAwareModel, SoftDeleteMixin, AuditMixin
-from app.utils.schema import get_schema_name
+from app.models.base import TenantAwareModel, SoftDeleteMixin, AuditMixin, get_fk_reference
 
 
 class Lead(TenantAwareModel, SoftDeleteMixin, AuditMixin):
@@ -11,14 +10,14 @@ class Lead(TenantAwareModel, SoftDeleteMixin, AuditMixin):
     __tablename__ = 'leads'
     
     # Contact relationship
-    contact_id = Column(Integer, ForeignKey(f'{get_schema_name()}.contacts.id'), nullable=True, index=True)
+    contact_id = Column(Integer, ForeignKey(get_fk_reference('contacts')), nullable=True, index=True)
     contact = relationship('Contact', back_populates='leads')
     
     # Pipeline and stage
-    pipeline_id = Column(Integer, ForeignKey(f'{get_schema_name()}.pipelines.id'), nullable=False, index=True)
+    pipeline_id = Column(Integer, ForeignKey(get_fk_reference('pipelines')), nullable=False, index=True)
     pipeline = relationship('Pipeline', back_populates='leads')
     
-    stage_id = Column(Integer, ForeignKey(f'{get_schema_name()}.stages.id'), nullable=False, index=True)
+    stage_id = Column(Integer, ForeignKey(get_fk_reference('stages')), nullable=False, index=True)
     stage = relationship('Stage', back_populates='leads')
     
     # Basic information
@@ -35,7 +34,7 @@ class Lead(TenantAwareModel, SoftDeleteMixin, AuditMixin):
     priority = Column(String(20), default='medium', nullable=False)  # low, medium, high, urgent
     
     # Assignment
-    assigned_to_id = Column(Integer, ForeignKey(f'{get_schema_name()}.users.id'), nullable=True, index=True)
+    assigned_to_id = Column(Integer, ForeignKey(get_fk_reference('users')), nullable=True, index=True)
     assigned_to = relationship('User', foreign_keys=[assigned_to_id], back_populates='assigned_leads')
     
     # Source and tracking
@@ -49,6 +48,7 @@ class Lead(TenantAwareModel, SoftDeleteMixin, AuditMixin):
     # Relationships
     tasks = relationship('Task', back_populates='lead', cascade='all, delete-orphan')
     notes = relationship('Note', back_populates='lead', cascade='all, delete-orphan')
+    threads = relationship('Thread', back_populates='lead')
     
     def __repr__(self):
         return f'<Lead {self.title}>'    
@@ -200,6 +200,16 @@ class Lead(TenantAwareModel, SoftDeleteMixin, AuditMixin):
         """Get number of notes for this lead."""
         return len(self.notes) if self.notes else 0
     
+    def get_thread_count(self):
+        """Get number of linked conversation threads."""
+        return len(self.threads) if self.threads else 0
+    
+    def get_active_threads(self):
+        """Get active conversation threads linked to this lead."""
+        if not self.threads:
+            return []
+        return [thread for thread in self.threads if thread.status == 'open']
+    
     def to_dict(self, exclude=None):
         """Convert to dictionary."""
         exclude = exclude or []
@@ -215,6 +225,8 @@ class Lead(TenantAwareModel, SoftDeleteMixin, AuditMixin):
         data['task_count'] = self.get_task_count()
         data['open_task_count'] = self.get_open_task_count()
         data['note_count'] = self.get_note_count()
+        data['thread_count'] = self.get_thread_count()
+        data['active_thread_count'] = len(self.get_active_threads())
         
         # Add related object info
         if self.contact:

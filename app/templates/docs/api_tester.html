@@ -1,0 +1,685 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Secretary API - Interactive Tester</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f7fa;
+            color: #333;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .header h1 {
+            margin-bottom: 10px;
+            font-weight: 300;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .auth-section {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .auth-section h3 {
+            margin-bottom: 15px;
+            color: #2c3e50;
+        }
+
+        .auth-form {
+            display: flex;
+            gap: 10px;
+            align-items: end;
+            flex-wrap: wrap;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            min-width: 200px;
+        }
+
+        .form-group label {
+            margin-bottom: 5px;
+            font-weight: 500;
+            color: #555;
+        }
+
+        .form-group input {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background-color 0.2s;
+        }
+
+        .btn-primary {
+            background: #3498db;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #2980b9;
+        }
+
+        .btn-success {
+            background: #27ae60;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #229954;
+        }
+
+        .btn-danger {
+            background: #e74c3c;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #c0392b;
+        }
+
+        .api-tester {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .request-section {
+            margin-bottom: 30px;
+        }
+
+        .request-section h3 {
+            margin-bottom: 15px;
+            color: #2c3e50;
+        }
+
+        .request-form {
+            display: grid;
+            gap: 15px;
+        }
+
+        .method-url {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .method-select {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background: white;
+            min-width: 100px;
+        }
+
+        .url-input {
+            flex: 1;
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-family: monospace;
+        }
+
+        .headers-section, .body-section {
+            margin-top: 15px;
+        }
+
+        .headers-section h4, .body-section h4 {
+            margin-bottom: 10px;
+            color: #555;
+        }
+
+        .headers-container {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .header-row {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .header-row input {
+            flex: 1;
+            padding: 6px 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 13px;
+        }
+
+        .body-textarea {
+            width: 100%;
+            min-height: 150px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 13px;
+            resize: vertical;
+        }
+
+        .response-section {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+        }
+
+        .response-section h3 {
+            margin-bottom: 15px;
+            color: #2c3e50;
+        }
+
+        .response-info {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 15px;
+            font-size: 14px;
+        }
+
+        .status-code {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+
+        .status-200 { background: #d4edda; color: #155724; }
+        .status-400 { background: #f8d7da; color: #721c24; }
+        .status-500 { background: #f5c6cb; color: #721c24; }
+
+        .response-body {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 4px;
+            padding: 15px;
+            font-family: monospace;
+            font-size: 13px;
+            white-space: pre-wrap;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .examples-section {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+        }
+
+        .examples-section h3 {
+            margin-bottom: 15px;
+            color: #2c3e50;
+        }
+
+        .example-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 15px;
+        }
+
+        .example-btn {
+            padding: 6px 12px;
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 13px;
+            transition: all 0.2s;
+        }
+
+        .example-btn:hover {
+            background: #e9ecef;
+        }
+
+        .loading {
+            opacity: 0.6;
+            pointer-events: none;
+        }
+
+        .auth-status {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+
+        .auth-status.authenticated {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .auth-status.unauthenticated {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .token-info {
+            margin-top: 10px;
+            font-size: 12px;
+            color: #666;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+            
+            .auth-form {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .method-url {
+                flex-direction: column;
+            }
+            
+            .example-buttons {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>AI Secretary API - Interactive Tester</h1>
+        <p>Test API endpoints directly from your browser</p>
+    </div>
+
+    <div class="container">
+        <!-- Authentication Section -->
+        <div class="auth-section">
+            <h3>Authentication <span id="auth-status" class="auth-status unauthenticated">Not Authenticated</span></h3>
+            <div class="auth-form">
+                <div class="form-group">
+                    <label for="email">Email:</label>
+                    <input type="email" id="email" placeholder="your@email.com">
+                </div>
+                <div class="form-group">
+                    <label for="password">Password:</label>
+                    <input type="password" id="password" placeholder="Your password">
+                </div>
+                <button class="btn btn-primary" onclick="login()">Login</button>
+                <button class="btn btn-danger" onclick="logout()">Logout</button>
+            </div>
+            <div class="token-info" id="token-info"></div>
+        </div>
+
+        <!-- API Tester -->
+        <div class="api-tester">
+            <div class="request-section">
+                <h3>Request</h3>
+                <div class="request-form">
+                    <div class="method-url">
+                        <select class="method-select" id="method">
+                            <option value="GET">GET</option>
+                            <option value="POST">POST</option>
+                            <option value="PUT">PUT</option>
+                            <option value="DELETE">DELETE</option>
+                            <option value="PATCH">PATCH</option>
+                        </select>
+                        <input type="text" class="url-input" id="url" placeholder="/api/v1/health" value="/api/v1/health">
+                        <button class="btn btn-success" onclick="sendRequest()">Send Request</button>
+                    </div>
+
+                    <div class="headers-section">
+                        <h4>Headers</h4>
+                        <div class="headers-container" id="headers-container">
+                            <div class="header-row">
+                                <input type="text" placeholder="Header name" value="Content-Type">
+                                <input type="text" placeholder="Header value" value="application/json">
+                                <button class="btn btn-danger" onclick="removeHeader(this)">Remove</button>
+                            </div>
+                        </div>
+                        <button class="btn btn-primary" onclick="addHeader()">Add Header</button>
+                    </div>
+
+                    <div class="body-section">
+                        <h4>Request Body (JSON)</h4>
+                        <textarea class="body-textarea" id="request-body" placeholder='{"key": "value"}'></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <div class="response-section" id="response-section" style="display: none;">
+                <h3>Response</h3>
+                <div class="response-info" id="response-info"></div>
+                <div class="response-body" id="response-body"></div>
+            </div>
+
+            <div class="examples-section">
+                <h3>Quick Examples</h3>
+                <div class="example-buttons">
+                    <button class="example-btn" onclick="loadExample('health')">Health Check</button>
+                    <button class="example-btn" onclick="loadExample('login')">Login</button>
+                    <button class="example-btn" onclick="loadExample('tenant')">Get Tenant</button>
+                    <button class="example-btn" onclick="loadExample('leads')">List Leads</button>
+                    <button class="example-btn" onclick="loadExample('create-lead')">Create Lead</button>
+                    <button class="example-btn" onclick="loadExample('messages')">List Messages</button>
+                    <button class="example-btn" onclick="loadExample('knowledge-search')">Search Knowledge</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let accessToken = localStorage.getItem('access_token');
+        let refreshToken = localStorage.getItem('refresh_token');
+
+        // Update auth status on page load
+        updateAuthStatus();
+
+        function updateAuthStatus() {
+            const authStatus = document.getElementById('auth-status');
+            const tokenInfo = document.getElementById('token-info');
+            
+            if (accessToken) {
+                authStatus.textContent = 'Authenticated';
+                authStatus.className = 'auth-status authenticated';
+                tokenInfo.textContent = `Token: ${accessToken.substring(0, 20)}...`;
+                
+                // Add Authorization header if not present
+                addAuthHeader();
+            } else {
+                authStatus.textContent = 'Not Authenticated';
+                authStatus.className = 'auth-status unauthenticated';
+                tokenInfo.textContent = '';
+            }
+        }
+
+        function addAuthHeader() {
+            const headers = document.querySelectorAll('#headers-container .header-row');
+            let hasAuthHeader = false;
+            
+            headers.forEach(row => {
+                const nameInput = row.querySelector('input:first-child');
+                if (nameInput.value.toLowerCase() === 'authorization') {
+                    hasAuthHeader = true;
+                    const valueInput = row.querySelector('input:nth-child(2)');
+                    valueInput.value = `Bearer ${accessToken}`;
+                }
+            });
+            
+            if (!hasAuthHeader && accessToken) {
+                addHeader('Authorization', `Bearer ${accessToken}`);
+            }
+        }
+
+        async function login() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            
+            if (!email || !password) {
+                alert('Please enter email and password');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/v1/auth/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ email, password })
+                });
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    accessToken = data.data.access_token;
+                    refreshToken = data.data.refresh_token;
+                    
+                    localStorage.setItem('access_token', accessToken);
+                    localStorage.setItem('refresh_token', refreshToken);
+                    
+                    updateAuthStatus();
+                    alert('Login successful!');
+                } else {
+                    alert(`Login failed: ${data.error.message}`);
+                }
+            } catch (error) {
+                alert(`Login error: ${error.message}`);
+            }
+        }
+
+        function logout() {
+            accessToken = null;
+            refreshToken = null;
+            
+            localStorage.removeItem('access_token');
+            localStorage.removeItem('refresh_token');
+            
+            updateAuthStatus();
+            
+            // Remove Authorization header
+            const headers = document.querySelectorAll('#headers-container .header-row');
+            headers.forEach(row => {
+                const nameInput = row.querySelector('input:first-child');
+                if (nameInput.value.toLowerCase() === 'authorization') {
+                    row.remove();
+                }
+            });
+        }
+
+        function addHeader(name = '', value = '') {
+            const container = document.getElementById('headers-container');
+            const headerRow = document.createElement('div');
+            headerRow.className = 'header-row';
+            headerRow.innerHTML = `
+                <input type="text" placeholder="Header name" value="${name}">
+                <input type="text" placeholder="Header value" value="${value}">
+                <button class="btn btn-danger" onclick="removeHeader(this)">Remove</button>
+            `;
+            container.appendChild(headerRow);
+        }
+
+        function removeHeader(button) {
+            button.parentElement.remove();
+        }
+
+        async function sendRequest() {
+            const method = document.getElementById('method').value;
+            const url = document.getElementById('url').value;
+            const requestBody = document.getElementById('request-body').value;
+            
+            // Collect headers
+            const headers = {};
+            const headerRows = document.querySelectorAll('#headers-container .header-row');
+            headerRows.forEach(row => {
+                const nameInput = row.querySelector('input:first-child');
+                const valueInput = row.querySelector('input:nth-child(2)');
+                if (nameInput.value && valueInput.value) {
+                    headers[nameInput.value] = valueInput.value;
+                }
+            });
+
+            // Prepare request options
+            const options = {
+                method: method,
+                headers: headers
+            };
+
+            if (requestBody && (method === 'POST' || method === 'PUT' || method === 'PATCH')) {
+                options.body = requestBody;
+            }
+
+            // Show loading state
+            document.body.classList.add('loading');
+
+            try {
+                const startTime = Date.now();
+                const response = await fetch(url, options);
+                const endTime = Date.now();
+                const responseTime = endTime - startTime;
+
+                let responseData;
+                const contentType = response.headers.get('content-type');
+                
+                if (contentType && contentType.includes('application/json')) {
+                    responseData = await response.json();
+                } else {
+                    responseData = await response.text();
+                }
+
+                // Show response
+                showResponse(response, responseData, responseTime);
+
+            } catch (error) {
+                showResponse(null, { error: error.message }, 0);
+            } finally {
+                document.body.classList.remove('loading');
+            }
+        }
+
+        function showResponse(response, data, responseTime) {
+            const responseSection = document.getElementById('response-section');
+            const responseInfo = document.getElementById('response-info');
+            const responseBody = document.getElementById('response-body');
+
+            responseSection.style.display = 'block';
+
+            if (response) {
+                const statusClass = response.status < 300 ? 'status-200' : 
+                                  response.status < 500 ? 'status-400' : 'status-500';
+                
+                responseInfo.innerHTML = `
+                    <div>Status: <span class="status-code ${statusClass}">${response.status} ${response.statusText}</span></div>
+                    <div>Time: ${responseTime}ms</div>
+                    <div>Size: ${JSON.stringify(data).length} bytes</div>
+                `;
+            } else {
+                responseInfo.innerHTML = '<div>Status: <span class="status-code status-500">Network Error</span></div>';
+            }
+
+            responseBody.textContent = typeof data === 'string' ? data : JSON.stringify(data, null, 2);
+        }
+
+        function loadExample(example) {
+            const examples = {
+                'health': {
+                    method: 'GET',
+                    url: '/api/v1/health',
+                    headers: [],
+                    body: ''
+                },
+                'login': {
+                    method: 'POST',
+                    url: '/api/v1/auth/login',
+                    headers: [['Content-Type', 'application/json']],
+                    body: JSON.stringify({
+                        email: 'user@example.com',
+                        password: 'password123'
+                    }, null, 2)
+                },
+                'tenant': {
+                    method: 'GET',
+                    url: '/api/v1/tenant',
+                    headers: [['Authorization', `Bearer ${accessToken || 'YOUR_ACCESS_TOKEN'}`]],
+                    body: ''
+                },
+                'leads': {
+                    method: 'GET',
+                    url: '/api/v1/crm/leads?page=1&per_page=10',
+                    headers: [['Authorization', `Bearer ${accessToken || 'YOUR_ACCESS_TOKEN'}`]],
+                    body: ''
+                },
+                'create-lead': {
+                    method: 'POST',
+                    url: '/api/v1/crm/leads',
+                    headers: [
+                        ['Authorization', `Bearer ${accessToken || 'YOUR_ACCESS_TOKEN'}`],
+                        ['Content-Type', 'application/json']
+                    ],
+                    body: JSON.stringify({
+                        contact: {
+                            name: 'John Prospect',
+                            email: 'john@prospect.com',
+                            phone: '+1234567890',
+                            company: 'Prospect Corp'
+                        },
+                        source: 'website',
+                        value: 5000,
+                        notes: 'Interested in our services'
+                    }, null, 2)
+                },
+                'messages': {
+                    method: 'GET',
+                    url: '/api/v1/inbox/messages?status=new&page=1',
+                    headers: [['Authorization', `Bearer ${accessToken || 'YOUR_ACCESS_TOKEN'}`]],
+                    body: ''
+                },
+                'knowledge-search': {
+                    method: 'POST',
+                    url: '/api/v1/knowledge/search',
+                    headers: [
+                        ['Authorization', `Bearer ${accessToken || 'YOUR_ACCESS_TOKEN'}`],
+                        ['Content-Type', 'application/json']
+                    ],
+                    body: JSON.stringify({
+                        query: 'How to reset password?',
+                        limit: 5
+                    }, null, 2)
+                }
+            };
+
+            const config = examples[example];
+            if (!config) return;
+
+            // Set method and URL
+            document.getElementById('method').value = config.method;
+            document.getElementById('url').value = config.url;
+            document.getElementById('request-body').value = config.body;
+
+            // Clear existing headers
+            const container = document.getElementById('headers-container');
+            container.innerHTML = '';
+
+            // Add headers
+            config.headers.forEach(([name, value]) => {
+                addHeader(name, value);
+            });
+        }
+
+        // Initialize with default headers
+        addHeader('Content-Type', 'application/json');
+        if (accessToken) {
+            addHeader('Authorization', `Bearer ${accessToken}`);
+        }
+    </script>
+</body>
+</html>

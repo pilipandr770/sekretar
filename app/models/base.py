@@ -7,6 +7,30 @@ from app.utils.database import BaseModelMixin
 from app.utils.schema import get_schema_name
 
 
+def get_fk_reference(table_name):
+    """Get foreign key reference with proper schema handling."""
+    try:
+        from flask import current_app
+        if current_app.config.get('TESTING', False):
+            return f'{table_name}.id'
+        schema_name = get_schema_name()
+        if schema_name:
+            return f'{schema_name}.{table_name}.id'
+        else:
+            return f'{table_name}.id'
+    except RuntimeError:
+        # Outside application context, use environment variable
+        import os
+        testing = os.environ.get('TESTING', 'False').lower() == 'true'
+        if testing:
+            return f'{table_name}.id'
+        schema_name = os.environ.get('DB_SCHEMA', 'ai_secretary')
+        if schema_name:
+            return f'{schema_name}.{table_name}.id'
+        else:
+            return f'{table_name}.id'
+
+
 class TimestampMixin:
     """Mixin for created_at and updated_at timestamps."""
     
@@ -22,7 +46,24 @@ class BaseModel(db.Model, BaseModelMixin, TimestampMixin):
     @declared_attr
     def __table_args__(cls):
         """Set schema for all tables."""
-        return {'schema': get_schema_name()}
+        try:
+            from flask import current_app
+            if current_app.config.get('TESTING', False):
+                return {}
+            schema_name = get_schema_name()
+            if schema_name:
+                return {'schema': schema_name}
+            return {}
+        except RuntimeError:
+            # Outside application context, use environment variable
+            import os
+            testing = os.environ.get('TESTING', 'False').lower() == 'true'
+            if testing:
+                return {}
+            schema_name = os.environ.get('DB_SCHEMA', 'ai_secretary')
+            if schema_name:
+                return {'schema': schema_name}
+            return {}
     
     id = Column(Integer, primary_key=True)
 
@@ -35,12 +76,13 @@ class TenantAwareModel(BaseModel):
     @declared_attr
     def tenant_id(cls):
         """Foreign key to tenant."""
-        return Column(Integer, db.ForeignKey(f'{get_schema_name()}.tenants.id'), nullable=False, index=True)
+        return Column(Integer, db.ForeignKey(get_fk_reference('tenants')), nullable=False, index=True)
     
     @declared_attr
     def tenant(cls):
         """Relationship to tenant."""
-        return db.relationship('Tenant', back_populates=cls.__tablename__ + 's')
+        # Don't automatically create back_populates to avoid circular dependency issues
+        return db.relationship('Tenant')
 
 
 class SoftDeleteMixin:
@@ -75,12 +117,12 @@ class AuditMixin:
     @declared_attr
     def created_by_id(cls):
         """ID of user who created the record."""
-        return Column(Integer, db.ForeignKey(f'{get_schema_name()}.users.id'), nullable=True)
+        return Column(Integer, db.ForeignKey(get_fk_reference('users')), nullable=True)
     
     @declared_attr
     def updated_by_id(cls):
         """ID of user who last updated the record."""
-        return Column(Integer, db.ForeignKey(f'{get_schema_name()}.users.id'), nullable=True)
+        return Column(Integer, db.ForeignKey(get_fk_reference('users')), nullable=True)
     
     @declared_attr
     def created_by(cls):

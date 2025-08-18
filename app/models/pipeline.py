@@ -1,8 +1,7 @@
 """Pipeline and Stage models for CRM."""
 from sqlalchemy import Column, String, Text, Integer, ForeignKey, Boolean, JSON
 from sqlalchemy.orm import relationship
-from app.models.base import TenantAwareModel, SoftDeleteMixin, AuditMixin
-from app.utils.schema import get_schema_name
+from app.models.base import TenantAwareModel, SoftDeleteMixin, AuditMixin, get_fk_reference
 
 
 class Pipeline(TenantAwareModel, SoftDeleteMixin, AuditMixin):
@@ -197,7 +196,7 @@ class Stage(TenantAwareModel, SoftDeleteMixin, AuditMixin):
     __tablename__ = 'stages'
     
     # Pipeline relationship
-    pipeline_id = Column(Integer, ForeignKey(f'{get_schema_name()}.pipelines.id'), nullable=False, index=True)
+    pipeline_id = Column(Integer, ForeignKey(get_fk_reference('pipelines')), nullable=False, index=True)
     pipeline = relationship('Pipeline', back_populates='stages')
     
     # Basic information

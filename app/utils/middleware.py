@@ -37,12 +37,29 @@ def setup_tenant_middleware(app):
     @app.before_request
     def setup_tenant_context():
         """Setup tenant context for the request."""
+        # Initialize defaults
+        g.tenant_id = None
+        g.user_id = None
+        g.current_user = None
+        
+        # Skip JWT processing for certain endpoints
+        skip_paths = ['/static/', '/api/v1/health', '/api/v1/version', '/socket.io/']
+        if any(request.path.startswith(path) for path in skip_paths):
+            return
+        
         try:
+            # Only try to get user if we have an Authorization header
+            auth_header = request.headers.get('Authorization')
+            if not auth_header or not auth_header.startswith('Bearer '):
+                logger.debug("No JWT token in request", path=request.path)
+                return
+            
             # Try to get tenant from JWT token
             user = get_current_user()
             if user and hasattr(user, 'tenant_id'):
                 g.tenant_id = user.tenant_id
                 g.user_id = user.id
+                g.current_user = user
                 
                 # Update user's language preference if different
                 if hasattr(user, 'language') and user.language != g.language:
@@ -55,15 +72,73 @@ def setup_tenant_middleware(app):
                     user_id=g.user_id,
                     language=g.language
                 )
-            else:
-                g.tenant_id = None
-                g.user_id = None
                 
         except Exception as e:
-            # JWT not required for all endpoints
-            g.tenant_id = None
-            g.user_id = None
-            logger.debug("No tenant context", error=str(e))
+            # JWT not required for all endpoints - don't log as error
+            logger.debug("No tenant context available", error=str(e), path=request.path)
+
+
+def setup_role_validation_middleware(app):
+    """Setup role validation middleware for tenant operations."""
+    
+    @app.before_request
+    def validate_tenant_access():
+        """Validate user has access to tenant resources."""
+        # Skip validation for non-API endpoints
+        if not request.path.startswith('/api/v1/'):
+            return
+        
+        # Skip validation for auth endpoints
+        if request.path.startswith('/api/v1/auth/'):
+            return
+        
+        # Skip validation for public endpoints
+        public_endpoints = [
+            '/api/v1/health',
+            '/api/v1/status',
+            '/api/v1/version',
+            '/api/v1/docs'
+        ]
+        if request.path in public_endpoints:
+            return
+        
+        try:
+            user = getattr(g, 'current_user', None)
+            if not user:
+                return  # No user context, let JWT decorators handle it
+            
+            # Validate user is active
+            if not user.is_active:
+                from flask_babel import gettext as _
+                from app.utils.response import error_response
+                return error_response(
+                    error_code='ACCOUNT_DISABLED',
+                    message=_('Your account has been disabled'),
+                    status_code=403
+                )
+            
+            # Validate tenant is active
+            if not user.tenant or not user.tenant.is_active:
+                from flask_babel import gettext as _
+                from app.utils.response import error_response
+                return error_response(
+                    error_code='TENANT_DISABLED',
+                    message=_('Your organization account has been disabled'),
+                    status_code=403
+                )
+            
+            # Log access for audit purposes
+            logger.debug(
+                "Tenant access validated",
+                user_id=user.id,
+                tenant_id=user.tenant_id,
+                path=request.path,
+                method=request.method
+            )
+            
+        except Exception as e:
+            logger.error("Role validation middleware error", error=str(e), exc_info=True)
+            # Don't block request on middleware errors
 
 
 def setup_request_logging_middleware(app):
@@ -151,5 +226,16 @@ def init_middleware(app):
     """Initialize all middleware."""
     setup_language_middleware(app)
     setup_tenant_middleware(app)
+    setup_role_validation_middleware(app)
     setup_request_logging_middleware(app)
     setup_error_handling_middleware(app)
+    
+    # Initialize tenant isolation middleware (skip in testing)
+    import os
+    tenant_middleware_enabled = app.config.get('TENANT_MIDDLEWARE_ENABLED', True)
+    if os.environ.get('TENANT_MIDDLEWARE_ENABLED', 'true').lower() == 'false':
+        tenant_middleware_enabled = False
+    
+    if tenant_middleware_enabled:
+        from app.utils.tenant_middleware import init_tenant_middleware
+        init_tenant_middleware(app)

@@ -1,0 +1,19 @@
+{
+  "snapshot_id": 6,
+  "counterparty_id": 1,
+  "counterparty_name": "Test Company GmbH",
+  "check_type": "vat",
+  "source": "VIES",
+  "status": "valid",
+  "checked_at": "2025-08-14T18:57:42.359648",
+  "data_hash": "849fbad128fb95b589a2979d80e0dd20ee267a1172c4a70af7d57c1f0d593746",
+  "processed_data": {
+    "check_type": "vat",
+    "status": "valid",
+    "checked_at": "2025-08-14T18:57:41.999798Z",
+    "valid": true,
+    "company_name": "Modified Company Name",
+    "address": "Test Street 1, 12345 Berlin",
+    "vat_number": "DE123456789"
+  }
+}

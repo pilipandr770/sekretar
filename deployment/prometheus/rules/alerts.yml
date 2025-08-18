@@ -1,0 +1,228 @@
+groups:
+  - name: ai_secretary_alerts
+    rules:
+      # Application Health Alerts
+      - alert: ApplicationDown
+        expr: up{job="ai-secretary-app"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "AI Secretary application is down"
+          description: "The AI Secretary application has been down for more than 1 minute."
+
+      - alert: HighErrorRate
+        expr: rate(flask_requests_total{status_code=~"5.."}[5m]) / rate(flask_requests_total[5m]) > 0.05
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High error rate detected"
+          description: "Error rate is {{ $value | humanizePercentage }} for the last 5 minutes."
+
+      - alert: HighResponseTime
+        expr: histogram_quantile(0.95, rate(flask_request_duration_seconds_bucket[5m])) > 2
+        for: 3m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High response time detected"
+          description: "95th percentile response time is {{ $value }}s for the last 5 minutes."
+
+      # System Resource Alerts
+      - alert: HighCPUUsage
+        expr: system_cpu_usage_percent > 80
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High CPU usage"
+          description: "CPU usage is {{ $value }}% for more than 5 minutes."
+
+      - alert: CriticalCPUUsage
+        expr: system_cpu_usage_percent > 95
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Critical CPU usage"
+          description: "CPU usage is {{ $value }}% for more than 2 minutes."
+
+      - alert: HighMemoryUsage
+        expr: system_memory_usage_percent > 85
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High memory usage"
+          description: "Memory usage is {{ $value }}% for more than 5 minutes."
+
+      - alert: CriticalMemoryUsage
+        expr: system_memory_usage_percent > 95
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Critical memory usage"
+          description: "Memory usage is {{ $value }}% for more than 2 minutes."
+
+      - alert: HighDiskUsage
+        expr: system_disk_usage_percent > 90
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High disk usage"
+          description: "Disk usage is {{ $value }}% for more than 10 minutes."
+
+      - alert: CriticalDiskUsage
+        expr: system_disk_usage_percent > 95
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Critical disk usage"
+          description: "Disk usage is {{ $value }}% for more than 5 minutes."
+
+      # Database Alerts
+      - alert: DatabaseDown
+        expr: up{job="postgres"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "PostgreSQL database is down"
+          description: "PostgreSQL database has been down for more than 1 minute."
+
+      - alert: HighDatabaseConnections
+        expr: database_connections_active > 80
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High number of database connections"
+          description: "Database has {{ $value }} active connections for more than 5 minutes."
+
+      # Redis Alerts
+      - alert: RedisDown
+        expr: up{job="redis"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Redis is down"
+          description: "Redis has been down for more than 1 minute."
+
+      - alert: HighRedisMemoryUsage
+        expr: redis_memory_used_bytes / redis_memory_max_bytes > 0.9
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High Redis memory usage"
+          description: "Redis memory usage is {{ $value | humanizePercentage }} for more than 5 minutes."
+
+      # Celery Worker Alerts
+      - alert: CeleryWorkerDown
+        expr: up{job="celery"} == 0
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Celery worker is down"
+          description: "Celery worker has been down for more than 2 minutes."
+
+      - alert: HighCeleryTaskFailureRate
+        expr: rate(celery_tasks_total{status="failure"}[5m]) / rate(celery_tasks_total[5m]) > 0.1
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High Celery task failure rate"
+          description: "Celery task failure rate is {{ $value | humanizePercentage }} for the last 5 minutes."
+
+      - alert: LongRunningCeleryTasks
+        expr: histogram_quantile(0.95, rate(celery_task_duration_seconds_bucket[10m])) > 300
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Long running Celery tasks detected"
+          description: "95th percentile Celery task duration is {{ $value }}s for the last 10 minutes."
+
+      # AI Service Alerts
+      - alert: HighAIRequestFailureRate
+        expr: rate(ai_requests_total{status="failure"}[5m]) / rate(ai_requests_total[5m]) > 0.1
+        for: 3m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High AI request failure rate"
+          description: "AI request failure rate is {{ $value | humanizePercentage }} for the last 5 minutes."
+
+      - alert: SlowAIResponses
+        expr: histogram_quantile(0.95, rate(ai_request_duration_seconds_bucket[5m])) > 30
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Slow AI responses detected"
+          description: "95th percentile AI response time is {{ $value }}s for the last 5 minutes."
+
+      # SSL Certificate Alerts
+      - alert: SSLCertificateExpiringSoon
+        expr: (ssl_certificate_expiry_timestamp - time()) / 86400 < 30
+        for: 1h
+        labels:
+          severity: warning
+        annotations:
+          summary: "SSL certificate expiring soon"
+          description: "SSL certificate will expire in {{ $value }} days."
+
+      - alert: SSLCertificateExpired
+        expr: ssl_certificate_expiry_timestamp < time()
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "SSL certificate has expired"
+          description: "SSL certificate has expired."
+
+  - name: business_logic_alerts
+    rules:
+      # Business Logic Alerts
+      - alert: HighMessageVolume
+        expr: rate(flask_requests_total{endpoint="/api/v1/inbox/messages"}[5m]) > 100
+        for: 10m
+        labels:
+          severity: info
+        annotations:
+          summary: "High message volume detected"
+          description: "Message processing rate is {{ $value }} messages/second for the last 5 minutes."
+
+      - alert: KYBMonitoringFailures
+        expr: rate(celery_tasks_total{task_name="kyb_monitoring_task", status="failure"}[1h]) > 0.1
+        for: 30m
+        labels:
+          severity: warning
+        annotations:
+          summary: "KYB monitoring task failures"
+          description: "KYB monitoring tasks are failing at a rate of {{ $value }} failures/hour."
+
+      - alert: BillingProcessingFailures
+        expr: rate(celery_tasks_total{task_name="billing_sync_task", status="failure"}[1h]) > 0.05
+        for: 15m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Billing processing failures"
+          description: "Billing sync tasks are failing at a rate of {{ $value }} failures/hour."
+
+      - alert: NotificationDeliveryFailures
+        expr: rate(celery_tasks_total{task_name="send_notification", status="failure"}[1h]) > 0.2
+        for: 30m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High notification delivery failure rate"
+          description: "Notification delivery is failing at a rate of {{ $value }} failures/hour."

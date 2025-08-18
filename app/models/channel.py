@@ -2,7 +2,6 @@
 from sqlalchemy import Column, String, Boolean, JSON, Text, Integer, ForeignKey
 from sqlalchemy.orm import relationship
 from app.models.base import TenantAwareModel, SoftDeleteMixin, AuditMixin
-from app.utils.schema import get_schema_name
 
 
 class Channel(TenantAwareModel, SoftDeleteMixin, AuditMixin):

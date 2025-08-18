@@ -1,0 +1,1023 @@
+openapi: 3.0.3
+info:
+  title: AI Secretary SaaS API
+  description: |
+    Comprehensive API for the AI Secretary SaaS platform - an omnichannel solution for SMBs that provides 
+    multi-agent AI secretary system with Inbox management, CRM functionality, Calendar scheduling, 
+    RAG-based knowledge management, Stripe invoicing, and KYB counterparty monitoring.
+    
+    ## Features
+    - Multi-channel communication (Telegram, Signal, Web widget)
+    - AI-powered message routing and responses with specialized agents
+    - CRM with lead management, pipeline tracking, tasks, and notes
+    - Google Calendar integration with appointment booking
+    - Knowledge base with RAG search and document processing
+    - Stripe billing and subscription management with usage metering
+    - KYB monitoring with external data sources (VIES, GLEIF, sanctions)
+    - Multi-tenant architecture with role-based access control
+    - GDPR compliance features with data retention and deletion
+    - Real-time WebSocket communication
+    - Comprehensive monitoring and analytics
+    
+    ## Authentication
+    This API uses JWT Bearer tokens for authentication. Include the token in the Authorization header:
+    ```
+    Authorization: Bearer <your-jwt-token>
+    ```
+    
+    To obtain tokens, use the `/auth/login` endpoint with your credentials.
+    
+    ## Rate Limiting
+    API requests are rate limited per tenant and user. Rate limit headers are included in responses:
+    - `X-RateLimit-Limit`: Request limit per window
+    - `X-RateLimit-Remaining`: Remaining requests in current window
+    - `X-RateLimit-Reset`: Time when the rate limit resets
+    
+    ## Pagination
+    List endpoints support pagination with the following parameters:
+    - `page`: Page number (default: 1)
+    - `per_page`: Items per page (default: 20, max: 100)
+    
+    Pagination metadata is included in the response under the `pagination` key.
+    
+    ## Error Handling
+    The API uses standard HTTP status codes and returns error details in a consistent format:
+    ```json
+    {
+      "error": {
+        "code": "ERROR_CODE",
+        "message": "Human readable error message",
+        "details": {},
+        "request_id": "req_123456789"
+      }
+    }
+    ```
+    
+    ## Internationalization
+    The API supports multiple languages (English, German, Ukrainian). Set language preference via:
+    - URL parameter: `?lang=en`
+    - POST `/language` endpoint
+    - Accept-Language header
+    
+    ## Webhooks
+    The API supports webhooks for real-time notifications. Configure webhook endpoints in your tenant settings.
+    
+  version: 1.0.0
+  contact:
+    name: API Support
+    email: api-support@ai-secretary.com
+    url: https://docs.ai-secretary.com
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
+servers:
+  - url: https://api.ai-secretary.com/api/v1
+    description: Production server
+  - url: https://staging-api.ai-secretary.com/api/v1
+    description: Staging server
+  - url: http://localhost:5000/api/v1
+    description: Development server
+
+security:
+  - BearerAuth: []
+
+tags:
+  - name: System
+    description: System health, version, and status endpoints
+  - name: Authentication
+    description: User authentication and authorization
+  - name: Tenant Management
+    description: Tenant and user management operations
+  - name: Inbox
+    description: Message and communication management
+  - name: CRM
+    description: Customer relationship management
+  - name: Calendar
+    description: Calendar integration and appointment booking
+  - name: Knowledge
+    description: Knowledge base and document management
+  - name: Billing
+    description: Invoicing and subscription management
+  - name: KYB
+    description: Know Your Business monitoring and compliance
+  - name: Channels
+    description: Communication channel management
+  - name: Notifications
+    description: Notification management and preferences
+  - name: GDPR
+    description: GDPR compliance and data management
+  - name: Monitoring
+    description: System monitoring and analytics
+  - name: Admin
+    description: Administrative operations
+
+paths:
+  # System Endpoints
+  /:
+    get:
+      tags:
+        - System
+      summary: Welcome endpoint
+      description: Returns API information and available endpoints
+      security: []
+      responses:
+        '200':
+          description: API information
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Welcome to AI Secretary API"
+                  version:
+                    type: string
+                    example: "1.0.0"
+                  environment:
+                    type: string
+                    example: "production"
+                  endpoints:
+                    type: object
+                    additionalProperties:
+                      type: string
+                  timestamp:
+                    type: string
+                    format: date-time
+
+  /health:
+    get:
+      tags:
+        - System
+      summary: Health check
+      description: Returns system health status including database and Redis connectivity
+      security: []
+      responses:
+        '200':
+          description: System is healthy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+        '503':
+          description: System is unhealthy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+
+  /version:
+    get:
+      tags:
+        - System
+      summary: API version
+      description: Returns API version and build information
+      security: []
+      responses:
+        '200':
+          description: Version information
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  version:
+                    type: string
+                    example: "1.0.0"
+                  environment:
+                    type: string
+                    example: "production"
+                  python_version:
+                    type: string
+                    example: "3.11.0"
+                  flask_version:
+                    type: string
+                    example: "2.3.0"
+                  build_date:
+                    type: string
+                    format: date-time
+                    nullable: true
+
+  /status:
+    get:
+      tags:
+        - System
+      summary: System status
+      description: Returns detailed system status with component information
+      security: []
+      responses:
+        '200':
+          description: System status
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+
+  /languages:
+    get:
+      tags:
+        - System
+      summary: Available languages
+      description: Get list of supported languages for internationalization
+      security: []
+      responses:
+        '200':
+          description: Available languages
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+
+  /language:
+    post:
+      tags:
+        - System
+      summary: Set language
+      description: Set user language preference
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - language
+              properties:
+                language:
+                  type: string
+                  enum: [en, de, uk]
+                  example: "en"
+      responses:
+        '200':
+          description: Language updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+
+  # Authentication Endpoints
+  /auth/register:
+    post:
+      tags:
+        - Authentication
+      summary: Register new tenant
+      description: Register new tenant and owner user with 3-day trial
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+                - organization_name
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: "owner@example.com"
+                password:
+                  type: string
+                  format: password
+                  minLength: 8
+                  example: "securepassword123"
+                organization_name:
+                  type: string
+                  minLength: 2
+                  example: "Example Corp"
+                first_name:
+                  type: string
+                  example: "John"
+                last_name:
+                  type: string
+                  example: "Doe"
+                language:
+                  type: string
+                  enum: [en, de, uk]
+                  default: en
+      responses:
+        '201':
+          description: Registration successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  data:
+                    type: object
+                    properties:
+                      user:
+                        $ref: '#/components/schemas/User'
+                      tenant:
+                        $ref: '#/components/schemas/Tenant'
+                      access_token:
+                        type: string
+                      refresh_token:
+                        type: string
+                      token_type:
+                        type: string
+                        example: "Bearer"
+        '409':
+          $ref: '#/components/responses/Conflict'
+
+  /auth/login:
+    post:
+      tags:
+        - Authentication
+      summary: User login
+      description: Authenticate user and return JWT tokens
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: "user@example.com"
+                password:
+                  type: string
+                  format: password
+                  example: "securepassword123"
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  data:
+                    type: object
+                    properties:
+                      user:
+                        $ref: '#/components/schemas/User'
+                      tenant:
+                        $ref: '#/components/schemas/Tenant'
+                      access_token:
+                        type: string
+                        example: "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9..."
+                      refresh_token:
+                        type: string
+                        example: "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9..."
+                      token_type:
+                        type: string
+                        example: "Bearer"
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /auth/logout:
+    post:
+      tags:
+        - Authentication
+      summary: User logout
+      description: Invalidate current session tokens
+      responses:
+        '200':
+          description: Logout successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+
+  /auth/refresh:
+    post:
+      tags:
+        - Authentication
+      summary: Refresh access token
+      description: Get new access token using refresh token
+      security:
+        - RefreshAuth: []
+      responses:
+        '200':
+          description: Token refreshed successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  data:
+                    type: object
+                    properties:
+                      access_token:
+                        type: string
+                        example: "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9..."
+                      token_type:
+                        type: string
+                        example: "Bearer"
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /auth/me:
+    get:
+      tags:
+        - Authentication
+      summary: Get current user profile
+      description: Get current user profile and permissions
+      responses:
+        '200':
+          description: Profile retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  data:
+                    type: object
+                    properties:
+                      user:
+                        $ref: '#/components/schemas/User'
+                      tenant:
+                        $ref: '#/components/schemas/Tenant'
+                      permissions:
+                        type: object
+                        properties:
+                          can_manage_users:
+                            type: boolean
+                          can_access_billing:
+                            type: boolean
+                          can_manage_settings:
+                            type: boolean
+
+    put:
+      tags:
+        - Authentication
+      summary: Update user profile
+      description: Update current user profile information
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                first_name:
+                  type: string
+                last_name:
+                  type: string
+                timezone:
+                  type: string
+                language:
+                  type: string
+                  enum: [en, de, uk]
+                notification_preferences:
+                  type: object
+                  additionalProperties: true
+      responses:
+        '200':
+          description: Profile updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  data:
+                    $ref: '#/components/schemas/User'
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+    RefreshAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  parameters:
+    Page:
+      name: page
+      in: query
+      description: Page number for pagination
+      schema:
+        type: integer
+        minimum: 1
+        default: 1
+    PerPage:
+      name: per_page
+      in: query
+      description: Number of items per page
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+        default: 20
+    Search:
+      name: search
+      in: query
+      description: Search term for filtering results
+      schema:
+        type: string
+    SortBy:
+      name: sort_by
+      in: query
+      description: Field to sort by
+      schema:
+        type: string
+    SortOrder:
+      name: sort_order
+      in: query
+      description: Sort order
+      schema:
+        type: string
+        enum: [asc, desc]
+        default: desc
+
+  responses:
+    Unauthorized:
+      description: Authentication required or invalid token
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    Forbidden:
+      description: Insufficient permissions
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    Conflict:
+      description: Resource already exists or conflict
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    ValidationError:
+      description: Invalid input data
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    RateLimitExceeded:
+      description: Rate limit exceeded
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    InternalError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+  schemas:
+    SuccessResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+        data:
+          type: object
+          additionalProperties: true
+
+    Error:
+      type: object
+      properties:
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+              example: "VALIDATION_ERROR"
+            message:
+              type: string
+              example: "Invalid input data"
+            details:
+              type: object
+              additionalProperties: true
+            request_id:
+              type: string
+              example: "req_123456789"
+
+    HealthResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [healthy, unhealthy]
+        timestamp:
+          type: string
+          format: date-time
+        version:
+          type: string
+        checks:
+          type: object
+          additionalProperties:
+            type: object
+            properties:
+              status:
+                type: string
+                enum: [healthy, unhealthy]
+              response_time_ms:
+                type: number
+                nullable: true
+              error:
+                type: string
+                nullable: true
+
+    Pagination:
+      type: object
+      properties:
+        page:
+          type: integer
+        per_page:
+          type: integer
+        total:
+          type: integer
+        pages:
+          type: integer
+        has_next:
+          type: boolean
+        has_prev:
+          type: boolean
+
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+        email:
+          type: string
+          format: email
+        first_name:
+          type: string
+        last_name:
+          type: string
+        role:
+          type: string
+          enum: [owner, manager, support, accounting, read_only]
+        is_active:
+          type: boolean
+        language:
+          type: string
+          enum: [en, de, uk]
+        timezone:
+          type: string
+        last_login:
+          type: string
+          format: date-time
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    Tenant:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        domain:
+          type: string
+          nullable: true
+        email:
+          type: string
+          format: email
+          nullable: true
+        phone:
+          type: string
+          nullable: true
+        address:
+          type: string
+          nullable: true
+        subscription_status:
+          type: string
+          enum: [trial, active, past_due, canceled, unpaid]
+        trial_ends_at:
+          type: string
+          format: date-time
+          nullable: true
+        settings:
+          type: object
+          additionalProperties: true
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    Lead:
+      type: object
+      properties:
+        id:
+          type: integer
+        contact:
+          type: object
+          properties:
+            name:
+              type: string
+            email:
+              type: string
+              format: email
+            phone:
+              type: string
+            company:
+              type: string
+        source:
+          type: string
+        value:
+          type: number
+        status:
+          type: string
+          enum: [new, qualified, proposal, negotiation, closed_won, closed_lost]
+        pipeline_id:
+          type: integer
+        stage_id:
+          type: integer
+        assigned_to:
+          type: integer
+          nullable: true
+        notes:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    Task:
+      type: object
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        description:
+          type: string
+        status:
+          type: string
+          enum: [pending, in_progress, completed, cancelled]
+        priority:
+          type: string
+          enum: [low, medium, high, urgent]
+        task_type:
+          type: string
+        category:
+          type: string
+        due_date:
+          type: string
+          format: date-time
+          nullable: true
+        assigned_to_id:
+          type: integer
+          nullable: true
+        lead_id:
+          type: integer
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    Note:
+      type: object
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+          nullable: true
+        content:
+          type: string
+        note_type:
+          type: string
+        is_private:
+          type: boolean
+        is_pinned:
+          type: boolean
+        lead_id:
+          type: integer
+          nullable: true
+        user_id:
+          type: integer
+        tags:
+          type: array
+          items:
+            type: string
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    InboxMessage:
+      type: object
+      properties:
+        id:
+          type: integer
+        content:
+          type: string
+        channel:
+          type: string
+          enum: [telegram, signal, web_widget, email]
+        status:
+          type: string
+          enum: [new, in_progress, resolved, closed]
+        customer_email:
+          type: string
+          format: email
+        customer_name:
+          type: string
+        ai_response:
+          type: string
+          nullable: true
+        thread_id:
+          type: integer
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    KnowledgeDocument:
+      type: object
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        content:
+          type: string
+        type:
+          type: string
+          enum: [text, url, file]
+        source_url:
+          type: string
+          nullable: true
+        status:
+          type: string
+          enum: [processing, indexed, failed]
+        chunk_count:
+          type: integer
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    Invoice:
+      type: object
+      properties:
+        id:
+          type: integer
+        stripe_invoice_id:
+          type: string
+        amount:
+          type: number
+        currency:
+          type: string
+        status:
+          type: string
+          enum: [draft, open, paid, void, uncollectible]
+        description:
+          type: string
+        due_date:
+          type: string
+          format: date-time
+        paid_at:
+          type: string
+          format: date-time
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    Subscription:
+      type: object
+      properties:
+        id:
+          type: integer
+        stripe_subscription_id:
+          type: string
+        plan_name:
+          type: string
+        status:
+          type: string
+          enum: [active, past_due, canceled, unpaid, trialing]
+        current_period_start:
+          type: string
+          format: date-time
+        current_period_end:
+          type: string
+          format: date-time
+        trial_end:
+          type: string
+          format: date-time
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    Counterparty:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        vat_number:
+          type: string
+          nullable: true
+        lei_code:
+          type: string
+          nullable: true
+        country:
+          type: string
+        risk_score:
+          type: number
+        status:
+          type: string
+          enum: [active, inactive, flagged]
+        last_checked:
+          type: string
+          format: date-time
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    Alert:
+      type: object
+      properties:
+        id:
+          type: integer
+        type:
+          type: string
+          enum: [sanctions_match, insolvency, vat_invalid, lei_invalid, risk_change]
+        severity:
+          type: string
+          enum: [low, medium, high, critical]
+        message:
+          type: string
+        counterparty_id:
+          type: integer
+        is_read:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time

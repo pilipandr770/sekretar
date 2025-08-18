@@ -1,0 +1,524 @@
+{% extends "base.html" %}
+
+{% block title %}KYB Dashboard - AI Secretary{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h1>🔍 KYB Dashboard</h1>
+        <p class="text-muted">Monitor counterparty verification and compliance status.</p>
+    </div>
+</div>
+
+<!-- Overview Cards -->
+<div class="row mt-4">
+    <div class="col-md-3 mb-4">
+        <div class="card text-center">
+            <div class="card-body">
+                <h2 class="card-title text-primary" id="total-counterparties">-</h2>
+                <p class="card-text">Total Counterparties</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-4">
+        <div class="card text-center">
+            <div class="card-body">
+                <h2 class="card-title text-success" id="checked-counterparties">-</h2>
+                <p class="card-text">Verified</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-4">
+        <div class="card text-center">
+            <div class="card-body">
+                <h2 class="card-title text-warning" id="pending-checks">-</h2>
+                <p class="card-text">Pending</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-4">
+        <div class="card text-center">
+            <div class="card-body">
+                <h2 class="card-title text-danger" id="high-risk">-</h2>
+                <p class="card-text">High Risk</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Check -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">🔍 Quick Counterparty Check</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <label for="quick-company-name" class="form-label">Company Name</label>
+                        <input type="text" class="form-control" id="quick-company-name" placeholder="ACME GmbH">
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <label for="quick-vat-number" class="form-label">VAT Number</label>
+                        <input type="text" class="form-control" id="quick-vat-number" placeholder="DE123456789">
+                    </div>
+                    <div class="col-md-2 mb-3">
+                        <label for="quick-country" class="form-label">Country</label>
+                        <select class="form-select" id="quick-country">
+                            <option value="DE">Germany</option>
+                            <option value="FR">France</option>
+                            <option value="NL">Netherlands</option>
+                            <option value="AT">Austria</option>
+                            <option value="IT">Italy</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <label class="form-label">&nbsp;</label>
+                        <div>
+                            <button class="btn btn-primary" onclick="performQuickCheck()">🔍 Check Now</button>
+                            <button class="btn btn-outline-secondary" onclick="addCounterparty()">➕ Add</button>
+                        </div>
+                    </div>
+                </div>
+                <div id="quick-check-result" class="mt-3"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Checks -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">📋 Recent Checks</h5>
+                <button class="btn btn-outline-primary btn-sm" onclick="refreshData()">🔄 Refresh</button>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Company Name</th>
+                                <th>VAT Number</th>
+                                <th>Country</th>
+                                <th>Status</th>
+                                <th>Risk Level</th>
+                                <th>Last Check</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="counterparties-table">
+                            <tr>
+                                <td colspan="7" class="text-center text-muted">
+                                    <div class="spinner-border spinner-border-sm" role="status"></div>
+                                    Loading counterparties...
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Alerts & Changes -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">🚨 Recent Alerts & Changes</h5>
+            </div>
+            <div class="card-body">
+                <div id="alerts-container">
+                    <div class="text-center text-muted">
+                        <div class="spinner-border spinner-border-sm" role="status"></div>
+                        Loading alerts...
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Counterparty Details Modal -->
+<div class="modal fade" id="counterparty-modal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Counterparty Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="counterparty-details">
+                <!-- Details will be loaded here -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-primary" onclick="recheckCounterparty()">🔄 Re-check</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+let currentCompanyId = 'demo-company-id'; // This would come from user session
+let selectedCounterpartyId = null;
+
+// Load dashboard data
+async function loadDashboardData() {
+    try {
+        // Load KYB summary
+        const response = await fetch(`/api/v1/secretary/companies/${currentCompanyId}/kyb-summary`);
+        const data = await response.json();
+        
+        if (data.success) {
+            const summary = data.data;
+            
+            // Update overview cards
+            document.getElementById('total-counterparties').textContent = summary.total_counterparties || 0;
+            document.getElementById('checked-counterparties').textContent = summary.checked_counterparties || 0;
+            document.getElementById('pending-checks').textContent = summary.pending_checks || 0;
+            document.getElementById('high-risk').textContent = summary.high_risk_counterparties || 0;
+            
+            // Load recent checks
+            loadRecentChecks(summary.recent_checks || []);
+            
+            // Load alerts
+            loadAlerts(summary.recent_changes || []);
+        } else {
+            showError('Failed to load dashboard data');
+        }
+    } catch (error) {
+        console.error('Error loading dashboard:', error);
+        showError('Network error loading dashboard');
+    }
+}
+
+// Load counterparties list
+async function loadCounterparties() {
+    try {
+        const response = await fetch(`/api/v1/secretary/companies/${currentCompanyId}/counterparties`);
+        const data = await response.json();
+        
+        if (data.success) {
+            const counterparties = data.data;
+            const tbody = document.getElementById('counterparties-table');
+            
+            if (counterparties.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="7" class="text-center text-muted">
+                            No counterparties found. <a href="#" onclick="addCounterparty()">Add your first counterparty</a>
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+            
+            tbody.innerHTML = counterparties.map(cp => `
+                <tr>
+                    <td><strong>${cp.name}</strong></td>
+                    <td>${cp.vat_number || '-'}</td>
+                    <td>${cp.country_code || '-'}</td>
+                    <td>
+                        <span class="badge bg-${getStatusColor(cp.status)}">
+                            ${cp.status || 'unknown'}
+                        </span>
+                    </td>
+                    <td>
+                        <span class="badge bg-${getRiskColor(cp.risk_level)}">
+                            ${cp.risk_level || 'unknown'}
+                        </span>
+                    </td>
+                    <td>${formatDate(cp.last_checked)}</td>
+                    <td>
+                        <button class="btn btn-outline-primary btn-sm" onclick="viewCounterparty('${cp.id}')">
+                            👁️ View
+                        </button>
+                        <button class="btn btn-outline-secondary btn-sm" onclick="recheckCounterparty('${cp.id}')">
+                            🔄 Check
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+    } catch (error) {
+        console.error('Error loading counterparties:', error);
+        document.getElementById('counterparties-table').innerHTML = `
+            <tr>
+                <td colspan="7" class="text-center text-danger">
+                    Error loading counterparties
+                </td>
+            </tr>
+        `;
+    }
+}
+
+// Load recent checks
+function loadRecentChecks(checks) {
+    // This would populate the recent checks table
+    // For now, we'll use the counterparties table
+    loadCounterparties();
+}
+
+// Load alerts
+function loadAlerts(changes) {
+    const container = document.getElementById('alerts-container');
+    
+    if (changes.length === 0) {
+        container.innerHTML = '<div class="text-muted">No recent alerts</div>';
+        return;
+    }
+    
+    container.innerHTML = changes.map(change => `
+        <div class="alert alert-warning alert-dismissible fade show" role="alert">
+            <strong>${change.counterparty_name || 'Unknown Company'}:</strong> 
+            ${change.field_name} changed from "${change.old_value}" to "${change.new_value}"
+            <small class="text-muted">(${formatDate(change.detected_at)})</small>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    `).join('');
+}
+
+// Perform quick check
+async function performQuickCheck() {
+    const vatNumber = document.getElementById('quick-vat-number').value.trim();
+    const countryCode = document.getElementById('quick-country').value;
+    const resultDiv = document.getElementById('quick-check-result');
+    
+    if (!vatNumber) {
+        showError('Please enter a VAT number');
+        return;
+    }
+    
+    resultDiv.innerHTML = '<div class="text-center"><div class="spinner-border" role="status"></div> Checking...</div>';
+    
+    try {
+        const response = await fetch('/api/v1/secretary/vat-check', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                vat_number: vatNumber,
+                country_code: countryCode
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            const result = data.data;
+            
+            if (result.status === 'valid') {
+                resultDiv.innerHTML = `
+                    <div class="alert alert-success">
+                        <h6>✅ Valid Company Found</h6>
+                        <strong>Name:</strong> ${result.name || 'N/A'}<br>
+                        <strong>Address:</strong> ${result.address || 'N/A'}<br>
+                        <strong>VAT Number:</strong> ${result.vat_number}<br>
+                        <strong>Country:</strong> ${result.country_code}<br>
+                        <small class="text-muted">Response time: ${result.response_time_ms}ms</small>
+                    </div>
+                `;
+            } else {
+                resultDiv.innerHTML = `
+                    <div class="alert alert-danger">
+                        <h6>❌ Invalid or Not Found</h6>
+                        ${result.error || 'VAT number not found in registry'}
+                    </div>
+                `;
+            }
+        } else {
+            resultDiv.innerHTML = `
+                <div class="alert alert-danger">
+                    <h6>Error</h6>
+                    ${data.error?.message || 'Unknown error occurred'}
+                </div>
+            `;
+        }
+    } catch (error) {
+        resultDiv.innerHTML = `
+            <div class="alert alert-danger">
+                <h6>Network Error</h6>
+                ${error.message}
+            </div>
+        `;
+    }
+}
+
+// Add counterparty
+async function addCounterparty() {
+    const companyName = document.getElementById('quick-company-name').value.trim();
+    const vatNumber = document.getElementById('quick-vat-number').value.trim();
+    const countryCode = document.getElementById('quick-country').value;
+    
+    if (!companyName) {
+        showError('Please enter a company name');
+        return;
+    }
+    
+    try {
+        const response = await fetch(`/api/v1/secretary/companies/${currentCompanyId}/counterparties`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                name: companyName,
+                vat_number: vatNumber,
+                country_code: countryCode,
+                auto_check: true
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            showSuccess('Counterparty added successfully');
+            
+            // Clear form
+            document.getElementById('quick-company-name').value = '';
+            document.getElementById('quick-vat-number').value = '';
+            document.getElementById('quick-check-result').innerHTML = '';
+            
+            // Refresh data
+            refreshData();
+        } else {
+            showError(data.error?.message || 'Failed to add counterparty');
+        }
+    } catch (error) {
+        showError(`Network error: ${error.message}`);
+    }
+}
+
+// View counterparty details
+function viewCounterparty(counterpartyId) {
+    selectedCounterpartyId = counterpartyId;
+    
+    // Load counterparty details
+    document.getElementById('counterparty-details').innerHTML = `
+        <div class="text-center">
+            <div class="spinner-border" role="status"></div>
+            Loading details...
+        </div>
+    `;
+    
+    const modal = new bootstrap.Modal(document.getElementById('counterparty-modal'));
+    modal.show();
+    
+    // This would load actual counterparty details
+    setTimeout(() => {
+        document.getElementById('counterparty-details').innerHTML = `
+            <div class="alert alert-info">
+                Counterparty details view will be implemented in the next phase.
+                <br><strong>Counterparty ID:</strong> ${counterpartyId}
+            </div>
+        `;
+    }, 1000);
+}
+
+// Re-check counterparty
+async function recheckCounterparty(counterpartyId = null) {
+    const id = counterpartyId || selectedCounterpartyId;
+    if (!id) return;
+    
+    try {
+        const response = await fetch(`/api/v1/secretary/counterparties/${id}/kyb-check`, {
+            method: 'POST'
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            showSuccess('KYB check completed successfully');
+            refreshData();
+        } else {
+            showError(data.error?.message || 'KYB check failed');
+        }
+    } catch (error) {
+        showError(`Network error: ${error.message}`);
+    }
+}
+
+// Refresh all data
+function refreshData() {
+    loadDashboardData();
+    loadCounterparties();
+}
+
+// Utility functions
+function getStatusColor(status) {
+    switch (status) {
+        case 'active': return 'success';
+        case 'inactive': return 'secondary';
+        case 'blocked': return 'danger';
+        default: return 'secondary';
+    }
+}
+
+function getRiskColor(risk) {
+    switch (risk) {
+        case 'low': return 'success';
+        case 'medium': return 'warning';
+        case 'high': return 'danger';
+        case 'critical': return 'danger';
+        default: return 'secondary';
+    }
+}
+
+function formatDate(dateString) {
+    if (!dateString) return 'Never';
+    
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffMs = now - date;
+    const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+    const diffDays = Math.floor(diffHours / 24);
+    
+    if (diffHours < 1) return 'Just now';
+    if (diffHours < 24) return `${diffHours} hours ago`;
+    if (diffDays < 7) return `${diffDays} days ago`;
+    
+    return date.toLocaleDateString();
+}
+
+function showSuccess(message) {
+    showAlert('success', message);
+}
+
+function showError(message) {
+    showAlert('danger', message);
+}
+
+function showAlert(type, message) {
+    const alertHtml = `
+        <div class="alert alert-${type} alert-dismissible fade show position-fixed" 
+             style="top: 20px; right: 20px; z-index: 1050; min-width: 300px;" role="alert">
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    `;
+    
+    document.body.insertAdjacentHTML('beforeend', alertHtml);
+    
+    // Auto-dismiss after 5 seconds
+    setTimeout(() => {
+        const alert = document.querySelector('.alert:last-of-type');
+        if (alert) {
+            alert.remove();
+        }
+    }, 5000);
+}
+
+// Initialize dashboard
+document.addEventListener('DOMContentLoaded', function() {
+    loadDashboardData();
+});
+</script>
+{% endblock %}

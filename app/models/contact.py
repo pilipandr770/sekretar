@@ -2,7 +2,6 @@
 from sqlalchemy import Column, String, Text, Boolean, JSON, Integer, ForeignKey
 from sqlalchemy.orm import relationship
 from app.models.base import TenantAwareModel, SoftDeleteMixin, AuditMixin
-from app.utils.schema import get_schema_name
 
 
 class Contact(TenantAwareModel, SoftDeleteMixin, AuditMixin):

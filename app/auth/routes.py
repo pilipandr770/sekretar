@@ -13,12 +13,14 @@ from app.utils.response import (
 )
 from app.utils.validators import validate_email
 from app.utils.i18n import set_user_language, get_available_languages
+from app.utils.rate_limit_decorators import auth_rate_limit, api_rate_limit
 import structlog
 
 logger = structlog.get_logger()
 
 
 @auth_bp.route('/register', methods=['POST'])
+@auth_rate_limit()
 @require_json(['email', 'password', 'organization_name'])
 @log_api_call('register')
 def register():
@@ -119,6 +121,7 @@ def register():
 
 
 @auth_bp.route('/login', methods=['POST'])
+@auth_rate_limit()
 @require_json(['email', 'password'])
 @log_api_call('login')
 def login():
@@ -213,6 +216,7 @@ def login():
 
 
 @auth_bp.route('/logout', methods=['POST'])
+@api_rate_limit()
 @jwt_required()
 @log_api_call('logout')
 def logout():
@@ -247,6 +251,7 @@ def logout():
 
 
 @auth_bp.route('/me', methods=['GET'])
+@api_rate_limit()
 @jwt_required()
 @log_api_call('get_profile')
 def get_profile():
@@ -280,6 +285,7 @@ def get_profile():
 
 
 @auth_bp.route('/me', methods=['PUT'])
+@api_rate_limit()
 @jwt_required()
 @require_json()
 @log_api_call('update_profile')
@@ -346,6 +352,7 @@ def update_profile():
 
 
 @auth_bp.route('/refresh', methods=['POST'])
+@auth_rate_limit()
 @jwt_required(refresh=True)
 @log_api_call('refresh_token')
 def refresh():

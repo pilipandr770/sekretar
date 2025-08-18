@@ -3,8 +3,8 @@ from sqlalchemy import Column, String, Boolean, Integer, ForeignKey, DateTime, T
 from sqlalchemy.orm import relationship
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime, timedelta
-from app.models.base import BaseModel, SoftDeleteMixin, AuditMixin
-from app.utils.schema import get_schema_name
+from app.models.base import BaseModel, SoftDeleteMixin, AuditMixin, get_fk_reference
+from app.models.associations import user_roles
 
 
 class User(BaseModel, SoftDeleteMixin, AuditMixin):
@@ -13,7 +13,7 @@ class User(BaseModel, SoftDeleteMixin, AuditMixin):
     __tablename__ = 'users'
     
     # Tenant relationship
-    tenant_id = Column(Integer, ForeignKey(f'{get_schema_name()}.tenants.id'), nullable=False, index=True)
+    tenant_id = Column(Integer, ForeignKey(get_fk_reference('tenants')), nullable=False, index=True)
     tenant = relationship('Tenant', back_populates='users')
     
     # Basic information
@@ -33,19 +33,32 @@ class User(BaseModel, SoftDeleteMixin, AuditMixin):
     password_reset_expires = Column(DateTime, nullable=True)
     email_verification_token = Column(String(255), nullable=True)
     
+    # Google OAuth
+    google_oauth_token = Column(Text, nullable=True)  # JSON string for OAuth tokens
+    google_oauth_refresh_token = Column(String(255), nullable=True)
+    google_oauth_expires_at = Column(DateTime, nullable=True)
+    google_calendar_connected = Column(Boolean, default=False, nullable=False)
+    
     # Profile
     avatar_url = Column(String(500), nullable=True)
     timezone = Column(String(50), default='UTC', nullable=False)
     language = Column(String(10), default='en', nullable=False)  # en, de, uk
     
     # Settings
-    notification_preferences = Column(Text, nullable=True)  # JSON string
+    notification_preferences_json = Column(Text, nullable=True)  # JSON string for legacy support
     
     # Relationships
     assigned_leads = relationship('Lead', foreign_keys='Lead.assigned_to_id', back_populates='assigned_to')
     assigned_tasks = relationship('Task', foreign_keys='Task.assigned_to_id', back_populates='assigned_to')
-    notes = relationship('Note', back_populates='user')
-    audit_logs = relationship('AuditLog', back_populates='user')
+    notes = relationship('Note', foreign_keys='Note.user_id', back_populates='user')
+    audit_logs = relationship('AuditLog', foreign_keys='AuditLog.user_id', back_populates='user')
+    
+    # Role-based access control
+    roles = relationship('Role', secondary=user_roles, back_populates='users')
+    
+    # Notifications
+    notification_preferences = relationship('NotificationPreference', back_populates='user')
+    notifications = relationship('Notification', back_populates='user')
     
     def __repr__(self):
         return f'<User {self.email}>'
@@ -94,6 +107,8 @@ class User(BaseModel, SoftDeleteMixin, AuditMixin):
     
     def check_password(self, password):
         """Check if provided password is correct."""
+        if password is None:
+            return False
         return check_password_hash(self.password_hash, password)
     
     def generate_password_reset_token(self):
@@ -140,8 +155,56 @@ class User(BaseModel, SoftDeleteMixin, AuditMixin):
         self.last_login_at = datetime.utcnow()
         return self.save()
     
+    def set_google_oauth_tokens(self, token_data):
+        """Store Google OAuth tokens."""
+        import json
+        
+        self.google_oauth_token = json.dumps(token_data)
+        self.google_oauth_refresh_token = token_data.get('refresh_token')
+        
+        # Calculate expiry time
+        if 'expires_in' in token_data:
+            expires_in = int(token_data['expires_in'])
+            self.google_oauth_expires_at = datetime.utcnow() + timedelta(seconds=expires_in)
+        
+        self.google_calendar_connected = True
+        return self.save()
+    
+    def get_google_oauth_tokens(self):
+        """Get Google OAuth tokens as dictionary."""
+        if not self.google_oauth_token:
+            return None
+        
+        import json
+        try:
+            return json.loads(self.google_oauth_token)
+        except (json.JSONDecodeError, TypeError):
+            return None
+    
+    def is_google_oauth_expired(self):
+        """Check if Google OAuth token is expired."""
+        if not self.google_oauth_expires_at:
+            return True
+        
+        return datetime.utcnow() >= self.google_oauth_expires_at
+    
+    def clear_google_oauth_tokens(self):
+        """Clear Google OAuth tokens."""
+        self.google_oauth_token = None
+        self.google_oauth_refresh_token = None
+        self.google_oauth_expires_at = None
+        self.google_calendar_connected = False
+        return self.save()
+    
     def has_permission(self, permission):
         """Check if user has specific permission."""
+        # Check role-based permissions first (new system)
+        if self.roles:
+            for role in self.roles:
+                if role.has_permission(permission):
+                    return True
+        
+        # Fallback to legacy role-based permissions for backward compatibility
         role_permissions = {
             'owner': [
                 'manage_users', 'manage_settings', 'manage_billing',
@@ -167,6 +230,29 @@ class User(BaseModel, SoftDeleteMixin, AuditMixin):
         
         return permission in role_permissions.get(self.role, [])
     
+    def add_role(self, role):
+        """Add a role to the user."""
+        if role not in self.roles:
+            self.roles.append(role)
+        return self
+    
+    def remove_role(self, role):
+        """Remove a role from the user."""
+        if role in self.roles:
+            self.roles.remove(role)
+        return self
+    
+    def has_role(self, role_name):
+        """Check if user has a specific role."""
+        return any(role.name == role_name for role in self.roles)
+    
+    def get_all_permissions(self):
+        """Get all permissions from all roles."""
+        permissions = set()
+        for role in self.roles:
+            permissions.update(role.get_permissions())
+        return list(permissions)
+    
     def to_dict(self, exclude=None):
         """Convert to dictionary."""
         exclude = exclude or []
@@ -176,6 +262,8 @@ class User(BaseModel, SoftDeleteMixin, AuditMixin):
         data['full_name'] = self.full_name
         data['is_owner'] = self.is_owner
         data['is_manager'] = self.is_manager
+        data['roles'] = [role.to_dict() for role in self.roles] if self.roles else []
+        data['permissions'] = self.get_all_permissions()
         
         return data
     

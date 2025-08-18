@@ -10,7 +10,19 @@ logger = structlog.get_logger()
 
 def get_schema_name():
     """Get current database schema name."""
-    return current_app.config.get('DB_SCHEMA', 'ai_secretary')
+    try:
+        # Return None for testing to disable schema usage with SQLite
+        if current_app.config.get('TESTING', False):
+            return current_app.config.get('DB_SCHEMA')  # This will be None from conftest.py
+        schema = current_app.config.get('DB_SCHEMA', 'ai_secretary')
+        return schema
+    except RuntimeError:
+        # Fallback when outside application context
+        import os
+        testing = os.environ.get('TESTING', 'False').lower() == 'true'
+        if testing:
+            return None
+        return os.environ.get('DB_SCHEMA', 'ai_secretary')
 
 
 def create_schema_if_not_exists():
@@ -72,27 +84,26 @@ def drop_schema(confirm_schema_name=None):
 class SchemaAwareModel:
     """Mixin for models that should be schema-aware."""
     
-    __table_args__ = {'schema': get_schema_name()}
-    
     @classmethod
     def __init_subclass__(cls, **kwargs):
         """Automatically set schema for all subclasses."""
         super().__init_subclass__(**kwargs)
         
         # Set schema in table args
+        schema_name = get_schema_name()
         if hasattr(cls, '__table_args__'):
             if isinstance(cls.__table_args__, dict):
-                cls.__table_args__['schema'] = get_schema_name()
+                cls.__table_args__['schema'] = schema_name
             elif isinstance(cls.__table_args__, tuple):
                 # Convert tuple to dict and add schema
                 args = list(cls.__table_args__)
                 if args and isinstance(args[-1], dict):
-                    args[-1]['schema'] = get_schema_name()
+                    args[-1]['schema'] = schema_name
                 else:
-                    args.append({'schema': get_schema_name()})
+                    args.append({'schema': schema_name})
                 cls.__table_args__ = tuple(args)
         else:
-            cls.__table_args__ = {'schema': get_schema_name()}
+            cls.__table_args__ = {'schema': schema_name}
 
 
 def init_database_schema(app):

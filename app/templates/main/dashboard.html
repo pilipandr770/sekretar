@@ -1,0 +1,702 @@
+{% extends "base.html" %}
+
+{% block title %}{{ _('Dashboard - AI Secretary') }}{% endblock %}
+
+{% block content %}
+<!-- Welcome Header -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h1 class="mb-1">{{ _('Welcome back!') }}</h1>
+                <p class="text-muted mb-0">{{ _('Here\'s what\'s happening with your AI Secretary today.') }}</p>
+            </div>
+            <div class="dropdown">
+                <button class="btn btn-outline-primary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                    {{ _('Quick Actions') }}
+                </button>
+                <ul class="dropdown-menu">
+                    <li><a class="dropdown-item" href="{{ url_for('main.inbox') }}">📧 {{ _('View Inbox') }}</a></li>
+                    <li><a class="dropdown-item" href="{{ url_for('main.crm') }}">👥 {{ _('Manage Leads') }}</a></li>
+                    <li><a class="dropdown-item" href="{{ url_for('main.calendar') }}">📅 {{ _('Calendar') }}</a></li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li><a class="dropdown-item" href="{{ url_for('main.settings') }}">⚙️ {{ _('Settings') }}</a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Key Metrics Row -->
+<div class="row mb-4">
+    <div class="col-lg-3 col-md-6 mb-3">
+        <div class="card bg-primary text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h6 class="card-title">{{ _('Messages Today') }}</h6>
+                        <h3 class="mb-0" id="messages-today">-</h3>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-envelope fa-2x opacity-75"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-3 col-md-6 mb-3">
+        <div class="card bg-success text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h6 class="card-title">{{ _('Active Leads') }}</h6>
+                        <h3 class="mb-0" id="active-leads">-</h3>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-users fa-2x opacity-75"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-3 col-md-6 mb-3">
+        <div class="card bg-info text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h6 class="card-title">{{ _('Appointments') }}</h6>
+                        <h3 class="mb-0" id="appointments-today">-</h3>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-calendar fa-2x opacity-75"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-3 col-md-6 mb-3">
+        <div class="card bg-warning text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h6 class="card-title">{{ _('Response Rate') }}</h6>
+                        <h3 class="mb-0" id="response-rate">-</h3>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-chart-line fa-2x opacity-75"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Main Content Row -->
+<div class="row">
+    <!-- Recent Messages -->
+    <div class="col-lg-6 mb-4">
+        <div class="card h-100">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">{{ _('Recent Messages') }}</h5>
+                <a href="{{ url_for('main.inbox') }}" class="btn btn-sm btn-outline-primary">{{ _('View All') }}</a>
+            </div>
+            <div class="card-body">
+                <div id="recent-messages">
+                    <div class="text-center">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">{{ _('Loading...') }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Recent Leads -->
+    <div class="col-lg-6 mb-4">
+        <div class="card h-100">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">{{ _('Recent Leads') }}</h5>
+                <a href="{{ url_for('main.crm') }}" class="btn btn-sm btn-outline-primary">{{ _('View All') }}</a>
+            </div>
+            <div class="card-body">
+                <div id="recent-leads">
+                    <div class="text-center">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">{{ _('Loading...') }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Secondary Content Row -->
+<div class="row">
+    <!-- Upcoming Appointments -->
+    <div class="col-lg-4 mb-4">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">{{ _('Upcoming Appointments') }}</h5>
+                <a href="{{ url_for('main.calendar') }}" class="btn btn-sm btn-outline-primary">{{ _('View Calendar') }}</a>
+            </div>
+            <div class="card-body">
+                <div id="upcoming-appointments">
+                    <div class="text-center">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">{{ _('Loading...') }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- System Status -->
+    <div class="col-lg-4 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">{{ _('System Status') }}</h5>
+            </div>
+            <div class="card-body">
+                <div id="system-status">
+                    <div class="text-center">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">{{ _('Loading...') }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Quick Stats -->
+    <div class="col-lg-4 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">{{ _('Quick Stats') }}</h5>
+            </div>
+            <div class="card-body">
+                <div id="quick-stats">
+                    <div class="text-center">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">{{ _('Loading...') }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Dashboard data loading functions
+async function loadDashboardMetrics() {
+    try {
+        const token = localStorage.getItem('access_token');
+        const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
+        
+        // Load key metrics
+        const [messagesResponse, leadsResponse, appointmentsResponse] = await Promise.all([
+            fetch('/api/v1/inbox/stats', { headers }),
+            fetch('/api/v1/crm/stats', { headers }),
+            fetch('/api/v1/calendar/stats', { headers })
+        ]);
+        
+        if (messagesResponse.ok) {
+            const messagesData = await messagesResponse.json();
+            document.getElementById('messages-today').textContent = messagesData.data?.today || '0';
+        }
+        
+        if (leadsResponse.ok) {
+            const leadsData = await leadsResponse.json();
+            document.getElementById('active-leads').textContent = leadsData.data?.active || '0';
+        }
+        
+        if (appointmentsResponse.ok) {
+            const appointmentsData = await appointmentsResponse.json();
+            document.getElementById('appointments-today').textContent = appointmentsData.data?.today || '0';
+        }
+        
+        // Calculate response rate (mock for now)
+        document.getElementById('response-rate').textContent = '98%';
+        
+    } catch (error) {
+        console.error('Error loading dashboard metrics:', error);
+        // Set default values on error
+        document.getElementById('messages-today').textContent = '0';
+        document.getElementById('active-leads').textContent = '0';
+        document.getElementById('appointments-today').textContent = '0';
+        document.getElementById('response-rate').textContent = '-';
+    }
+}
+
+async function loadRecentMessages() {
+    try {
+        const token = localStorage.getItem('access_token');
+        const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
+        
+        const response = await fetch('/api/v1/inbox/messages?limit=5', { headers });
+        
+        if (response.ok) {
+            const data = await response.json();
+            const messages = data.data?.messages || [];
+            
+            if (messages.length === 0) {
+                document.getElementById('recent-messages').innerHTML = `
+                    <div class="text-center text-muted">
+                        <i class="fas fa-inbox fa-3x mb-3"></i>
+                        <p>{{ _('No recent messages') }}</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            const messagesHtml = messages.map(message => `
+                <div class="d-flex mb-3">
+                    <div class="flex-shrink-0">
+                        <div class="bg-primary rounded-circle d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                            <i class="fas fa-user text-white"></i>
+                        </div>
+                    </div>
+                    <div class="flex-grow-1 ms-3">
+                        <div class="d-flex justify-content-between">
+                            <h6 class="mb-1">${message.sender_name || 'Unknown'}</h6>
+                            <small class="text-muted">${formatTime(message.created_at)}</small>
+                        </div>
+                        <p class="mb-1 text-truncate">${message.content}</p>
+                        <small class="text-muted">${message.channel_type}</small>
+                    </div>
+                </div>
+            `).join('');
+            
+            document.getElementById('recent-messages').innerHTML = messagesHtml;
+        } else {
+            throw new Error('Failed to load messages');
+        }
+        
+    } catch (error) {
+        console.error('Error loading recent messages:', error);
+        document.getElementById('recent-messages').innerHTML = `
+            <div class="alert alert-warning">
+                {{ _('Unable to load recent messages') }}
+            </div>
+        `;
+    }
+}
+
+async function loadRecentLeads() {
+    try {
+        const token = localStorage.getItem('access_token');
+        const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
+        
+        const response = await fetch('/api/v1/crm/leads?limit=5', { headers });
+        
+        if (response.ok) {
+            const data = await response.json();
+            const leads = data.data?.leads || [];
+            
+            if (leads.length === 0) {
+                document.getElementById('recent-leads').innerHTML = `
+                    <div class="text-center text-muted">
+                        <i class="fas fa-users fa-3x mb-3"></i>
+                        <p>{{ _('No recent leads') }}</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            const leadsHtml = leads.map(lead => `
+                <div class="d-flex mb-3">
+                    <div class="flex-shrink-0">
+                        <div class="bg-success rounded-circle d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                            <i class="fas fa-user-plus text-white"></i>
+                        </div>
+                    </div>
+                    <div class="flex-grow-1 ms-3">
+                        <div class="d-flex justify-content-between">
+                            <h6 class="mb-1">${lead.contact_name || 'Unknown'}</h6>
+                            <small class="text-muted">${formatTime(lead.created_at)}</small>
+                        </div>
+                        <p class="mb-1">${lead.company || 'No company'}</p>
+                        <span class="badge bg-${getStageColor(lead.stage)}">${lead.stage}</span>
+                    </div>
+                </div>
+            `).join('');
+            
+            document.getElementById('recent-leads').innerHTML = leadsHtml;
+        } else {
+            throw new Error('Failed to load leads');
+        }
+        
+    } catch (error) {
+        console.error('Error loading recent leads:', error);
+        document.getElementById('recent-leads').innerHTML = `
+            <div class="alert alert-warning">
+                {{ _('Unable to load recent leads') }}
+            </div>
+        `;
+    }
+}
+
+async function loadUpcomingAppointments() {
+    try {
+        const token = localStorage.getItem('access_token');
+        const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
+        
+        const response = await fetch('/api/v1/calendar/appointments/upcoming?limit=3', { headers });
+        
+        if (response.ok) {
+            const data = await response.json();
+            const appointments = data.data?.appointments || [];
+            
+            if (appointments.length === 0) {
+                document.getElementById('upcoming-appointments').innerHTML = `
+                    <div class="text-center text-muted">
+                        <i class="fas fa-calendar fa-2x mb-2"></i>
+                        <p class="mb-0">{{ _('No upcoming appointments') }}</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            const appointmentsHtml = appointments.map(appointment => `
+                <div class="d-flex mb-3">
+                    <div class="flex-shrink-0">
+                        <div class="bg-info rounded-circle d-flex align-items-center justify-content-center" style="width: 35px; height: 35px;">
+                            <i class="fas fa-calendar text-white"></i>
+                        </div>
+                    </div>
+                    <div class="flex-grow-1 ms-3">
+                        <h6 class="mb-1">${appointment.title}</h6>
+                        <small class="text-muted">${formatDateTime(appointment.start_time)}</small>
+                    </div>
+                </div>
+            `).join('');
+            
+            document.getElementById('upcoming-appointments').innerHTML = appointmentsHtml;
+        } else {
+            throw new Error('Failed to load appointments');
+        }
+        
+    } catch (error) {
+        console.error('Error loading upcoming appointments:', error);
+        document.getElementById('upcoming-appointments').innerHTML = `
+            <div class="alert alert-warning">
+                {{ _('Unable to load appointments') }}
+            </div>
+        `;
+    }
+}
+
+async function loadSystemStatus() {
+    try {
+        const response = await fetch('/api/v1/health');
+        const data = await response.json();
+        
+        const statusHtml = `
+            <div class="mb-3">
+                <div class="d-flex justify-content-between align-items-center">
+                    <span>{{ _('Overall Status') }}</span>
+                    <span class="badge bg-${data.status === 'healthy' ? 'success' : 'danger'}">
+                        ${data.status.toUpperCase()}
+                    </span>
+                </div>
+            </div>
+            <div class="mb-2">
+                <div class="d-flex justify-content-between align-items-center">
+                    <span>{{ _('Database') }}</span>
+                    <span class="badge bg-${data.checks.database?.status === 'healthy' ? 'success' : 'danger'}">
+                        ${data.checks.database?.status?.toUpperCase() || 'UNKNOWN'}
+                    </span>
+                </div>
+            </div>
+            <div class="mb-2">
+                <div class="d-flex justify-content-between align-items-center">
+                    <span>{{ _('Redis') }}</span>
+                    <span class="badge bg-${data.checks.redis?.status === 'healthy' ? 'success' : 'warning'}">
+                        ${data.checks.redis?.status?.toUpperCase() || 'UNKNOWN'}
+                    </span>
+                </div>
+            </div>
+        `;
+        
+        document.getElementById('system-status').innerHTML = statusHtml;
+    } catch (error) {
+        document.getElementById('system-status').innerHTML = `
+            <div class="alert alert-danger">
+                {{ _('Error loading system status') }}
+            </div>
+        `;
+    }
+}
+
+async function loadQuickStats() {
+    try {
+        const token = localStorage.getItem('access_token');
+        const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
+        
+        const response = await fetch('/api/v1/tenant/stats', { headers });
+        
+        if (response.ok) {
+            const data = await response.json();
+            const stats = data.data || {};
+            
+            const statsHtml = `
+                <div class="mb-2">
+                    <div class="d-flex justify-content-between">
+                        <span>{{ _('Total Users') }}</span>
+                        <strong>${stats.total_users || 0}</strong>
+                    </div>
+                </div>
+                <div class="mb-2">
+                    <div class="d-flex justify-content-between">
+                        <span>{{ _('Active Channels') }}</span>
+                        <strong>${stats.active_channels || 0}</strong>
+                    </div>
+                </div>
+                <div class="mb-2">
+                    <div class="d-flex justify-content-between">
+                        <span>{{ _('Knowledge Sources') }}</span>
+                        <strong>${stats.knowledge_sources || 0}</strong>
+                    </div>
+                </div>
+                <div class="mb-2">
+                    <div class="d-flex justify-content-between">
+                        <span>{{ _('KYB Counterparties') }}</span>
+                        <strong>${stats.kyb_counterparties || 0}</strong>
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('quick-stats').innerHTML = statsHtml;
+        } else {
+            throw new Error('Failed to load stats');
+        }
+        
+    } catch (error) {
+        console.error('Error loading quick stats:', error);
+        document.getElementById('quick-stats').innerHTML = `
+            <div class="alert alert-warning">
+                {{ _('Unable to load statistics') }}
+            </div>
+        `;
+    }
+}
+
+// Utility functions
+function formatTime(timestamp) {
+    if (!timestamp) return '';
+    const date = new Date(timestamp);
+    const now = new Date();
+    const diffMs = now - date;
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMs / 3600000);
+    const diffDays = Math.floor(diffMs / 86400000);
+    
+    if (diffMins < 1) return '{{ _("Just now") }}';
+    if (diffMins < 60) return `${diffMins}m`;
+    if (diffHours < 24) return `${diffHours}h`;
+    if (diffDays < 7) return `${diffDays}d`;
+    return date.toLocaleDateString();
+}
+
+function formatDateTime(timestamp) {
+    if (!timestamp) return '';
+    const date = new Date(timestamp);
+    return date.toLocaleString();
+}
+
+function getStageColor(stage) {
+    const colors = {
+        'new': 'primary',
+        'contacted': 'info',
+        'qualified': 'warning',
+        'proposal': 'success',
+        'closed': 'secondary'
+    };
+    return colors[stage?.toLowerCase()] || 'secondary';
+}
+
+// Load all dashboard data
+function loadDashboardData() {
+    loadDashboardMetrics();
+    loadRecentMessages();
+    loadRecentLeads();
+    loadUpcomingAppointments();
+    loadSystemStatus();
+    loadQuickStats();
+}
+
+// Initialize dashboard
+document.addEventListener('DOMContentLoaded', () => {
+    loadDashboardData();
+    setupRealTimeFeatures();
+});
+
+// Setup real-time features
+function setupRealTimeFeatures() {
+    // Wait for WebSocket client to be available
+    const checkWebSocket = () => {
+        if (window.wsClient && window.wsClient.isConnectedToWebSocket()) {
+            initializeRealTimeFeatures();
+        } else {
+            setTimeout(checkWebSocket, 1000);
+        }
+    };
+    checkWebSocket();
+}
+
+function initializeRealTimeFeatures() {
+    const wsClient = window.wsClient;
+    
+    // Listen for new messages
+    wsClient.on('message:new', (event) => {
+        updateMessageCount();
+        loadRecentMessages();
+        showNotificationBadge('messages');
+    });
+    
+    // Listen for lead updates
+    wsClient.on('lead:updated', (event) => {
+        loadRecentLeads();
+        loadDashboardMetrics();
+        showNotificationBadge('leads');
+    });
+    
+    // Listen for appointment updates
+    wsClient.on('appointment:updated', (event) => {
+        loadUpcomingAppointments();
+        loadDashboardMetrics();
+        showNotificationBadge('appointments');
+    });
+    
+    // Listen for notifications
+    wsClient.on('notification:received', (event) => {
+        const data = event.detail;
+        showDashboardNotification(data);
+    });
+    
+    // Listen for system alerts
+    wsClient.on('alert:system', (event) => {
+        const data = event.detail;
+        showSystemAlert(data);
+    });
+}
+
+// Update message count in real-time
+function updateMessageCount() {
+    const currentCount = parseInt(document.getElementById('messages-today').textContent) || 0;
+    document.getElementById('messages-today').textContent = currentCount + 1;
+}
+
+// Show notification badge on dashboard cards
+function showNotificationBadge(type) {
+    const cardSelectors = {
+        'messages': '.card.bg-primary',
+        'leads': '.card.bg-success',
+        'appointments': '.card.bg-info'
+    };
+    
+    const selector = cardSelectors[type];
+    if (selector) {
+        const card = document.querySelector(selector);
+        if (card && !card.querySelector('.notification-badge')) {
+            const badge = document.createElement('div');
+            badge.className = 'notification-badge';
+            badge.textContent = '!';
+            card.style.position = 'relative';
+            card.appendChild(badge);
+            
+            // Remove badge after 5 seconds
+            setTimeout(() => {
+                if (badge.parentNode) {
+                    badge.remove();
+                }
+            }, 5000);
+        }
+    }
+}
+
+// Show dashboard notification
+function showDashboardNotification(data) {
+    const notificationHtml = `
+        <div class="alert alert-info alert-dismissible fade show dashboard-notification" role="alert">
+            <div class="d-flex align-items-center">
+                <i class="fas fa-bell me-2"></i>
+                <div>
+                    <strong>${data.title || 'Notification'}</strong>
+                    ${data.message ? `<br><small>${data.message}</small>` : ''}
+                </div>
+            </div>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    `;
+    
+    // Add to notifications container
+    let container = document.getElementById('dashboard-notifications');
+    if (!container) {
+        container = document.createElement('div');
+        container.id = 'dashboard-notifications';
+        container.className = 'position-fixed top-0 start-50 translate-middle-x mt-5';
+        container.style.zIndex = '1050';
+        container.style.width = '400px';
+        document.body.appendChild(container);
+    }
+    
+    container.insertAdjacentHTML('afterbegin', notificationHtml);
+    
+    // Auto-remove after 10 seconds
+    const notification = container.firstElementChild;
+    setTimeout(() => {
+        if (notification && notification.parentNode) {
+            notification.remove();
+        }
+    }, 10000);
+}
+
+// Show system alert
+function showSystemAlert(data) {
+    const alertClass = data.urgent ? 'alert-danger' : 'alert-warning';
+    const icon = data.urgent ? 'fa-exclamation-triangle' : 'fa-info-circle';
+    
+    const alertHtml = `
+        <div class="alert ${alertClass} alert-dismissible fade show system-alert" role="alert">
+            <div class="d-flex align-items-center">
+                <i class="fas ${icon} me-2"></i>
+                <div>
+                    <strong>${data.title || 'System Alert'}</strong>
+                    ${data.message ? `<br>${data.message}` : ''}
+                </div>
+            </div>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    `;
+    
+    // Add to top of main container
+    const mainContainer = document.querySelector('main.container');
+    if (mainContainer) {
+        mainContainer.insertAdjacentHTML('afterbegin', alertHtml);
+        
+        // Auto-remove after 15 seconds for non-urgent alerts
+        if (!data.urgent) {
+            const alert = mainContainer.firstElementChild;
+            setTimeout(() => {
+                if (alert && alert.classList.contains('system-alert')) {
+                    alert.remove();
+                }
+            }, 15000);
+        }
+    }
+}
+
+// Auto-refresh every 60 seconds (reduced due to real-time updates)
+setInterval(loadDashboardData, 60000);
+</script>
+{% endblock %}

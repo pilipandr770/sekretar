@@ -1,0 +1,780 @@
+{% extends "base.html" %}
+
+{% block title %}{{ _('User Management - AI Secretary') }}{% endblock %}
+
+{% block head %}
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h1 class="mb-1">{{ _('User Management') }}</h1>
+                <p class="text-muted mb-0">{{ _('Manage users, roles, and permissions') }}</p>
+            </div>
+            <div>
+                <button class="btn btn-outline-secondary me-2" onclick="refreshUsers()">
+                    <i class="fas fa-sync-alt"></i> {{ _('Refresh') }}
+                </button>
+                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#inviteUserModal">
+                    <i class="fas fa-user-plus"></i> {{ _('Invite User') }}
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- User Statistics -->
+<div class="row mb-4">
+    <div class="col-lg-3 col-md-6 mb-3">
+        <div class="card bg-primary text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h6 class="card-title">{{ _('Total Users') }}</h6>
+                        <h3 class="mb-0" id="total-users">-</h3>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-users fa-2x opacity-75"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-3 col-md-6 mb-3">
+        <div class="card bg-success text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h6 class="card-title">{{ _('Active Users') }}</h6>
+                        <h3 class="mb-0" id="active-users">-</h3>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-user-check fa-2x opacity-75"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-3 col-md-6 mb-3">
+        <div class="card bg-warning text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h6 class="card-title">{{ _('Pending Invites') }}</h6>
+                        <h3 class="mb-0" id="pending-invites">-</h3>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-user-clock fa-2x opacity-75"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-3 col-md-6 mb-3">
+        <div class="card bg-info text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h6 class="card-title">{{ _('Admins') }}</h6>
+                        <h3 class="mb-0" id="admin-users">-</h3>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-user-shield fa-2x opacity-75"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Filters and Search -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col-md-4">
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-search"></i></span>
+                            <input type="text" class="form-control" id="searchInput" placeholder="{{ _('Search users...') }}">
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <select class="form-select" id="roleFilter">
+                            <option value="">{{ _('All Roles') }}</option>
+                            <option value="owner">{{ _('Owner') }}</option>
+                            <option value="manager">{{ _('Manager') }}</option>
+                            <option value="support">{{ _('Support') }}</option>
+                            <option value="accounting">{{ _('Accounting') }}</option>
+                            <option value="readonly">{{ _('Read-only') }}</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <select class="form-select" id="statusFilter">
+                            <option value="">{{ _('All Status') }}</option>
+                            <option value="active">{{ _('Active') }}</option>
+                            <option value="inactive">{{ _('Inactive') }}</option>
+                            <option value="pending">{{ _('Pending') }}</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <select class="form-select" id="sortBy">
+                            <option value="name">{{ _('Sort by Name') }}</option>
+                            <option value="email">{{ _('Sort by Email') }}</option>
+                            <option value="role">{{ _('Sort by Role') }}</option>
+                            <option value="created">{{ _('Sort by Created') }}</option>
+                            <option value="last_login">{{ _('Sort by Last Login') }}</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <button class="btn btn-outline-primary w-100" onclick="applyFilters()">
+                            {{ _('Filter') }}
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Users Table -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">{{ _('Users') }}</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>{{ _('User') }}</th>
+                                <th>{{ _('Role') }}</th>
+                                <th>{{ _('Status') }}</th>
+                                <th>{{ _('Last Login') }}</th>
+                                <th>{{ _('Created') }}</th>
+                                <th>{{ _('Actions') }}</th>
+                            </tr>
+                        </thead>
+                        <tbody id="users-table-body">
+                            <tr>
+                                <td colspan="6" class="text-center">
+                                    <div class="spinner-border text-primary" role="status">
+                                        <span class="visually-hidden">{{ _('Loading...') }}</span>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Invite User Modal -->
+<div class="modal fade" id="inviteUserModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">{{ _('Invite User') }}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="inviteUserForm">
+                    <div class="mb-3">
+                        <label for="inviteEmail" class="form-label">{{ _('Email Address') }}</label>
+                        <input type="email" class="form-control" id="inviteEmail" required
+                               placeholder="{{ _('Enter email address') }}">
+                        <div class="invalid-feedback"></div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="inviteRole" class="form-label">{{ _('Role') }}</label>
+                        <select class="form-select" id="inviteRole" required>
+                            <option value="">{{ _('Select role') }}</option>
+                            <option value="manager">{{ _('Manager') }}</option>
+                            <option value="support">{{ _('Support') }}</option>
+                            <option value="accounting">{{ _('Accounting') }}</option>
+                            <option value="readonly">{{ _('Read-only') }}</option>
+                        </select>
+                        <div class="invalid-feedback"></div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="inviteMessage" class="form-label">{{ _('Personal Message (Optional)') }}</label>
+                        <textarea class="form-control" id="inviteMessage" rows="3"
+                                  placeholder="{{ _('Add a personal message to the invitation...') }}"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="sendWelcomeEmail" checked>
+                            <label class="form-check-label" for="sendWelcomeEmail">
+                                {{ _('Send welcome email with setup instructions') }}
+                            </label>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ _('Cancel') }}</button>
+                <button type="button" class="btn btn-primary" onclick="sendInvitation()">
+                    <span class="spinner-border spinner-border-sm d-none" role="status"></span>
+                    {{ _('Send Invitation') }}
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit User Modal -->
+<div class="modal fade" id="editUserModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">{{ _('Edit User') }}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editUserForm">
+                    <input type="hidden" id="editUserId">
+                    <div class="mb-3">
+                        <label for="editUserName" class="form-label">{{ _('Full Name') }}</label>
+                        <input type="text" class="form-control" id="editUserName" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editUserEmail" class="form-label">{{ _('Email Address') }}</label>
+                        <input type="email" class="form-control" id="editUserEmail" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editUserRole" class="form-label">{{ _('Role') }}</label>
+                        <select class="form-select" id="editUserRole" required>
+                            <option value="owner">{{ _('Owner') }}</option>
+                            <option value="manager">{{ _('Manager') }}</option>
+                            <option value="support">{{ _('Support') }}</option>
+                            <option value="accounting">{{ _('Accounting') }}</option>
+                            <option value="readonly">{{ _('Read-only') }}</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editUserStatus" class="form-label">{{ _('Status') }}</label>
+                        <select class="form-select" id="editUserStatus" required>
+                            <option value="active">{{ _('Active') }}</option>
+                            <option value="inactive">{{ _('Inactive') }}</option>
+                        </select>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ _('Cancel') }}</button>
+                <button type="button" class="btn btn-primary" onclick="saveUserChanges()">
+                    <span class="spinner-border spinner-border-sm d-none" role="status"></span>
+                    {{ _('Save Changes') }}
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Role Permissions Modal -->
+<div class="modal fade" id="rolePermissionsModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">{{ _('Role Permissions') }}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div id="rolePermissionsContent">
+                    <!-- Role permissions will be loaded here -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ _('Close') }}</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+let users = [];
+let currentUser = null;
+
+// Load users on page load
+document.addEventListener('DOMContentLoaded', () => {
+    loadUsers();
+    loadUserStats();
+});
+
+// Load users
+async function loadUsers() {
+    try {
+        const token = localStorage.getItem('access_token');
+        const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
+        
+        const response = await fetch('/api/v1/tenant/users', { headers });
+        
+        if (response.ok) {
+            const data = await response.json();
+            users = data.data?.users || [];
+            renderUsers();
+        } else {
+            throw new Error('Failed to load users');
+        }
+        
+    } catch (error) {
+        console.error('Error loading users:', error);
+        document.getElementById('users-table-body').innerHTML = `
+            <tr>
+                <td colspan="6" class="text-center">
+                    <div class="alert alert-danger">{{ _('Error loading users') }}</div>
+                </td>
+            </tr>
+        `;
+    }
+}
+
+// Load user statistics
+async function loadUserStats() {
+    try {
+        const token = localStorage.getItem('access_token');
+        const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
+        
+        const response = await fetch('/api/v1/tenant/users/stats', { headers });
+        
+        if (response.ok) {
+            const data = await response.json();
+            const stats = data.data?.stats || {};
+            
+            document.getElementById('total-users').textContent = stats.total || 0;
+            document.getElementById('active-users').textContent = stats.active || 0;
+            document.getElementById('pending-invites').textContent = stats.pending || 0;
+            document.getElementById('admin-users').textContent = stats.admins || 0;
+        } else {
+            throw new Error('Failed to load user stats');
+        }
+        
+    } catch (error) {
+        console.error('Error loading user stats:', error);
+        // Set default values on error
+        document.getElementById('total-users').textContent = '0';
+        document.getElementById('active-users').textContent = '0';
+        document.getElementById('pending-invites').textContent = '0';
+        document.getElementById('admin-users').textContent = '0';
+    }
+}
+
+// Render users table
+function renderUsers() {
+    const tbody = document.getElementById('users-table-body');
+    
+    if (users.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="6" class="text-center text-muted">
+                    <i class="fas fa-users fa-3x mb-3"></i>
+                    <p>{{ _('No users found') }}</p>
+                </td>
+            </tr>
+        `;
+        return;
+    }
+    
+    const usersHtml = users.map(user => `
+        <tr>
+            <td>
+                <div class="d-flex align-items-center">
+                    <div class="flex-shrink-0">
+                        <div class="bg-${getRoleColor(user.role)} rounded-circle d-flex align-items-center justify-content-center" 
+                             style="width: 40px; height: 40px;">
+                            <i class="fas fa-user text-white"></i>
+                        </div>
+                    </div>
+                    <div class="flex-grow-1 ms-3">
+                        <h6 class="mb-0">${user.name || 'Unknown'}</h6>
+                        <small class="text-muted">${user.email}</small>
+                    </div>
+                </div>
+            </td>
+            <td>
+                <span class="badge bg-${getRoleColor(user.role)}">${getRoleLabel(user.role)}</span>
+            </td>
+            <td>
+                <span class="badge bg-${getStatusColor(user.status)}">${getStatusLabel(user.status)}</span>
+            </td>
+            <td>${formatTime(user.last_login_at)}</td>
+            <td>${formatTime(user.created_at)}</td>
+            <td>
+                <div class="btn-group btn-group-sm">
+                    <button class="btn btn-outline-primary" onclick="editUser('${user.id}')" title="{{ _('Edit') }}">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                    <button class="btn btn-outline-info" onclick="viewPermissions('${user.role}')" title="{{ _('Permissions') }}">
+                        <i class="fas fa-key"></i>
+                    </button>
+                    <button class="btn btn-outline-warning" onclick="resetPassword('${user.id}')" title="{{ _('Reset Password') }}">
+                        <i class="fas fa-lock"></i>
+                    </button>
+                    ${user.role !== 'owner' ? `
+                        <button class="btn btn-outline-danger" onclick="deactivateUser('${user.id}')" title="{{ _('Deactivate') }}">
+                            <i class="fas fa-user-slash"></i>
+                        </button>
+                    ` : ''}
+                </div>
+            </td>
+        </tr>
+    `).join('');
+    
+    tbody.innerHTML = usersHtml;
+}
+
+// Send invitation
+async function sendInvitation() {
+    const form = document.getElementById('inviteUserForm');
+    const submitBtn = form.closest('.modal-content').querySelector('.btn-primary');
+    const spinner = submitBtn.querySelector('.spinner-border');
+    
+    if (!form.checkValidity()) {
+        form.reportValidity();
+        return;
+    }
+    
+    submitBtn.disabled = true;
+    spinner.classList.remove('d-none');
+    
+    try {
+        const token = localStorage.getItem('access_token');
+        const headers = {
+            'Content-Type': 'application/json',
+            ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+        };
+        
+        const response = await fetch('/api/v1/tenant/users/invite', {
+            method: 'POST',
+            headers,
+            body: JSON.stringify({
+                email: document.getElementById('inviteEmail').value,
+                role: document.getElementById('inviteRole').value,
+                message: document.getElementById('inviteMessage').value,
+                send_welcome_email: document.getElementById('sendWelcomeEmail').checked
+            })
+        });
+        
+        if (response.ok) {
+            bootstrap.Modal.getInstance(document.getElementById('inviteUserModal')).hide();
+            form.reset();
+            await loadUsers();
+            await loadUserStats();
+            showAlert('success', '{{ _("Invitation sent successfully") }}');
+        } else {
+            const data = await response.json();
+            throw new Error(data.error?.message || 'Failed to send invitation');
+        }
+        
+    } catch (error) {
+        console.error('Error sending invitation:', error);
+        showAlert('danger', error.message || '{{ _("Failed to send invitation") }}');
+    } finally {
+        submitBtn.disabled = false;
+        spinner.classList.add('d-none');
+    }
+}
+
+// Edit user
+function editUser(userId) {
+    const user = users.find(u => u.id === userId);
+    if (!user) return;
+    
+    document.getElementById('editUserId').value = user.id;
+    document.getElementById('editUserName').value = user.name || '';
+    document.getElementById('editUserEmail').value = user.email;
+    document.getElementById('editUserRole').value = user.role;
+    document.getElementById('editUserStatus').value = user.status;
+    
+    new bootstrap.Modal(document.getElementById('editUserModal')).show();
+}
+
+// Save user changes
+async function saveUserChanges() {
+    const form = document.getElementById('editUserForm');
+    const submitBtn = form.closest('.modal-content').querySelector('.btn-primary');
+    const spinner = submitBtn.querySelector('.spinner-border');
+    
+    if (!form.checkValidity()) {
+        form.reportValidity();
+        return;
+    }
+    
+    submitBtn.disabled = true;
+    spinner.classList.remove('d-none');
+    
+    try {
+        const userId = document.getElementById('editUserId').value;
+        const token = localStorage.getItem('access_token');
+        const headers = {
+            'Content-Type': 'application/json',
+            ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+        };
+        
+        const response = await fetch(`/api/v1/tenant/users/${userId}`, {
+            method: 'PUT',
+            headers,
+            body: JSON.stringify({
+                name: document.getElementById('editUserName').value,
+                email: document.getElementById('editUserEmail').value,
+                role: document.getElementById('editUserRole').value,
+                status: document.getElementById('editUserStatus').value
+            })
+        });
+        
+        if (response.ok) {
+            bootstrap.Modal.getInstance(document.getElementById('editUserModal')).hide();
+            await loadUsers();
+            await loadUserStats();
+            showAlert('success', '{{ _("User updated successfully") }}');
+        } else {
+            throw new Error('Failed to update user');
+        }
+        
+    } catch (error) {
+        console.error('Error updating user:', error);
+        showAlert('danger', '{{ _("Failed to update user") }}');
+    } finally {
+        submitBtn.disabled = false;
+        spinner.classList.add('d-none');
+    }
+}
+
+// View role permissions
+function viewPermissions(role) {
+    const permissions = getRolePermissions(role);
+    
+    const permissionsHtml = `
+        <h6 class="text-primary">${getRoleLabel(role)} {{ _('Permissions') }}</h6>
+        <div class="row">
+            ${Object.entries(permissions).map(([category, perms]) => `
+                <div class="col-md-6 mb-3">
+                    <h6>${category}</h6>
+                    <ul class="list-unstyled">
+                        ${perms.map(perm => `
+                            <li><i class="fas fa-check text-success me-2"></i>${perm}</li>
+                        `).join('')}
+                    </ul>
+                </div>
+            `).join('')}
+        </div>
+    `;
+    
+    document.getElementById('rolePermissionsContent').innerHTML = permissionsHtml;
+    new bootstrap.Modal(document.getElementById('rolePermissionsModal')).show();
+}
+
+// Reset password
+async function resetPassword(userId) {
+    if (!confirm('{{ _("Are you sure you want to reset this user\'s password?") }}')) {
+        return;
+    }
+    
+    try {
+        const token = localStorage.getItem('access_token');
+        const headers = {
+            'Content-Type': 'application/json',
+            ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+        };
+        
+        const response = await fetch(`/api/v1/tenant/users/${userId}/reset-password`, {
+            method: 'POST',
+            headers
+        });
+        
+        if (response.ok) {
+            showAlert('success', '{{ _("Password reset email sent") }}');
+        } else {
+            throw new Error('Failed to reset password');
+        }
+        
+    } catch (error) {
+        console.error('Error resetting password:', error);
+        showAlert('danger', '{{ _("Failed to reset password") }}');
+    }
+}
+
+// Deactivate user
+async function deactivateUser(userId) {
+    if (!confirm('{{ _("Are you sure you want to deactivate this user?") }}')) {
+        return;
+    }
+    
+    try {
+        const token = localStorage.getItem('access_token');
+        const headers = {
+            'Content-Type': 'application/json',
+            ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+        };
+        
+        const response = await fetch(`/api/v1/tenant/users/${userId}/deactivate`, {
+            method: 'POST',
+            headers
+        });
+        
+        if (response.ok) {
+            await loadUsers();
+            await loadUserStats();
+            showAlert('success', '{{ _("User deactivated successfully") }}');
+        } else {
+            throw new Error('Failed to deactivate user');
+        }
+        
+    } catch (error) {
+        console.error('Error deactivating user:', error);
+        showAlert('danger', '{{ _("Failed to deactivate user") }}');
+    }
+}
+
+// Utility functions
+function getRoleLabel(role) {
+    const labels = {
+        'owner': '{{ _("Owner") }}',
+        'manager': '{{ _("Manager") }}',
+        'support': '{{ _("Support") }}',
+        'accounting': '{{ _("Accounting") }}',
+        'readonly': '{{ _("Read-only") }}'
+    };
+    return labels[role] || role;
+}
+
+function getRoleColor(role) {
+    const colors = {
+        'owner': 'danger',
+        'manager': 'primary',
+        'support': 'success',
+        'accounting': 'warning',
+        'readonly': 'secondary'
+    };
+    return colors[role] || 'secondary';
+}
+
+function getStatusLabel(status) {
+    const labels = {
+        'active': '{{ _("Active") }}',
+        'inactive': '{{ _("Inactive") }}',
+        'pending': '{{ _("Pending") }}'
+    };
+    return labels[status] || status;
+}
+
+function getStatusColor(status) {
+    const colors = {
+        'active': 'success',
+        'inactive': 'secondary',
+        'pending': 'warning'
+    };
+    return colors[status] || 'secondary';
+}
+
+function getRolePermissions(role) {
+    const permissions = {
+        'owner': {
+            '{{ _("Administration") }}': [
+                '{{ _("Manage all users") }}',
+                '{{ _("Manage billing") }}',
+                '{{ _("Manage integrations") }}',
+                '{{ _("View all data") }}'
+            ],
+            '{{ _("Operations") }}': [
+                '{{ _("Manage inbox") }}',
+                '{{ _("Manage CRM") }}',
+                '{{ _("Manage calendar") }}',
+                '{{ _("Manage knowledge base") }}'
+            ]
+        },
+        'manager': {
+            '{{ _("Management") }}': [
+                '{{ _("Manage team users") }}',
+                '{{ _("View reports") }}',
+                '{{ _("Manage settings") }}'
+            ],
+            '{{ _("Operations") }}': [
+                '{{ _("Manage inbox") }}',
+                '{{ _("Manage CRM") }}',
+                '{{ _("Manage calendar") }}',
+                '{{ _("Manage knowledge base") }}'
+            ]
+        },
+        'support': {
+            '{{ _("Support") }}': [
+                '{{ _("View inbox") }}',
+                '{{ _("Respond to messages") }}',
+                '{{ _("View CRM") }}',
+                '{{ _("Create leads") }}'
+            ]
+        },
+        'accounting': {
+            '{{ _("Accounting") }}': [
+                '{{ _("View billing") }}',
+                '{{ _("Manage invoices") }}',
+                '{{ _("View reports") }}'
+            ]
+        },
+        'readonly': {
+            '{{ _("Read-only") }}': [
+                '{{ _("View inbox") }}',
+                '{{ _("View CRM") }}',
+                '{{ _("View calendar") }}',
+                '{{ _("View reports") }}'
+            ]
+        }
+    };
+    
+    return permissions[role] || {};
+}
+
+function formatTime(timestamp) {
+    if (!timestamp) return '{{ _("Never") }}';
+    const date = new Date(timestamp);
+    const now = new Date();
+    const diffMs = now - date;
+    const diffDays = Math.floor(diffMs / 86400000);
+    
+    if (diffDays === 0) return '{{ _("Today") }}';
+    if (diffDays === 1) return '{{ _("Yesterday") }}';
+    if (diffDays < 7) return `${diffDays} {{ _("days ago") }}`;
+    return date.toLocaleDateString();
+}
+
+function refreshUsers() {
+    loadUsers();
+    loadUserStats();
+}
+
+function applyFilters() {
+    // TODO: Implement filtering logic
+    loadUsers();
+}
+
+function showAlert(type, message) {
+    const alertDiv = document.createElement('div');
+    alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
+    alertDiv.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    
+    const container = document.querySelector('.container');
+    container.insertBefore(alertDiv, container.firstChild);
+    
+    setTimeout(() => {
+        if (alertDiv.parentNode) {
+            alertDiv.remove();
+        }
+    }, 5000);
+}
+</script>
+{% endblock %}

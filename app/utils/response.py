@@ -1,4 +1,5 @@
 """Response utilities with i18n support."""
+from datetime import datetime
 from flask import jsonify, request
 from flask_babel import gettext as _
 from app.utils.i18n import translate_error_message, get_user_language
@@ -8,9 +9,94 @@ import structlog
 logger = structlog.get_logger()
 
 
+def generate_timestamp():
+    """Generate ISO-8601 timestamp for responses."""
+    return datetime.utcnow().isoformat() + 'Z'
+
+
+def api_response(data=None, message=None, status_code=200, **kwargs):
+    """Create API response with consistent structure for basic endpoints."""
+    timestamp = generate_timestamp()
+    
+    response_data = {
+        'timestamp': timestamp
+    }
+    
+    if message:
+        response_data['message'] = message
+    
+    if data is not None:
+        response_data.update(data)
+    
+    # Add any additional fields
+    response_data.update(kwargs)
+    
+    return jsonify(response_data), status_code
+
+
+def health_response(status, checks, version=None, status_code=None):
+    """Create health check response with consistent structure."""
+    timestamp = generate_timestamp()
+    
+    response_data = {
+        'status': status,
+        'timestamp': timestamp,
+        'checks': checks
+    }
+    
+    if version:
+        response_data['version'] = version
+    
+    # Use provided status_code or default based on health status
+    if status_code is None:
+        status_code = 200 if status == "healthy" else 503
+    
+    return jsonify(response_data), status_code
+
+
+def version_response(version, build_date=None, environment=None, **kwargs):
+    """Create version response with consistent structure."""
+    response_data = {
+        'version': version
+    }
+    
+    if build_date:
+        response_data['build_date'] = build_date
+    
+    if environment:
+        response_data['environment'] = environment
+    
+    # Add any additional version info
+    response_data.update(kwargs)
+    
+    return jsonify(response_data), 200
+
+
+def welcome_response(message, version=None, endpoints=None, environment=None):
+    """Create welcome response with consistent structure."""
+    timestamp = generate_timestamp()
+    
+    response_data = {
+        'message': message,
+        'timestamp': timestamp
+    }
+    
+    if version:
+        response_data['version'] = version
+    
+    if environment:
+        response_data['environment'] = environment
+    
+    if endpoints:
+        response_data['endpoints'] = endpoints
+    
+    return jsonify(response_data), 200
+
+
 def success_response(message=None, data=None, status_code=200, message_key=None, **kwargs):
-    """Create success response with i18n support."""
+    """Create success response with i18n support and consistent structure."""
     request_id = generate_request_id()
+    timestamp = generate_timestamp()
     
     # Translate message if message_key provided
     if message_key:
@@ -20,6 +106,7 @@ def success_response(message=None, data=None, status_code=200, message_key=None,
     
     response_data = {
         'success': True,
+        'timestamp': timestamp,
         'request_id': request_id
     }
     
@@ -37,15 +124,17 @@ def success_response(message=None, data=None, status_code=200, message_key=None,
         status_code=status_code,
         message=message,
         request_id=request_id,
-        language=get_user_language()
+        language=get_user_language(),
+        timestamp=timestamp
     )
     
     return jsonify(response_data), status_code
 
 
 def error_response(error_code, message=None, status_code=400, details=None, **kwargs):
-    """Create error response with i18n support."""
+    """Create error response with i18n support and consistent structure."""
     request_id = generate_request_id()
+    timestamp = generate_timestamp()
     
     # Translate error message
     if message:
@@ -55,6 +144,7 @@ def error_response(error_code, message=None, status_code=400, details=None, **kw
     
     response_data = {
         'success': False,
+        'timestamp': timestamp,
         'error': {
             'code': error_code,
             'message': str(translated_message),
@@ -72,6 +162,7 @@ def error_response(error_code, message=None, status_code=400, details=None, **kw
         status_code=status_code,
         request_id=request_id,
         language=get_user_language(),
+        timestamp=timestamp,
         path=request.path if request else None,
         method=request.method if request else None
     )
@@ -246,7 +337,7 @@ class ResponseBuilder:
         return self
     
     def build(self):
-        """Build the response."""
+        """Build the response with consistent timestamp formatting."""
         if self._success:
             return success_response(
                 message=self._message,

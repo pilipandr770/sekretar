@@ -1,0 +1,818 @@
+{% extends "base.html" %}
+
+{% block title %}{{ _('Calendar - AI Secretary') }}{% endblock %}
+
+{% block head %}
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+<style>
+.calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 1px;
+    background-color: #dee2e6;
+    border: 1px solid #dee2e6;
+}
+
+.calendar-day {
+    background-color: white;
+    min-height: 100px;
+    padding: 8px;
+    position: relative;
+    cursor: pointer;
+}
+
+.calendar-day:hover {
+    background-color: #f8f9fa;
+}
+
+.calendar-day.other-month {
+    background-color: #f8f9fa;
+    color: #6c757d;
+}
+
+.calendar-day.today {
+    background-color: #e3f2fd;
+}
+
+.calendar-day.selected {
+    background-color: #bbdefb;
+}
+
+.calendar-event {
+    background-color: #007bff;
+    color: white;
+    padding: 2px 4px;
+    margin: 1px 0;
+    border-radius: 3px;
+    font-size: 11px;
+    cursor: pointer;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.calendar-event.busy {
+    background-color: #dc3545;
+}
+
+.calendar-event.available {
+    background-color: #28a745;
+}
+
+.time-slot {
+    padding: 8px;
+    border: 1px solid #dee2e6;
+    margin: 2px 0;
+    cursor: pointer;
+    border-radius: 4px;
+}
+
+.time-slot:hover {
+    background-color: #f8f9fa;
+}
+
+.time-slot.available {
+    background-color: #d4edda;
+    border-color: #c3e6cb;
+}
+
+.time-slot.busy {
+    background-color: #f8d7da;
+    border-color: #f5c6cb;
+    cursor: not-allowed;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h1 class="mb-1">{{ _('Calendar') }}</h1>
+                <p class="text-muted mb-0">{{ _('Manage appointments and availability') }}</p>
+            </div>
+            <div>
+                <button class="btn btn-outline-secondary me-2" onclick="refreshCalendar()">
+                    <i class="fas fa-sync-alt"></i> {{ _('Refresh') }}
+                </button>
+                <button class="btn btn-success me-2" onclick="connectGoogleCalendar()" id="connectBtn">
+                    <i class="fab fa-google"></i> {{ _('Connect Google Calendar') }}
+                </button>
+                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#bookingModal">
+                    <i class="fas fa-plus"></i> {{ _('Book Appointment') }}
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Calendar Navigation -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <button class="btn btn-outline-primary me-2" onclick="previousMonth()">
+                            <i class="fas fa-chevron-left"></i>
+                        </button>
+                        <button class="btn btn-outline-primary me-2" onclick="nextMonth()">
+                            <i class="fas fa-chevron-right"></i>
+                        </button>
+                        <button class="btn btn-outline-secondary" onclick="goToToday()">
+                            {{ _('Today') }}
+                        </button>
+                    </div>
+                    <div>
+                        <h4 class="mb-0" id="currentMonth">{{ _('Loading...') }}</h4>
+                    </div>
+                    <div>
+                        <div class="btn-group" role="group">
+                            <input type="radio" class="btn-check" name="viewMode" id="monthView" checked>
+                            <label class="btn btn-outline-primary" for="monthView">{{ _('Month') }}</label>
+                            
+                            <input type="radio" class="btn-check" name="viewMode" id="weekView">
+                            <label class="btn btn-outline-primary" for="weekView">{{ _('Week') }}</label>
+                            
+                            <input type="radio" class="btn-check" name="viewMode" id="dayView">
+                            <label class="btn btn-outline-primary" for="dayView">{{ _('Day') }}</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Calendar Content -->
+<div class="row">
+    <div class="col-lg-9">
+        <!-- Month View -->
+        <div id="month-view" class="card">
+            <div class="card-body">
+                <div class="calendar-grid">
+                    <div class="calendar-day text-center fw-bold bg-light">{{ _('Sun') }}</div>
+                    <div class="calendar-day text-center fw-bold bg-light">{{ _('Mon') }}</div>
+                    <div class="calendar-day text-center fw-bold bg-light">{{ _('Tue') }}</div>
+                    <div class="calendar-day text-center fw-bold bg-light">{{ _('Wed') }}</div>
+                    <div class="calendar-day text-center fw-bold bg-light">{{ _('Thu') }}</div>
+                    <div class="calendar-day text-center fw-bold bg-light">{{ _('Fri') }}</div>
+                    <div class="calendar-day text-center fw-bold bg-light">{{ _('Sat') }}</div>
+                </div>
+                <div id="calendar-days" class="calendar-grid">
+                    <!-- Calendar days will be generated here -->
+                </div>
+            </div>
+        </div>
+        
+        <!-- Week View -->
+        <div id="week-view" class="card d-none">
+            <div class="card-body">
+                <div id="week-content">
+                    <!-- Week view content will be generated here -->
+                </div>
+            </div>
+        </div>
+        
+        <!-- Day View -->
+        <div id="day-view" class="card d-none">
+            <div class="card-body">
+                <div id="day-content">
+                    <!-- Day view content will be generated here -->
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-3">
+        <!-- Upcoming Appointments -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">{{ _('Upcoming Appointments') }}</h5>
+            </div>
+            <div class="card-body">
+                <div id="upcoming-appointments">
+                    <div class="text-center">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">{{ _('Loading...') }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Availability Settings -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">{{ _('Availability Settings') }}</h5>
+            </div>
+            <div class="card-body">
+                <div id="availability-settings">
+                    <div class="mb-3">
+                        <label class="form-label">{{ _('Working Hours') }}</label>
+                        <div class="row">
+                            <div class="col-6">
+                                <input type="time" class="form-control" id="workStart" value="09:00">
+                            </div>
+                            <div class="col-6">
+                                <input type="time" class="form-control" id="workEnd" value="17:00">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">{{ _('Working Days') }}</label>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="monday" checked>
+                            <label class="form-check-label" for="monday">{{ _('Monday') }}</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="tuesday" checked>
+                            <label class="form-check-label" for="tuesday">{{ _('Tuesday') }}</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="wednesday" checked>
+                            <label class="form-check-label" for="wednesday">{{ _('Wednesday') }}</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="thursday" checked>
+                            <label class="form-check-label" for="thursday">{{ _('Thursday') }}</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="friday" checked>
+                            <label class="form-check-label" for="friday">{{ _('Friday') }}</label>
+                        </div>
+                    </div>
+                    <button class="btn btn-primary btn-sm w-100" onclick="saveAvailability()">
+                        {{ _('Save Settings') }}
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Book Appointment Modal -->
+<div class="modal fade" id="bookingModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">{{ _('Book Appointment') }}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="bookingForm">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="appointmentTitle" class="form-label">{{ _('Title') }}</label>
+                            <input type="text" class="form-control" id="appointmentTitle" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="appointmentDate" class="form-label">{{ _('Date') }}</label>
+                            <input type="date" class="form-control" id="appointmentDate" required>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="appointmentStartTime" class="form-label">{{ _('Start Time') }}</label>
+                            <input type="time" class="form-control" id="appointmentStartTime" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="appointmentDuration" class="form-label">{{ _('Duration (minutes)') }}</label>
+                            <select class="form-select" id="appointmentDuration" required>
+                                <option value="15">15 {{ _('minutes') }}</option>
+                                <option value="30" selected>30 {{ _('minutes') }}</option>
+                                <option value="45">45 {{ _('minutes') }}</option>
+                                <option value="60">1 {{ _('hour') }}</option>
+                                <option value="90">1.5 {{ _('hours') }}</option>
+                                <option value="120">2 {{ _('hours') }}</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="attendeeName" class="form-label">{{ _('Attendee Name') }}</label>
+                            <input type="text" class="form-control" id="attendeeName" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="attendeeEmail" class="form-label">{{ _('Attendee Email') }}</label>
+                            <input type="email" class="form-control" id="attendeeEmail" required>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="appointmentDescription" class="form-label">{{ _('Description') }}</label>
+                        <textarea class="form-control" id="appointmentDescription" rows="3"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="sendInvitation" checked>
+                            <label class="form-check-label" for="sendInvitation">
+                                {{ _('Send calendar invitation to attendee') }}
+                            </label>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ _('Cancel') }}</button>
+                <button type="button" class="btn btn-primary" onclick="bookAppointment()">
+                    <span class="spinner-border spinner-border-sm d-none" role="status"></span>
+                    {{ _('Book Appointment') }}
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Appointment Details Modal -->
+<div class="modal fade" id="appointmentDetailsModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="appointmentDetailsTitle">{{ _('Appointment Details') }}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div id="appointmentDetailsContent">
+                    <!-- Appointment details will be loaded here -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ _('Close') }}</button>
+                <button type="button" class="btn btn-warning" onclick="editAppointment()">{{ _('Edit') }}</button>
+                <button type="button" class="btn btn-danger" onclick="cancelAppointment()">{{ _('Cancel') }}</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+let currentDate = new Date();
+let currentView = 'month';
+let appointments = [];
+let selectedDate = null;
+
+// Initialize calendar
+document.addEventListener('DOMContentLoaded', () => {
+    initializeCalendar();
+    loadAppointments();
+    checkGoogleCalendarConnection();
+    
+    // View mode change handlers
+    document.querySelectorAll('input[name="viewMode"]').forEach(radio => {
+        radio.addEventListener('change', (e) => {
+            currentView = e.target.id.replace('View', '');
+            switchView(currentView);
+        });
+    });
+});
+
+// Initialize calendar
+function initializeCalendar() {
+    updateCalendarHeader();
+    renderCalendar();
+}
+
+// Update calendar header
+function updateCalendarHeader() {
+    const monthNames = [
+        '{{ _("January") }}', '{{ _("February") }}', '{{ _("March") }}', '{{ _("April") }}',
+        '{{ _("May") }}', '{{ _("June") }}', '{{ _("July") }}', '{{ _("August") }}',
+        '{{ _("September") }}', '{{ _("October") }}', '{{ _("November") }}', '{{ _("December") }}'
+    ];
+    
+    const monthName = monthNames[currentDate.getMonth()];
+    const year = currentDate.getFullYear();
+    
+    document.getElementById('currentMonth').textContent = `${monthName} ${year}`;
+}
+
+// Render calendar
+function renderCalendar() {
+    if (currentView === 'month') {
+        renderMonthView();
+    } else if (currentView === 'week') {
+        renderWeekView();
+    } else {
+        renderDayView();
+    }
+}
+
+// Render month view
+function renderMonthView() {
+    const calendarDays = document.getElementById('calendar-days');
+    const firstDay = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
+    const lastDay = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
+    const startDate = new Date(firstDay);
+    startDate.setDate(startDate.getDate() - firstDay.getDay());
+    
+    let daysHtml = '';
+    const today = new Date();
+    
+    for (let i = 0; i < 42; i++) {
+        const date = new Date(startDate);
+        date.setDate(startDate.getDate() + i);
+        
+        const isCurrentMonth = date.getMonth() === currentDate.getMonth();
+        const isToday = date.toDateString() === today.toDateString();
+        const isSelected = selectedDate && date.toDateString() === selectedDate.toDateString();
+        
+        const dayAppointments = appointments.filter(apt => {
+            const aptDate = new Date(apt.start_time);
+            return aptDate.toDateString() === date.toDateString();
+        });
+        
+        const appointmentsHtml = dayAppointments.slice(0, 3).map(apt => `
+            <div class="calendar-event" onclick="event.stopPropagation(); viewAppointment('${apt.id}')">
+                ${apt.title}
+            </div>
+        `).join('');
+        
+        const moreCount = dayAppointments.length > 3 ? dayAppointments.length - 3 : 0;
+        const moreHtml = moreCount > 0 ? `<div class="calendar-event" style="background-color: #6c757d;">+${moreCount} more</div>` : '';
+        
+        daysHtml += `
+            <div class="calendar-day ${!isCurrentMonth ? 'other-month' : ''} ${isToday ? 'today' : ''} ${isSelected ? 'selected' : ''}"
+                 onclick="selectDate('${date.toISOString()}')">
+                <div class="fw-bold">${date.getDate()}</div>
+                ${appointmentsHtml}
+                ${moreHtml}
+            </div>
+        `;
+    }
+    
+    calendarDays.innerHTML = daysHtml;
+}
+
+// Render week view
+function renderWeekView() {
+    // TODO: Implement week view
+    document.getElementById('week-content').innerHTML = `
+        <div class="text-center text-muted">
+            <i class="fas fa-calendar-week fa-3x mb-3"></i>
+            <p>{{ _('Week view coming soon') }}</p>
+        </div>
+    `;
+}
+
+// Render day view
+function renderDayView() {
+    // TODO: Implement day view
+    document.getElementById('day-content').innerHTML = `
+        <div class="text-center text-muted">
+            <i class="fas fa-calendar-day fa-3x mb-3"></i>
+            <p>{{ _('Day view coming soon') }}</p>
+        </div>
+    `;
+}
+
+// Switch view
+function switchView(view) {
+    document.getElementById('month-view').classList.add('d-none');
+    document.getElementById('week-view').classList.add('d-none');
+    document.getElementById('day-view').classList.add('d-none');
+    
+    document.getElementById(`${view}-view`).classList.remove('d-none');
+    
+    renderCalendar();
+}
+
+// Load appointments
+async function loadAppointments() {
+    try {
+        const token = localStorage.getItem('access_token');
+        const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
+        
+        const startDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
+        const endDate = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
+        
+        const response = await fetch(`/api/v1/calendar/appointments?start=${startDate.toISOString()}&end=${endDate.toISOString()}`, { headers });
+        
+        if (response.ok) {
+            const data = await response.json();
+            appointments = data.data?.appointments || [];
+            renderCalendar();
+            loadUpcomingAppointments();
+        } else {
+            throw new Error('Failed to load appointments');
+        }
+        
+    } catch (error) {
+        console.error('Error loading appointments:', error);
+        appointments = [];
+        renderCalendar();
+    }
+}
+
+// Load upcoming appointments
+async function loadUpcomingAppointments() {
+    try {
+        const token = localStorage.getItem('access_token');
+        const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
+        
+        const response = await fetch('/api/v1/calendar/appointments/upcoming?limit=5', { headers });
+        
+        if (response.ok) {
+            const data = await response.json();
+            const upcomingAppointments = data.data?.appointments || [];
+            renderUpcomingAppointments(upcomingAppointments);
+        } else {
+            throw new Error('Failed to load upcoming appointments');
+        }
+        
+    } catch (error) {
+        console.error('Error loading upcoming appointments:', error);
+        document.getElementById('upcoming-appointments').innerHTML = `
+            <div class="alert alert-warning">{{ _('Unable to load upcoming appointments') }}</div>
+        `;
+    }
+}
+
+// Render upcoming appointments
+function renderUpcomingAppointments(upcomingAppointments) {
+    const container = document.getElementById('upcoming-appointments');
+    
+    if (upcomingAppointments.length === 0) {
+        container.innerHTML = `
+            <div class="text-center text-muted">
+                <i class="fas fa-calendar fa-2x mb-2"></i>
+                <p class="mb-0">{{ _('No upcoming appointments') }}</p>
+            </div>
+        `;
+        return;
+    }
+    
+    const appointmentsHtml = upcomingAppointments.map(appointment => `
+        <div class="d-flex mb-3 p-2 border rounded" onclick="viewAppointment('${appointment.id}')" style="cursor: pointer;">
+            <div class="flex-shrink-0">
+                <div class="bg-primary rounded-circle d-flex align-items-center justify-content-center" style="width: 35px; height: 35px;">
+                    <i class="fas fa-calendar text-white"></i>
+                </div>
+            </div>
+            <div class="flex-grow-1 ms-3">
+                <h6 class="mb-1">${appointment.title}</h6>
+                <small class="text-muted">${formatDateTime(appointment.start_time)}</small>
+                ${appointment.attendee_name ? `<br><small class="text-muted">${appointment.attendee_name}</small>` : ''}
+            </div>
+        </div>
+    `).join('');
+    
+    container.innerHTML = appointmentsHtml;
+}
+
+// Check Google Calendar connection
+async function checkGoogleCalendarConnection() {
+    try {
+        const token = localStorage.getItem('access_token');
+        const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
+        
+        const response = await fetch('/api/v1/calendar/google/status', { headers });
+        
+        if (response.ok) {
+            const data = await response.json();
+            const isConnected = data.data?.connected || false;
+            
+            const connectBtn = document.getElementById('connectBtn');
+            if (isConnected) {
+                connectBtn.innerHTML = '<i class="fab fa-google"></i> {{ _("Connected") }}';
+                connectBtn.classList.remove('btn-success');
+                connectBtn.classList.add('btn-outline-success');
+                connectBtn.disabled = true;
+            }
+        }
+        
+    } catch (error) {
+        console.error('Error checking Google Calendar connection:', error);
+    }
+}
+
+// Connect Google Calendar
+async function connectGoogleCalendar() {
+    try {
+        const token = localStorage.getItem('access_token');
+        const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
+        
+        const response = await fetch('/api/v1/calendar/google/connect', { headers });
+        
+        if (response.ok) {
+            const data = await response.json();
+            const authUrl = data.data?.auth_url;
+            
+            if (authUrl) {
+                window.open(authUrl, '_blank');
+                showAlert('info', '{{ _("Please complete the authorization in the new window") }}');
+            }
+        } else {
+            throw new Error('Failed to initiate Google Calendar connection');
+        }
+        
+    } catch (error) {
+        console.error('Error connecting Google Calendar:', error);
+        showAlert('danger', '{{ _("Failed to connect Google Calendar") }}');
+    }
+}
+
+// Book appointment
+async function bookAppointment() {
+    const form = document.getElementById('bookingForm');
+    const submitBtn = form.closest('.modal-content').querySelector('.btn-primary');
+    const spinner = submitBtn.querySelector('.spinner-border');
+    
+    if (!form.checkValidity()) {
+        form.reportValidity();
+        return;
+    }
+    
+    submitBtn.disabled = true;
+    spinner.classList.remove('d-none');
+    
+    try {
+        const token = localStorage.getItem('access_token');
+        const headers = {
+            'Content-Type': 'application/json',
+            ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+        };
+        
+        const startDateTime = new Date(`${document.getElementById('appointmentDate').value}T${document.getElementById('appointmentStartTime').value}`);
+        const duration = parseInt(document.getElementById('appointmentDuration').value);
+        const endDateTime = new Date(startDateTime.getTime() + duration * 60000);
+        
+        const response = await fetch('/api/v1/calendar/appointments', {
+            method: 'POST',
+            headers,
+            body: JSON.stringify({
+                title: document.getElementById('appointmentTitle').value,
+                start_time: startDateTime.toISOString(),
+                end_time: endDateTime.toISOString(),
+                attendee_name: document.getElementById('attendeeName').value,
+                attendee_email: document.getElementById('attendeeEmail').value,
+                description: document.getElementById('appointmentDescription').value,
+                send_invitation: document.getElementById('sendInvitation').checked
+            })
+        });
+        
+        if (response.ok) {
+            bootstrap.Modal.getInstance(document.getElementById('bookingModal')).hide();
+            form.reset();
+            await loadAppointments();
+            showAlert('success', '{{ _("Appointment booked successfully") }}');
+        } else {
+            throw new Error('Failed to book appointment');
+        }
+        
+    } catch (error) {
+        console.error('Error booking appointment:', error);
+        showAlert('danger', '{{ _("Failed to book appointment") }}');
+    } finally {
+        submitBtn.disabled = false;
+        spinner.classList.add('d-none');
+    }
+}
+
+// View appointment
+async function viewAppointment(appointmentId) {
+    try {
+        const token = localStorage.getItem('access_token');
+        const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
+        
+        const response = await fetch(`/api/v1/calendar/appointments/${appointmentId}`, { headers });
+        
+        if (response.ok) {
+            const data = await response.json();
+            const appointment = data.data?.appointment;
+            
+            if (appointment) {
+                renderAppointmentDetails(appointment);
+                new bootstrap.Modal(document.getElementById('appointmentDetailsModal')).show();
+            }
+        } else {
+            throw new Error('Failed to load appointment details');
+        }
+        
+    } catch (error) {
+        console.error('Error loading appointment details:', error);
+        showAlert('danger', '{{ _("Failed to load appointment details") }}');
+    }
+}
+
+// Render appointment details
+function renderAppointmentDetails(appointment) {
+    document.getElementById('appointmentDetailsTitle').textContent = appointment.title;
+    
+    const detailsHtml = `
+        <div class="mb-3">
+            <strong>{{ _('Date & Time') }}:</strong><br>
+            ${formatDateTime(appointment.start_time)} - ${formatTime(appointment.end_time)}
+        </div>
+        ${appointment.attendee_name ? `
+            <div class="mb-3">
+                <strong>{{ _('Attendee') }}:</strong><br>
+                ${appointment.attendee_name}
+                ${appointment.attendee_email ? ` (${appointment.attendee_email})` : ''}
+            </div>
+        ` : ''}
+        ${appointment.description ? `
+            <div class="mb-3">
+                <strong>{{ _('Description') }}:</strong><br>
+                ${appointment.description}
+            </div>
+        ` : ''}
+        <div class="mb-3">
+            <strong>{{ _('Status') }}:</strong>
+            <span class="badge bg-${getAppointmentStatusColor(appointment.status)}">${appointment.status}</span>
+        </div>
+    `;
+    
+    document.getElementById('appointmentDetailsContent').innerHTML = detailsHtml;
+}
+
+// Navigation functions
+function previousMonth() {
+    currentDate.setMonth(currentDate.getMonth() - 1);
+    updateCalendarHeader();
+    loadAppointments();
+}
+
+function nextMonth() {
+    currentDate.setMonth(currentDate.getMonth() + 1);
+    updateCalendarHeader();
+    loadAppointments();
+}
+
+function goToToday() {
+    currentDate = new Date();
+    updateCalendarHeader();
+    loadAppointments();
+}
+
+function selectDate(dateString) {
+    selectedDate = new Date(dateString);
+    renderCalendar();
+    
+    // Pre-fill booking form with selected date
+    const dateInput = document.getElementById('appointmentDate');
+    if (dateInput) {
+        dateInput.value = selectedDate.toISOString().split('T')[0];
+    }
+}
+
+// Utility functions
+function formatDateTime(timestamp) {
+    if (!timestamp) return '';
+    return new Date(timestamp).toLocaleString();
+}
+
+function formatTime(timestamp) {
+    if (!timestamp) return '';
+    return new Date(timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+}
+
+function getAppointmentStatusColor(status) {
+    const colors = {
+        'confirmed': 'success',
+        'pending': 'warning',
+        'cancelled': 'danger'
+    };
+    return colors[status] || 'secondary';
+}
+
+function refreshCalendar() {
+    loadAppointments();
+}
+
+function saveAvailability() {
+    // TODO: Implement save availability
+    showAlert('success', '{{ _("Availability settings saved") }}');
+}
+
+function editAppointment() {
+    // TODO: Implement edit appointment
+    showAlert('info', '{{ _("Edit appointment functionality coming soon") }}');
+}
+
+function cancelAppointment() {
+    // TODO: Implement cancel appointment
+    showAlert('info', '{{ _("Cancel appointment functionality coming soon") }}');
+}
+
+function showAlert(type, message) {
+    const alertDiv = document.createElement('div');
+    alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
+    alertDiv.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    
+    const container = document.querySelector('.container');
+    container.insertBefore(alertDiv, container.firstChild);
+    
+    setTimeout(() => {
+        if (alertDiv.parentNode) {
+            alertDiv.remove();
+        }
+    }, 5000);
+}
+</script>
+{% endblock %}

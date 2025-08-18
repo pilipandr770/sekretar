@@ -1,0 +1,11 @@
+{
+  "status": "valid",
+  "valid": true,
+  "name": "Modified Company Name",
+  "address": "Test Street 1, 12345 Berlin",
+  "country_code": "DE",
+  "vat_number": "DE123456789",
+  "response_time_ms": 150,
+  "source": "VIES",
+  "checked_at": "2025-08-14T18:57:41.999798Z"
+}
