@@ -1,0 +1,44 @@
+{
+  "validation_history": [
+    {
+      "session_id": "validation_20250901_105211",
+      "started_at": "2025-09-01T10:52:11.506351",
+      "total_companies": 3,
+      "results": {
+        "sap_germany": {
+          "company_id": "sap_germany",
+          "company_name": "SAP SE",
+          "status": "validated",
+          "validations": {},
+          "validated_at": "2025-09-01T10:52:11.506351",
+          "needs_refresh": false
+        },
+        "bayer_germany": {
+          "company_id": "bayer_germany",
+          "company_name": "Bayer AG",
+          "status": "validated",
+          "validations": {},
+          "validated_at": "2025-09-01T10:52:11.506351",
+          "needs_refresh": false
+        },
+        "siemens_germany": {
+          "company_id": "siemens_germany",
+          "company_name": "Siemens AG",
+          "status": "validated",
+          "validations": {},
+          "validated_at": "2025-09-01T10:52:11.506351",
+          "needs_refresh": false
+        }
+      },
+      "statistics": {
+        "validated": 3,
+        "failed": 0,
+        "skipped": 0,
+        "errors": 0
+      },
+      "completed_at": "2025-09-01T10:52:12.519576",
+      "duration_seconds": 1.013225
+    }
+  ],
+  "failed_validations": {}
+}

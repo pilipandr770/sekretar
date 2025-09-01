@@ -17,6 +17,7 @@ from app.utils.response import (
     success_response, error_response, validation_error_response,
     not_found_response, paginated_response, conflict_response
 )
+from app.utils.rate_limit_decorators import api_rate_limit
 import structlog
 
 logger = structlog.get_logger()
@@ -1080,3 +1081,330 @@ from app.api.crm_stage_endpoints import register_stage_endpoints
 register_task_endpoints(crm_bp)
 register_note_endpoints(crm_bp)
 register_stage_endpoints(crm_bp)
+
+
+# ============================================================================
+# PIPELINE ANALYTICS AND STATISTICS ENDPOINTS
+# ============================================================================
+
+@crm_bp.route('/pipelines/<int:pipeline_id>/stats', methods=['GET'])
+@api_rate_limit(category="crm")
+@jwt_required()
+@require_permission('view_crm')
+@log_api_call('get_pipeline_stats')
+def get_pipeline_stats(pipeline_id):
+    """Get pipeline statistics including conversion rates."""
+    try:
+        user = get_current_user()
+        if not user or not user.tenant:
+            return not_found_response('tenant')
+        
+        # Find pipeline in same tenant
+        pipeline = Pipeline.query.filter_by(
+            id=pipeline_id,
+            tenant_id=user.tenant_id
+        ).first()
+        
+        if not pipeline:
+            return not_found_response('pipeline')
+        
+        # Get all leads in this pipeline
+        leads = Lead.query.filter_by(
+            pipeline_id=pipeline_id,
+            tenant_id=user.tenant_id
+        ).all()
+        
+        # Calculate statistics
+        total_leads = len(leads)
+        won_leads = len([lead for lead in leads if lead.status == 'won'])
+        lost_leads = len([lead for lead in leads if lead.status == 'lost'])
+        open_leads = len([lead for lead in leads if lead.status == 'open'])
+        
+        conversion_rate = (won_leads / total_leads * 100) if total_leads > 0 else 0
+        closed_leads = won_leads + lost_leads
+        win_rate = (won_leads / closed_leads * 100) if closed_leads > 0 else 0
+        
+        total_value = sum(lead.value or 0 for lead in leads)
+        won_value = sum(lead.value or 0 for lead in leads if lead.status == 'won')
+        weighted_value = sum(lead.weighted_value for lead in leads if lead.status == 'open')
+        
+        average_deal_size = (total_value / total_leads) if total_leads > 0 else 0
+        
+        return success_response(
+            message=_('Pipeline statistics retrieved successfully'),
+            data={
+                'pipeline_id': pipeline_id,
+                'pipeline_name': pipeline.name,
+                'total_leads': total_leads,
+                'won_leads': won_leads,
+                'lost_leads': lost_leads,
+                'open_leads': open_leads,
+                'conversion_rate': round(conversion_rate, 2),
+                'win_rate': round(win_rate, 2),
+                'total_value': float(total_value),
+                'won_value': float(won_value),
+                'weighted_value': float(weighted_value),
+                'average_deal_size': round(float(average_deal_size), 2)
+            }
+        )
+        
+    except Exception as e:
+        logger.error("Failed to get pipeline stats", error=str(e), exc_info=True)
+        return error_response(
+            error_code='INTERNAL_ERROR',
+            message=_('Failed to retrieve pipeline statistics'),
+            status_code=500
+        )
+
+
+@crm_bp.route('/pipelines/<int:pipeline_id>/analytics', methods=['GET'])
+@api_rate_limit(category="crm")
+@jwt_required()
+@require_permission('view_crm')
+@log_api_call('get_pipeline_analytics')
+def get_pipeline_analytics(pipeline_id):
+    """Get comprehensive pipeline analytics."""
+    try:
+        user = get_current_user()
+        if not user or not user.tenant:
+            return not_found_response('tenant')
+        
+        # Find pipeline in same tenant
+        pipeline = Pipeline.query.filter_by(
+            id=pipeline_id,
+            tenant_id=user.tenant_id
+        ).first()
+        
+        if not pipeline:
+            return not_found_response('pipeline')
+        
+        # Get all leads in this pipeline
+        leads = Lead.query.filter_by(
+            pipeline_id=pipeline_id,
+            tenant_id=user.tenant_id
+        ).all()
+        
+        # Basic statistics
+        total_leads = len(leads)
+        won_leads = len([lead for lead in leads if lead.status == 'won'])
+        lost_leads = len([lead for lead in leads if lead.status == 'lost'])
+        open_leads = len([lead for lead in leads if lead.status == 'open'])
+        
+        conversion_rate = (won_leads / total_leads * 100) if total_leads > 0 else 0
+        
+        total_value = sum(lead.value or 0 for lead in leads)
+        won_value = sum(lead.value or 0 for lead in leads if lead.status == 'won')
+        weighted_value = sum(lead.weighted_value for lead in leads if lead.status == 'open')
+        average_deal_size = (total_value / total_leads) if total_leads > 0 else 0
+        
+        # Stage distribution
+        stage_distribution = {}
+        for stage in pipeline.stages:
+            stage_leads = [lead for lead in leads if lead.stage_id == stage.id]
+            stage_distribution[stage.id] = {
+                'stage_name': stage.name,
+                'lead_count': len(stage_leads),
+                'total_value': float(sum(lead.value or 0 for lead in stage_leads)),
+                'position': stage.position
+            }
+        
+        # User performance
+        user_performance = {}
+        for lead in leads:
+            if lead.assigned_to_id:
+                if lead.assigned_to_id not in user_performance:
+                    user_performance[lead.assigned_to_id] = {
+                        'user_id': lead.assigned_to_id,
+                        'user_name': lead.assigned_to.full_name if lead.assigned_to else 'Unknown',
+                        'leads_count': 0,
+                        'total_value': 0,
+                        'won_count': 0,
+                        'lost_count': 0
+                    }
+                
+                user_performance[lead.assigned_to_id]['leads_count'] += 1
+                user_performance[lead.assigned_to_id]['total_value'] += float(lead.value or 0)
+                
+                if lead.status == 'won':
+                    user_performance[lead.assigned_to_id]['won_count'] += 1
+                elif lead.status == 'lost':
+                    user_performance[lead.assigned_to_id]['lost_count'] += 1
+        
+        # Calculate conversion rates for users
+        for user_data in user_performance.values():
+            total_user_leads = user_data['leads_count']
+            won_user_leads = user_data['won_count']
+            user_data['conversion_rate'] = (won_user_leads / total_user_leads * 100) if total_user_leads > 0 else 0
+        
+        # Source analysis
+        source_analysis = {}
+        for lead in leads:
+            source = lead.source or 'Unknown'
+            if source not in source_analysis:
+                source_analysis[source] = {
+                    'source': source,
+                    'lead_count': 0,
+                    'won_count': 0,
+                    'total_value': 0,
+                    'conversion_rate': 0
+                }
+            
+            source_analysis[source]['lead_count'] += 1
+            source_analysis[source]['total_value'] += float(lead.value or 0)
+            
+            if lead.status == 'won':
+                source_analysis[source]['won_count'] += 1
+        
+        # Calculate source conversion rates
+        for source_data in source_analysis.values():
+            total_source_leads = source_data['lead_count']
+            won_source_leads = source_data['won_count']
+            source_data['conversion_rate'] = (won_source_leads / total_source_leads * 100) if total_source_leads > 0 else 0
+        
+        # Priority breakdown
+        priority_breakdown = {}
+        for lead in leads:
+            priority = lead.priority or 'medium'
+            if priority not in priority_breakdown:
+                priority_breakdown[priority] = {
+                    'priority': priority,
+                    'lead_count': 0,
+                    'won_count': 0,
+                    'total_value': 0
+                }
+            
+            priority_breakdown[priority]['lead_count'] += 1
+            priority_breakdown[priority]['total_value'] += float(lead.value or 0)
+            
+            if lead.status == 'won':
+                priority_breakdown[priority]['won_count'] += 1
+        
+        # Stage conversion rates (simplified)
+        stages = pipeline.get_ordered_stages()
+        stage_conversions = {}
+        
+        if len(stages) >= 2:
+            lead_stage_counts = [len([l for l in leads if l.stage_id == stage.id]) for stage in stages]
+            
+            if lead_stage_counts[0] > 0 and len(stages) > 1:
+                stage_conversions['lead_to_qualified'] = (lead_stage_counts[1] / lead_stage_counts[0]) * 100
+            
+            if len(stages) > 2 and lead_stage_counts[1] > 0:
+                stage_conversions['qualified_to_proposal'] = (lead_stage_counts[2] / lead_stage_counts[1]) * 100
+            
+            if len(stages) > 3 and lead_stage_counts[2] > 0:
+                stage_conversions['proposal_to_negotiation'] = (lead_stage_counts[3] / lead_stage_counts[2]) * 100
+            
+            if len(stages) > 4 and lead_stage_counts[3] > 0:
+                closed_from_negotiation = sum(lead_stage_counts[4:])  # All closed stages
+                stage_conversions['negotiation_to_close'] = (closed_from_negotiation / lead_stage_counts[3]) * 100
+        
+        return success_response(
+            message=_('Pipeline analytics retrieved successfully'),
+            data={
+                'pipeline_id': pipeline_id,
+                'pipeline_name': pipeline.name,
+                'total_leads': total_leads,
+                'won_leads': won_leads,
+                'lost_leads': lost_leads,
+                'open_leads': open_leads,
+                'conversion_rate': round(conversion_rate, 2),
+                'pipeline_value': float(total_value),
+                'won_value': float(won_value),
+                'weighted_value': float(weighted_value),
+                'average_deal_size': round(float(average_deal_size), 2),
+                'stage_distribution': list(stage_distribution.values()),
+                'user_performance': list(user_performance.values()),
+                'source_analysis': list(source_analysis.values()),
+                'priority_breakdown': list(priority_breakdown.values()),
+                'stage_conversions': stage_conversions
+            }
+        )
+        
+    except Exception as e:
+        logger.error("Failed to get pipeline analytics", error=str(e), exc_info=True)
+        return error_response(
+            error_code='INTERNAL_ERROR',
+            message=_('Failed to retrieve pipeline analytics'),
+            status_code=500
+        )
+
+
+@crm_bp.route('/users/workload', methods=['GET'])
+@api_rate_limit(category="crm")
+@jwt_required()
+@require_permission('view_crm')
+@log_api_call('get_users_workload')
+def get_users_workload():
+    """Get workload statistics for all users."""
+    try:
+        user = get_current_user()
+        if not user or not user.tenant:
+            return not_found_response('tenant')
+        
+        # Get all active users in tenant
+        users = User.query.filter_by(
+            tenant_id=user.tenant_id,
+            is_active=True
+        ).all()
+        
+        workload_data = []
+        
+        for tenant_user in users:
+            # Get leads assigned to this user
+            user_leads = Lead.query.filter_by(
+                tenant_id=user.tenant_id,
+                assigned_to_id=tenant_user.id
+            ).all()
+            
+            open_leads = [lead for lead in user_leads if lead.status == 'open']
+            won_leads = [lead for lead in user_leads if lead.status == 'won']
+            lost_leads = [lead for lead in user_leads if lead.status == 'lost']
+            
+            total_value = sum(lead.value or 0 for lead in user_leads)
+            open_value = sum(lead.value or 0 for lead in open_leads)
+            weighted_value = sum(lead.weighted_value for lead in open_leads)
+            
+            # Get overdue tasks
+            from datetime import datetime
+            now = datetime.utcnow().isoformat()
+            overdue_tasks = Task.query.filter(
+                Task.assigned_to_id == tenant_user.id,
+                Task.tenant_id == user.tenant_id,
+                Task.status != 'completed',
+                Task.due_date < now
+            ).count()
+            
+            workload_data.append({
+                'user_id': tenant_user.id,
+                'user_name': tenant_user.full_name,
+                'user_email': tenant_user.email,
+                'role': tenant_user.role,
+                'total_leads': len(user_leads),
+                'open_leads': len(open_leads),
+                'won_leads': len(won_leads),
+                'lost_leads': len(lost_leads),
+                'total_value': float(total_value),
+                'open_value': float(open_value),
+                'weighted_value': float(weighted_value),
+                'overdue_tasks': overdue_tasks,
+                'conversion_rate': (len(won_leads) / len(user_leads) * 100) if user_leads else 0
+            })
+        
+        return success_response(
+            message=_('User workload statistics retrieved successfully'),
+            data={
+                'users': workload_data,
+                'total_users': len(users),
+                'total_leads': sum(user_data['total_leads'] for user_data in workload_data),
+                'total_open_leads': sum(user_data['open_leads'] for user_data in workload_data)
+            }
+        )
+        
+    except Exception as e:
+        logger.error("Failed to get users workload", error=str(e), exc_info=True)
+        return error_response(
+            error_code='INTERNAL_ERROR',
+            message=_('Failed to retrieve user workload statistics'),
+            status_code=500
+        )

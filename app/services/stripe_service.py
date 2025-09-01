@@ -650,6 +650,102 @@ class StripeService:
             current_app.logger.error(f"Error recording usage: {str(e)}")
             return False
     
+    def create_checkout_session(self, tenant_id: int, plan_id: int, 
+                               customer_email: Optional[str] = None,
+                               customer_id: Optional[str] = None,
+                               success_url: str = None,
+                               cancel_url: str = None,
+                               trial_days: Optional[int] = None,
+                               metadata: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+        """Create a Stripe checkout session for subscription."""
+        try:
+            from app.models.billing import Plan
+            
+            # Get plan
+            plan = Plan.get_by_id(plan_id)
+            if not plan:
+                raise ValidationError("Plan not found")
+            
+            if not plan.stripe_price_id:
+                raise ValidationError("Plan not configured with Stripe price")
+            
+            # Prepare session data
+            session_data = {
+                'mode': 'subscription',
+                'line_items': [{
+                    'price': plan.stripe_price_id,
+                    'quantity': 1
+                }],
+                'success_url': success_url,
+                'cancel_url': cancel_url,
+                'metadata': {
+                    'tenant_id': str(tenant_id),
+                    'plan_id': str(plan_id),
+                    **(metadata or {})
+                }
+            }
+            
+            # Set customer
+            if customer_id:
+                session_data['customer'] = customer_id
+            elif customer_email:
+                session_data['customer_email'] = customer_email
+            else:
+                raise ValidationError("Either customer_id or customer_email is required")
+            
+            # Add trial period if specified
+            if trial_days:
+                session_data['subscription_data'] = {
+                    'trial_period_days': trial_days,
+                    'metadata': session_data['metadata']
+                }
+            
+            # Create checkout session
+            session = stripe.checkout.Session.create(**session_data)
+            
+            return {
+                'session_id': session.id,
+                'checkout_url': session.url,
+                'payment_status': session.payment_status,
+                'customer': session.customer,
+                'subscription': session.subscription
+            }
+            
+        except stripe.error.StripeError as e:
+            current_app.logger.error(f"Stripe error creating checkout session: {str(e)}")
+            raise StripeError(f"Failed to create checkout session: {str(e)}")
+        except Exception as e:
+            current_app.logger.error(f"Error creating checkout session: {str(e)}")
+            raise
+
+    def _find_tenant_by_customer_id(self, customer_id: str) -> Optional[Tenant]:
+        """Find tenant by Stripe customer ID."""
+        try:
+            # Look for tenant with this customer ID in settings
+            tenants = Tenant.query.all()
+            for tenant in tenants:
+                if tenant.get_setting('stripe_customer_id') == customer_id:
+                    return tenant
+            return None
+        except Exception as e:
+            current_app.logger.error(f"Error finding tenant by customer ID: {str(e)}")
+            return None
+
+    def _send_usage_notification(self, subscription: Subscription, event_type: str, entitlement):
+        """Send usage notification when over limit."""
+        try:
+            from app.services.notification_service import NotificationService
+            
+            notification_service = NotificationService()
+            notification_service.send_usage_limit_notification(
+                subscription=subscription,
+                feature=event_type,
+                usage_percentage=entitlement.usage_percentage,
+                is_over_limit=entitlement.is_over_limit
+            )
+        except Exception as e:
+            current_app.logger.error(f"Error sending usage notification: {str(e)}")
+
     def create_stripe_plan(self, name: str, price: Decimal, billing_interval: str = 'month',
                           description: Optional[str] = None,
                           metadata: Optional[Dict[str, Any]] = None) -> Tuple[Any, Any]:

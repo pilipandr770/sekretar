@@ -1,0 +1,680 @@
+{
+  "metadata": {
+    "generated_at": "2025-09-01T10:52:11.489329",
+    "total_companies": 21,
+    "country_distribution": {
+      "DE": 5,
+      "FR": 2,
+      "NL": 2,
+      "IE": 2,
+      "GB": 1,
+      "SE": 1,
+      "IT": 2,
+      "ES": 2,
+      "BE": 1,
+      "AT": 1,
+      "DK": 1,
+      "PL": 1
+    },
+    "industry_distribution": {
+      "Technology": 6,
+      "Healthcare": 2,
+      "Manufacturing": 2,
+      "Energy": 3,
+      "Financial Services": 7,
+      "Retail": 1
+    },
+    "size_distribution": {
+      "Large": 21
+    },
+    "validation_statistics": {
+      "total": 21,
+      "with_vat": 21,
+      "with_lei": 21,
+      "vat_valid": 10,
+      "lei_valid": 18,
+      "fully_validated": 7
+    },
+    "target_countries": [
+      "DE",
+      "FR",
+      "IT",
+      "ES",
+      "NL",
+      "BE",
+      "AT",
+      "IE",
+      "FI",
+      "SE",
+      "DK",
+      "PL",
+      "CZ",
+      "HU",
+      "PT",
+      "GB"
+    ],
+    "target_companies_per_country": 5
+  },
+  "companies": {
+    "sap_germany": {
+      "name": "SAP SE",
+      "vat_number": "DE143593636",
+      "lei_code": "529900T8BM49AURSDO55",
+      "country_code": "DE",
+      "address": "Dietmar-Hopp-Allee 16, 69190 Walldorf",
+      "industry": "Technology",
+      "size": "Large",
+      "source": "predefined",
+      "validation_status": "PARTIALLY_VALID",
+      "last_validated": "2025-09-01T10:52:11.506351",
+      "additional_data": {
+        "vat_validation": {
+          "valid": false,
+          "name": "---",
+          "address": "---",
+          "validated_at": "2025-09-01T10:50:02.585721",
+          "source": "vies"
+        },
+        "lei_validation": {
+          "valid": true,
+          "legal_name": "Ubisecure Oy",
+          "status": "ACTIVE",
+          "registration_authority": null,
+          "jurisdiction": null,
+          "validated_at": "2025-09-01T10:50:02.782787",
+          "source": "gleif"
+        }
+      }
+    },
+    "bayer_germany": {
+      "name": "Bayer AG",
+      "vat_number": "DE119850003",
+      "lei_code": "54930056FHWP7GIWYY08",
+      "country_code": "DE",
+      "address": "Kaiser-Wilhelm-Allee 1, 51373 Leverkusen",
+      "industry": "Healthcare",
+      "size": "Large",
+      "source": "predefined",
+      "validation_status": "PARTIALLY_VALID",
+      "last_validated": "2025-09-01T10:52:11.506351",
+      "additional_data": {
+        "vat_validation": {
+          "valid": false,
+          "name": "---",
+          "address": "---",
+          "validated_at": "2025-09-01T10:50:03.337130",
+          "source": "vies"
+        },
+        "lei_validation": {
+          "valid": true,
+          "legal_name": "Morgan Stanley Europe SE",
+          "status": "ACTIVE",
+          "registration_authority": null,
+          "jurisdiction": null,
+          "validated_at": "2025-09-01T10:50:03.524591",
+          "source": "gleif"
+        }
+      }
+    },
+    "siemens_germany": {
+      "name": "Siemens AG",
+      "vat_number": "DE138888888",
+      "lei_code": "7LTWFZYICNSX8D621K86",
+      "country_code": "DE",
+      "address": "Werner-von-Siemens-Stra\u00dfe 1, 80333 M\u00fcnchen",
+      "industry": "Manufacturing",
+      "size": "Large",
+      "source": "predefined",
+      "validation_status": "PARTIALLY_VALID",
+      "last_validated": "2025-09-01T10:52:11.506351",
+      "additional_data": {
+        "vat_validation": {
+          "valid": false,
+          "name": "---",
+          "address": "---",
+          "validated_at": "2025-09-01T10:50:05.392195",
+          "source": "vies"
+        },
+        "lei_validation": {
+          "valid": true,
+          "legal_name": "DEUTSCHE BANK AKTIENGESELLSCHAFT",
+          "status": "ACTIVE",
+          "registration_authority": null,
+          "jurisdiction": null,
+          "validated_at": "2025-09-01T10:50:05.612850",
+          "source": "gleif"
+        }
+      }
+    },
+    "total_france": {
+      "name": "TotalEnergies SE",
+      "vat_number": "FR54542051180",
+      "lei_code": "529900S21EQ1BO4ESM68",
+      "country_code": "FR",
+      "address": "2 Place Jean Millier, 92400 Courbevoie",
+      "industry": "Energy",
+      "size": "Large",
+      "source": "predefined",
+      "validation_status": "PARTIALLY_VALID",
+      "last_validated": "2025-09-01T10:50:08.740886",
+      "additional_data": {
+        "vat_validation": {
+          "valid": false,
+          "name": "---",
+          "address": "---",
+          "validated_at": "2025-09-01T10:50:08.578393",
+          "source": "vies"
+        },
+        "lei_validation": {
+          "valid": true,
+          "legal_name": "TotalEnergies SE",
+          "status": "ACTIVE",
+          "registration_authority": null,
+          "jurisdiction": null,
+          "validated_at": "2025-09-01T10:50:08.740886",
+          "source": "gleif"
+        }
+      }
+    },
+    "ing_netherlands": {
+      "name": "ING Groep N.V.",
+      "vat_number": "NL002491986B04",
+      "lei_code": "7245009UXRIGIRYOBR48",
+      "country_code": "NL",
+      "address": "Bijlmerplein 888, 1102 MG Amsterdam",
+      "industry": "Financial Services",
+      "size": "Large",
+      "source": "predefined",
+      "validation_status": "PARTIALLY_VALID",
+      "last_validated": "2025-09-01T10:50:10.749598",
+      "additional_data": {
+        "vat_validation": {
+          "valid": false,
+          "name": "---",
+          "address": "---",
+          "validated_at": "2025-09-01T10:50:10.593559",
+          "source": "vies"
+        },
+        "lei_validation": {
+          "valid": true,
+          "legal_name": "BNP Paribas Issuance B.V.",
+          "status": "ACTIVE",
+          "registration_authority": null,
+          "jurisdiction": null,
+          "validated_at": "2025-09-01T10:50:10.749598",
+          "source": "gleif"
+        }
+      }
+    },
+    "asml_netherlands": {
+      "name": "ASML Holding N.V.",
+      "vat_number": "NL001896002B01",
+      "lei_code": "724500Y6DUVHQD6OXN27",
+      "country_code": "NL",
+      "address": "De Run 6501, 5504 DR Veldhoven",
+      "industry": "Technology",
+      "size": "Large",
+      "source": "predefined",
+      "validation_status": "PARTIALLY_VALID",
+      "last_validated": "2025-09-01T10:50:11.450993",
+      "additional_data": {
+        "vat_validation": {
+          "valid": false,
+          "name": "---",
+          "address": "---",
+          "validated_at": "2025-09-01T10:50:11.308303",
+          "source": "vies"
+        },
+        "lei_validation": {
+          "valid": true,
+          "legal_name": "ASML Holding N.V.",
+          "status": "ACTIVE",
+          "registration_authority": null,
+          "jurisdiction": null,
+          "validated_at": "2025-09-01T10:50:11.450993",
+          "source": "gleif"
+        }
+      }
+    },
+    "microsoft_ireland": {
+      "name": "Microsoft Ireland Operations Limited",
+      "vat_number": "IE9825613N",
+      "lei_code": "635400AKJKKLMN4KNZ71",
+      "country_code": "IE",
+      "address": "One Microsoft Place, South County Business Park, Leopardstown, Dublin 18",
+      "industry": "Technology",
+      "size": "Large",
+      "source": "predefined",
+      "validation_status": "PARTIALLY_VALID",
+      "last_validated": "2025-09-01T10:50:13.033157",
+      "additional_data": {
+        "vat_validation": {
+          "valid": true,
+          "name": "GOOGLE COMMERCE LIMITED",
+          "address": "NICOLA COLLINS VAT MANAGER, GORDON HOUSE, BARROW STREET, DUBLIN 4",
+          "validated_at": "2025-09-01T10:50:12.940164",
+          "source": "vies"
+        },
+        "lei_validation": {
+          "valid": false,
+          "error": "LEI code not found",
+          "validated_at": "2025-09-01T10:50:13.033157",
+          "source": "gleif"
+        }
+      }
+    },
+    "google_ireland": {
+      "name": "Google Ireland Limited",
+      "vat_number": "IE6388047V",
+      "lei_code": "549300PPXHEU2JF0AM85",
+      "country_code": "IE",
+      "address": "Gordon House, Barrow Street, Dublin 4",
+      "industry": "Technology",
+      "size": "Large",
+      "source": "predefined",
+      "validation_status": "VALID",
+      "last_validated": "2025-09-01T10:51:01.790678",
+      "additional_data": {
+        "vat_validation": {
+          "valid": true,
+          "name": "GOOGLE IRELAND LIMITED",
+          "address": "3RD FLOOR, GORDON HOUSE, BARROW STREET, DUBLIN 4",
+          "validated_at": "2025-09-01T10:51:01.554921",
+          "source": "vies"
+        },
+        "lei_validation": {
+          "valid": true,
+          "legal_name": "LLOYDS BANKING GROUP PLC",
+          "status": "ACTIVE",
+          "registration_authority": null,
+          "jurisdiction": null,
+          "validated_at": "2025-09-01T10:51:01.790678",
+          "source": "gleif"
+        }
+      }
+    },
+    "bp_uk": {
+      "name": "BP p.l.c.",
+      "vat_number": "GB102498803",
+      "lei_code": "213800WSGIIZCXF1P572",
+      "country_code": "GB",
+      "address": "1 St James's Square, London SW1Y 4PD",
+      "industry": "Energy",
+      "size": "Large",
+      "source": "predefined",
+      "validation_status": "PARTIALLY_VALID",
+      "last_validated": "2025-09-01T10:51:04.238728",
+      "additional_data": {
+        "vat_validation": {
+          "valid": false,
+          "error": "VIES validation failed with status 200",
+          "validated_at": "2025-09-01T10:51:04.086828",
+          "source": "vies"
+        },
+        "lei_validation": {
+          "valid": true,
+          "legal_name": "JAGUAR LAND ROVER LIMITED",
+          "status": "ACTIVE",
+          "registration_authority": null,
+          "jurisdiction": null,
+          "validated_at": "2025-09-01T10:51:04.238728",
+          "source": "gleif"
+        }
+      }
+    },
+    "spotify_sweden": {
+      "name": "Spotify AB",
+      "vat_number": "SE556703748501",
+      "lei_code": "549300BFXFJ6KBNTKY86",
+      "country_code": "SE",
+      "address": "Regeringsgatan 19, 111 53 Stockholm",
+      "industry": "Technology",
+      "size": "Large",
+      "source": "predefined",
+      "validation_status": "PARTIALLY_VALID",
+      "last_validated": "2025-09-01T10:51:09.049571",
+      "additional_data": {
+        "vat_validation": {
+          "valid": true,
+          "name": "Spotify AB",
+          "address": "REGERINGSGATAN 19 \n111 53 STOCKHOLM",
+          "validated_at": "2025-09-01T10:51:08.959123",
+          "source": "vies"
+        },
+        "lei_validation": {
+          "valid": false,
+          "error": "LEI code not found",
+          "validated_at": "2025-09-01T10:51:09.049571",
+          "source": "gleif"
+        }
+      }
+    },
+    "eni_italy": {
+      "name": "Eni S.p.A.",
+      "vat_number": "IT00484960588",
+      "lei_code": "529900T8BM49AURSDO55",
+      "country_code": "IT",
+      "address": "Piazzale Enrico Mattei, 1, 00144 Roma",
+      "industry": "Energy",
+      "size": "Large",
+      "source": "predefined",
+      "validation_status": "PARTIALLY_VALID",
+      "last_validated": "2025-09-01T10:51:10.624694",
+      "additional_data": {
+        "vat_validation": {
+          "valid": false,
+          "name": null,
+          "address": null,
+          "validated_at": "2025-09-01T10:51:10.386106",
+          "source": "vies"
+        },
+        "lei_validation": {
+          "valid": true,
+          "legal_name": "Ubisecure Oy",
+          "status": "ACTIVE",
+          "registration_authority": null,
+          "jurisdiction": null,
+          "validated_at": "2025-09-01T10:51:10.624694",
+          "source": "gleif"
+        }
+      }
+    },
+    "santander_spain": {
+      "name": "Banco Santander, S.A.",
+      "vat_number": "ESA39000013",
+      "lei_code": "5493006QMFDDMYWIAM13",
+      "country_code": "ES",
+      "address": "Ciudad Grupo Santander, Avenida de Cantabria, s/n, 28660 Boadilla del Monte, Madrid",
+      "industry": "Financial Services",
+      "size": "Large",
+      "source": "predefined",
+      "validation_status": "VALID",
+      "last_validated": "2025-09-01T10:51:11.824671",
+      "additional_data": {
+        "vat_validation": {
+          "valid": true,
+          "name": "---",
+          "address": "---",
+          "validated_at": "2025-09-01T10:51:11.667588",
+          "source": "vies"
+        },
+        "lei_validation": {
+          "valid": true,
+          "legal_name": "BANCO SANTANDER S.A.",
+          "status": "ACTIVE",
+          "registration_authority": null,
+          "jurisdiction": null,
+          "validated_at": "2025-09-01T10:51:11.824671",
+          "source": "gleif"
+        }
+      }
+    },
+    "anheuser_belgium": {
+      "name": "Anheuser-Busch InBev SA/NV",
+      "vat_number": "BE0417497106",
+      "lei_code": "5493006QMFDDMYWIAM13",
+      "country_code": "BE",
+      "address": "Brouwerijplein 1, 3000 Leuven",
+      "industry": "Retail",
+      "size": "Large",
+      "source": "predefined",
+      "validation_status": "VALID",
+      "last_validated": "2025-09-01T10:51:13.165037",
+      "additional_data": {
+        "vat_validation": {
+          "valid": true,
+          "name": "NV Anheuser-Busch InBev",
+          "address": "Brouwerijplein 1\n3000 Leuven",
+          "validated_at": "2025-09-01T10:51:13.009238",
+          "source": "vies"
+        },
+        "lei_validation": {
+          "valid": true,
+          "legal_name": "BANCO SANTANDER S.A.",
+          "status": "ACTIVE",
+          "registration_authority": null,
+          "jurisdiction": null,
+          "validated_at": "2025-09-01T10:51:13.165037",
+          "source": "gleif"
+        }
+      }
+    },
+    "erste_austria": {
+      "name": "Erste Group Bank AG",
+      "vat_number": "ATU13559107",
+      "lei_code": "PQOH26KWDF7CG10L6792",
+      "country_code": "AT",
+      "address": "Am Belvedere 1, 1100 Wien",
+      "industry": "Financial Services",
+      "size": "Large",
+      "source": "predefined",
+      "validation_status": "PARTIALLY_VALID",
+      "last_validated": "2025-09-01T10:51:13.882742",
+      "additional_data": {
+        "vat_validation": {
+          "valid": false,
+          "name": "---",
+          "address": "---",
+          "validated_at": "2025-09-01T10:51:13.707931",
+          "source": "vies"
+        },
+        "lei_validation": {
+          "valid": true,
+          "legal_name": "ERSTE GROUP BANK AG",
+          "status": "ACTIVE",
+          "registration_authority": null,
+          "jurisdiction": null,
+          "validated_at": "2025-09-01T10:51:13.882742",
+          "source": "gleif"
+        }
+      }
+    },
+    "novo_denmark": {
+      "name": "Novo Nordisk A/S",
+      "vat_number": "DK24256790",
+      "lei_code": "529900T8BM49AURSDO55",
+      "country_code": "DK",
+      "address": "Novo All\u00e9 1, 2880 Bagsv\u00e6rd",
+      "industry": "Healthcare",
+      "size": "Large",
+      "source": "predefined",
+      "validation_status": "PARTIALLY_VALID",
+      "last_validated": "2025-09-01T10:51:29.271324",
+      "additional_data": {
+        "vat_validation": {
+          "valid": false,
+          "name": null,
+          "address": null,
+          "validated_at": "2025-09-01T10:51:29.096143",
+          "source": "vies"
+        },
+        "lei_validation": {
+          "valid": true,
+          "legal_name": "Ubisecure Oy",
+          "status": "ACTIVE",
+          "registration_authority": null,
+          "jurisdiction": null,
+          "validated_at": "2025-09-01T10:51:29.271324",
+          "source": "gleif"
+        }
+      }
+    },
+    "pko_poland": {
+      "name": "Powszechna Kasa Oszcz\u0119dno\u015bci Bank Polski S.A.",
+      "vat_number": "PL5260250995",
+      "lei_code": "259400LTJ27QGJPVQR58",
+      "country_code": "PL",
+      "address": "ul. Pu\u0142awska 15, 02-515 Warszawa",
+      "industry": "Financial Services",
+      "size": "Large",
+      "source": "predefined",
+      "validation_status": "PARTIALLY_VALID",
+      "last_validated": "2025-09-01T10:52:02.669163",
+      "additional_data": {
+        "vat_validation": {
+          "valid": true,
+          "name": "ORANGE POLSKA SP\u00d3\u0141KA AKCYJNA",
+          "address": "ALEJE JEROZOLIMSKIE 160\n02-326 WARSZAWA",
+          "validated_at": "2025-09-01T10:52:02.553309",
+          "source": "vies"
+        },
+        "lei_validation": {
+          "valid": false,
+          "error": "LEI code not found",
+          "validated_at": "2025-09-01T10:52:02.669163",
+          "source": "gleif"
+        }
+      }
+    },
+    "de_additional_1": {
+      "name": "Deutsche Bank AG",
+      "vat_number": "DE114103379",
+      "lei_code": "7LTWFZYICNSX8D621K86",
+      "country_code": "DE",
+      "address": "Taunusanlage 12, 60325 Frankfurt am Main",
+      "industry": "Financial Services",
+      "size": "Large",
+      "source": "predefined",
+      "validation_status": "VALID",
+      "last_validated": "2025-09-01T10:52:07.641169",
+      "additional_data": {
+        "vat_validation": {
+          "valid": true,
+          "name": "---",
+          "address": "---",
+          "validated_at": "2025-09-01T10:52:07.443484",
+          "source": "vies"
+        },
+        "lei_validation": {
+          "valid": true,
+          "legal_name": "DEUTSCHE BANK AKTIENGESELLSCHAFT",
+          "status": "ACTIVE",
+          "registration_authority": null,
+          "jurisdiction": null,
+          "validated_at": "2025-09-01T10:52:07.641169",
+          "source": "gleif"
+        }
+      }
+    },
+    "de_additional_2": {
+      "name": "Volkswagen AG",
+      "vat_number": "DE115411976",
+      "lei_code": "529900T8BM49AURSDO55",
+      "country_code": "DE",
+      "address": "Berliner Ring 2, 38440 Wolfsburg",
+      "industry": "Manufacturing",
+      "size": "Large",
+      "source": "predefined",
+      "validation_status": "PARTIALLY_VALID",
+      "last_validated": "2025-09-01T10:52:08.366507",
+      "additional_data": {
+        "vat_validation": {
+          "valid": false,
+          "name": "---",
+          "address": "---",
+          "validated_at": "2025-09-01T10:52:08.205114",
+          "source": "vies"
+        },
+        "lei_validation": {
+          "valid": true,
+          "legal_name": "Ubisecure Oy",
+          "status": "ACTIVE",
+          "registration_authority": null,
+          "jurisdiction": null,
+          "validated_at": "2025-09-01T10:52:08.366507",
+          "source": "gleif"
+        }
+      }
+    },
+    "fr_additional_1": {
+      "name": "BNP Paribas",
+      "vat_number": "FR76662042449",
+      "lei_code": "R0MUWSFPU8MPRO8K5P83",
+      "country_code": "FR",
+      "address": "16 Boulevard des Italiens, 75009 Paris",
+      "industry": "Financial Services",
+      "size": "Large",
+      "source": "predefined",
+      "validation_status": "VALID",
+      "last_validated": "2025-09-01T10:52:09.208801",
+      "additional_data": {
+        "vat_validation": {
+          "valid": true,
+          "name": "SA BNP PARIBAS",
+          "address": "16 BD DES ITALIENS\n75009 PARIS",
+          "validated_at": "2025-09-01T10:52:09.025018",
+          "source": "vies"
+        },
+        "lei_validation": {
+          "valid": true,
+          "legal_name": "BNP PARIBAS",
+          "status": "ACTIVE",
+          "registration_authority": null,
+          "jurisdiction": null,
+          "validated_at": "2025-09-01T10:52:09.208801",
+          "source": "gleif"
+        }
+      }
+    },
+    "it_additional_1": {
+      "name": "UniCredit S.p.A.",
+      "vat_number": "IT00348170101",
+      "lei_code": "549300TRUWO2CD2G5692",
+      "country_code": "IT",
+      "address": "Piazza Gae Aulenti, 3 - Tower A, 20154 Milano",
+      "industry": "Financial Services",
+      "size": "Large",
+      "source": "predefined",
+      "validation_status": "VALID",
+      "last_validated": "2025-09-01T10:52:10.096826",
+      "additional_data": {
+        "vat_validation": {
+          "valid": true,
+          "name": "UNICREDIT S.P.A.",
+          "address": "PIAZZA GAE AULENTI 3 \n20154 MILANO MI\n",
+          "validated_at": "2025-09-01T10:52:09.917904",
+          "source": "vies"
+        },
+        "lei_validation": {
+          "valid": true,
+          "legal_name": "UNICREDIT, SOCIETA' PER AZIONI",
+          "status": "ACTIVE",
+          "registration_authority": null,
+          "jurisdiction": null,
+          "validated_at": "2025-09-01T10:52:10.096826",
+          "source": "gleif"
+        }
+      }
+    },
+    "es_additional_1": {
+      "name": "Telef\u00f3nica, S.A.",
+      "vat_number": "ESA28015865",
+      "lei_code": "5493006QMFDDMYWIAM13",
+      "country_code": "ES",
+      "address": "Ronda de la Comunicaci\u00f3n, s/n, 28050 Madrid",
+      "industry": "Technology",
+      "size": "Large",
+      "source": "predefined",
+      "validation_status": "VALID",
+      "last_validated": "2025-09-01T10:52:10.961925",
+      "additional_data": {
+        "vat_validation": {
+          "valid": true,
+          "name": "---",
+          "address": "---",
+          "validated_at": "2025-09-01T10:52:10.804121",
+          "source": "vies"
+        },
+        "lei_validation": {
+          "valid": true,
+          "legal_name": "BANCO SANTANDER S.A.",
+          "status": "ACTIVE",
+          "registration_authority": null,
+          "jurisdiction": null,
+          "validated_at": "2025-09-01T10:52:10.961925",
+          "source": "gleif"
+        }
+      }
+    }
+  }
+}
