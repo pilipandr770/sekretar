@@ -45,6 +45,12 @@ services:
       - FLASK_ENV=development
       - DATABASE_URL=postgresql://ai_secretary_user:ai_secretary_pass@db:5432/ai_secretary
       - REDIS_URL=redis://redis:6379/0
+      - CELERY_BROKER_URL=redis://redis:6379/1
+      - CELERY_RESULT_BACKEND=redis://redis:6379/2
+      - RATE_LIMIT_STORAGE_URL=redis://redis:6379/3
+      - SECRET_KEY=oX2zi3js7u-H5gBtDPIaFdR894Y3J9Xy3w9ncMRb7O0
+      - JWT_SECRET_KEY=uDnHHRRLBcWiF1ln4xlFMtbSdEVvhHN3riTyJacRcvQ
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
     depends_on:
       db:
         condition: service_healthy
