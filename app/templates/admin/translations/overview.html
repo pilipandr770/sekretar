@@ -1,0 +1,473 @@
+{% extends "admin/base.html" %}
+{% from "macros/forms.html" import render_field, render_submit_button %}
+{% from "macros/tables.html" import render_table %}
+
+{% block title %}{{ _('Translation Management') }}{% endblock %}
+
+{% block admin_content %}
+<div class="translation-management">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-1">{{ _('Translation Management') }}</h1>
+            <p class="text-muted">{{ _('Manage translations and monitor coverage across all supported languages') }}</p>
+        </div>
+        <div class="btn-group" role="group">
+            <button type="button" class="btn btn-outline-primary" onclick="extractTranslations()">
+                <i class="fas fa-download"></i> {{ _('Extract Messages') }}
+            </button>
+            <button type="button" class="btn btn-outline-success" onclick="compileTranslations()">
+                <i class="fas fa-cogs"></i> {{ _('Compile Translations') }}
+            </button>
+            <button type="button" class="btn btn-outline-warning" onclick="validateTranslations()">
+                <i class="fas fa-check-circle"></i> {{ _('Validate') }}
+            </button>
+        </div>
+    </div>
+
+    <!-- System Status Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 class="card-title" id="overall-coverage">--</h4>
+                            <p class="card-text">{{ _('Overall Coverage') }}</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-globe fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-success text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 class="card-title" id="complete-languages">--</h4>
+                            <p class="card-text">{{ _('Complete Languages') }}</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-check-circle fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-warning text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 class="card-title" id="missing-translations">--</h4>
+                            <p class="card-text">{{ _('Missing Translations') }}</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-exclamation-triangle fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-danger text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 class="card-title" id="validation-errors">--</h4>
+                            <p class="card-text">{{ _('Validation Errors') }}</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-bug fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Language Details -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="card-title mb-0">{{ _('Language Coverage Details') }}</h5>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover" id="language-table">
+                    <thead>
+                        <tr>
+                            <th>{{ _('Language') }}</th>
+                            <th>{{ _('Coverage') }}</th>
+                            <th>{{ _('Status') }}</th>
+                            <th>{{ _('Translated') }}</th>
+                            <th>{{ _('Missing') }}</th>
+                            <th>{{ _('Fuzzy') }}</th>
+                            <th>{{ _('Errors') }}</th>
+                            <th>{{ _('Last Updated') }}</th>
+                            <th>{{ _('Actions') }}</th>
+                        </tr>
+                    </thead>
+                    <tbody id="language-table-body">
+                        <!-- Populated by JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Activity -->
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">{{ _('Recent Missing Translations') }}</h5>
+                </div>
+                <div class="card-body">
+                    <div id="recent-missing" class="list-group list-group-flush">
+                        <!-- Populated by JavaScript -->
+                    </div>
+                    <div class="text-center mt-3">
+                        <a href="{{ url_for('admin.get_missing_translations') }}" class="btn btn-outline-primary btn-sm">
+                            {{ _('View All Missing') }}
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">{{ _('Recent Validation Errors') }}</h5>
+                </div>
+                <div class="card-body">
+                    <div id="recent-errors" class="list-group list-group-flush">
+                        <!-- Populated by JavaScript -->
+                    </div>
+                    <div class="text-center mt-3">
+                        <a href="{{ url_for('admin.get_validation_errors') }}" class="btn btn-outline-danger btn-sm">
+                            {{ _('View All Errors') }}
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Loading Modal -->
+<div class="modal fade" id="loadingModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-sm" role="document">
+        <div class="modal-content">
+            <div class="modal-body text-center">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="sr-only">{{ _('Loading...') }}</span>
+                </div>
+                <p class="mt-2 mb-0" id="loading-message">{{ _('Processing...') }}</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Translation Update Modal -->
+<div class="modal fade" id="updateTranslationModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">{{ _('Update Translation') }}</h5>
+                <button type="button" class="close" data-dismiss="modal">
+                    <span>&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="updateTranslationForm">
+                    <div class="form-group">
+                        <label for="originalMessage">{{ _('Original Message') }}</label>
+                        <textarea class="form-control" id="originalMessage" rows="3" readonly></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="translationText">{{ _('Translation') }}</label>
+                        <textarea class="form-control" id="translationText" rows="3" required></textarea>
+                    </div>
+                    <input type="hidden" id="translationLanguage">
+                    <input type="hidden" id="translationMessageId">
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">{{ _('Cancel') }}</button>
+                <button type="button" class="btn btn-primary" onclick="saveTranslation()">{{ _('Save Translation') }}</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Translation management JavaScript
+let translationData = {};
+
+// Load translation overview on page load
+$(document).ready(function() {
+    loadTranslationOverview();
+    
+    // Refresh every 30 seconds
+    setInterval(loadTranslationOverview, 30000);
+});
+
+function loadTranslationOverview() {
+    $.get('/admin/translations/overview')
+        .done(function(response) {
+            if (response.success) {
+                updateOverviewCards(response.data);
+                updateLanguageTable(response.data.language_details);
+                translationData = response.data;
+            }
+        })
+        .fail(function(xhr) {
+            showAlert('danger', '{{ _("Failed to load translation overview") }}');
+        });
+}
+
+function updateOverviewCards(data) {
+    const stats = data.overall_statistics;
+    
+    $('#overall-coverage').text(stats.overall_coverage + '%');
+    $('#complete-languages').text(stats.complete_languages + '/' + stats.total_languages);
+    
+    // Calculate totals
+    let totalMissing = 0;
+    let totalErrors = 0;
+    
+    Object.values(data.language_details).forEach(lang => {
+        totalMissing += lang.missing_translations || 0;
+        totalErrors += lang.validation_errors || 0;
+    });
+    
+    $('#missing-translations').text(totalMissing);
+    $('#validation-errors').text(totalErrors);
+}
+
+function updateLanguageTable(languages) {
+    const tbody = $('#language-table-body');
+    tbody.empty();
+    
+    Object.entries(languages).forEach(([code, lang]) => {
+        const statusBadge = getStatusBadge(lang.status);
+        const coverageBar = getCoverageBar(lang.coverage_percentage);
+        
+        const row = `
+            <tr>
+                <td>
+                    <strong>${lang.language_name}</strong>
+                    <small class="text-muted d-block">${code}</small>
+                </td>
+                <td>
+                    ${coverageBar}
+                    <small class="text-muted">${lang.coverage_percentage}%</small>
+                </td>
+                <td>${statusBadge}</td>
+                <td>${lang.translated_messages}</td>
+                <td>
+                    ${lang.missing_translations > 0 ? 
+                        `<span class="text-warning">${lang.missing_translations}</span>` : 
+                        lang.missing_translations}
+                </td>
+                <td>${lang.fuzzy_messages || 0}</td>
+                <td>
+                    ${lang.validation_errors > 0 ? 
+                        `<span class="text-danger">${lang.validation_errors}</span>` : 
+                        lang.validation_errors}
+                </td>
+                <td>
+                    <small class="text-muted">
+                        ${lang.last_updated ? formatDate(lang.last_updated) : '{{ _("Never") }}'}
+                    </small>
+                </td>
+                <td>
+                    <div class="btn-group btn-group-sm">
+                        <button class="btn btn-outline-primary btn-sm" onclick="viewLanguageDetails('${code}')">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                        <button class="btn btn-outline-secondary btn-sm" onclick="downloadTranslations('${code}')">
+                            <i class="fas fa-download"></i>
+                        </button>
+                    </div>
+                </td>
+            </tr>
+        `;
+        
+        tbody.append(row);
+    });
+}
+
+function getStatusBadge(status) {
+    const badges = {
+        'complete': '<span class="badge badge-success">{{ _("Complete") }}</span>',
+        'good': '<span class="badge badge-info">{{ _("Good") }}</span>',
+        'partial': '<span class="badge badge-warning">{{ _("Partial") }}</span>',
+        'incomplete': '<span class="badge badge-danger">{{ _("Incomplete") }}</span>',
+        'missing': '<span class="badge badge-secondary">{{ _("Missing") }}</span>',
+        'error': '<span class="badge badge-dark">{{ _("Error") }}</span>'
+    };
+    
+    return badges[status] || `<span class="badge badge-secondary">${status}</span>`;
+}
+
+function getCoverageBar(percentage) {
+    const color = percentage >= 95 ? 'success' : 
+                  percentage >= 75 ? 'info' : 
+                  percentage >= 50 ? 'warning' : 'danger';
+    
+    return `
+        <div class="progress" style="height: 8px;">
+            <div class="progress-bar bg-${color}" style="width: ${percentage}%"></div>
+        </div>
+    `;
+}
+
+function extractTranslations() {
+    showLoadingModal('{{ _("Extracting translatable messages...") }}');
+    
+    $.post('/admin/translations/extract')
+        .done(function(response) {
+            hideLoadingModal();
+            if (response.success) {
+                showAlert('success', '{{ _("Translation extraction completed successfully") }}');
+                loadTranslationOverview();
+            } else {
+                showAlert('danger', response.message || '{{ _("Extraction failed") }}');
+            }
+        })
+        .fail(function(xhr) {
+            hideLoadingModal();
+            showAlert('danger', '{{ _("Failed to extract translations") }}');
+        });
+}
+
+function compileTranslations() {
+    showLoadingModal('{{ _("Compiling translation files...") }}');
+    
+    $.post('/admin/translations/compile')
+        .done(function(response) {
+            hideLoadingModal();
+            if (response.success) {
+                showAlert('success', '{{ _("Translation compilation completed successfully") }}');
+                loadTranslationOverview();
+            } else {
+                showAlert('danger', response.message || '{{ _("Compilation failed") }}');
+            }
+        })
+        .fail(function(xhr) {
+            hideLoadingModal();
+            showAlert('danger', '{{ _("Failed to compile translations") }}');
+        });
+}
+
+function validateTranslations() {
+    showLoadingModal('{{ _("Validating translations...") }}');
+    
+    $.post('/admin/translations/validate')
+        .done(function(response) {
+            hideLoadingModal();
+            if (response.success) {
+                const errors = response.data.total_errors;
+                if (errors === 0) {
+                    showAlert('success', '{{ _("All translations are valid") }}');
+                } else {
+                    showAlert('warning', `{{ _("Found") }} ${errors} {{ _("validation errors") }}`);
+                }
+                loadTranslationOverview();
+            } else {
+                showAlert('danger', response.message || '{{ _("Validation failed") }}');
+            }
+        })
+        .fail(function(xhr) {
+            hideLoadingModal();
+            showAlert('danger', '{{ _("Failed to validate translations") }}');
+        });
+}
+
+function viewLanguageDetails(languageCode) {
+    // Navigate to language-specific page
+    window.location.href = `/admin/translations/language/${languageCode}`;
+}
+
+function downloadTranslations(languageCode) {
+    // Download translation file
+    window.open(`/admin/translations/download/${languageCode}`, '_blank');
+}
+
+function showLoadingModal(message) {
+    $('#loading-message').text(message);
+    $('#loadingModal').modal('show');
+}
+
+function hideLoadingModal() {
+    $('#loadingModal').modal('hide');
+}
+
+function showAlert(type, message) {
+    const alertHtml = `
+        <div class="alert alert-${type} alert-dismissible fade show" role="alert">
+            ${message}
+            <button type="button" class="close" data-dismiss="alert">
+                <span>&times;</span>
+            </button>
+        </div>
+    `;
+    
+    $('.translation-management').prepend(alertHtml);
+    
+    // Auto-dismiss after 5 seconds
+    setTimeout(function() {
+        $('.alert').alert('close');
+    }, 5000);
+}
+
+function formatDate(dateString) {
+    const date = new Date(dateString);
+    return date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
+}
+
+function updateTranslation(language, messageId, currentTranslation) {
+    $('#translationLanguage').val(language);
+    $('#translationMessageId').val(messageId);
+    $('#originalMessage').val(messageId);
+    $('#translationText').val(currentTranslation || '');
+    $('#updateTranslationModal').modal('show');
+}
+
+function saveTranslation() {
+    const language = $('#translationLanguage').val();
+    const messageId = $('#translationMessageId').val();
+    const translation = $('#translationText').val();
+    
+    if (!translation.trim()) {
+        showAlert('warning', '{{ _("Translation cannot be empty") }}');
+        return;
+    }
+    
+    $.post('/admin/translations/update', {
+        language: language,
+        message_id: messageId,
+        translation: translation
+    })
+    .done(function(response) {
+        $('#updateTranslationModal').modal('hide');
+        if (response.success) {
+            showAlert('success', '{{ _("Translation updated successfully") }}');
+            loadTranslationOverview();
+        } else {
+            showAlert('danger', response.message || '{{ _("Failed to update translation") }}');
+        }
+    })
+    .fail(function(xhr) {
+        $('#updateTranslationModal').modal('hide');
+        showAlert('danger', '{{ _("Failed to update translation") }}');
+    });
+}
+</script>
+{% endblock %}

@@ -1,0 +1,383 @@
+{% extends "base.html" %}
+
+{% block title %}{{ _('I18n Integration Test') }}{% endblock %}
+
+{% block head %}
+<style>
+    .test-section {
+        margin: 20px 0;
+        padding: 20px;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        background: #f9f9f9;
+    }
+    .test-result {
+        margin: 10px 0;
+        padding: 10px;
+        border-radius: 4px;
+        font-family: monospace;
+    }
+    .test-success {
+        background: #d4edda;
+        color: #155724;
+        border: 1px solid #c3e6cb;
+    }
+    .test-error {
+        background: #f8d7da;
+        color: #721c24;
+        border: 1px solid #f5c6cb;
+    }
+    .test-info {
+        background: #d1ecf1;
+        color: #0c5460;
+        border: 1px solid #bee5eb;
+    }
+    .translation-examples {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 15px;
+        margin: 20px 0;
+    }
+    .example-card {
+        padding: 15px;
+        border: 1px solid #ddd;
+        border-radius: 6px;
+        background: white;
+    }
+    .example-title {
+        font-weight: bold;
+        margin-bottom: 10px;
+        color: #333;
+    }
+    .example-content {
+        font-family: monospace;
+        background: #f5f5f5;
+        padding: 8px;
+        border-radius: 4px;
+        margin: 5px 0;
+    }
+    .format-examples {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 10px;
+        margin: 15px 0;
+    }
+    .format-example {
+        padding: 10px;
+        background: white;
+        border: 1px solid #eee;
+        border-radius: 4px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1 data-i18n="i18n_test_title">{{ _('I18n Integration Test') }}</h1>
+    <p data-i18n="i18n_test_description">{{ _('This page tests the frontend JavaScript i18n integration.') }}</p>
+
+    <!-- Language Switcher Test -->
+    <div class="test-section">
+        <h2 data-i18n="language_switcher_test">{{ _('Language Switcher Test') }}</h2>
+        <p data-i18n="language_switcher_description">{{ _('The language switcher should appear in the navigation bar. Try switching languages to test the integration.') }}</p>
+        <div id="language-test-result" class="test-result test-info">
+            <span data-i18n="waiting_for_initialization">{{ _('Waiting for i18n initialization...') }}</span>
+        </div>
+    </div>
+
+    <!-- Translation Function Test -->
+    <div class="test-section">
+        <h2 data-i18n="translation_function_test">{{ _('Translation Function Test') }}</h2>
+        <p data-i18n="translation_function_description">{{ _('Testing the global translation function _().') }}</p>
+        
+        <div class="translation-examples">
+            <div class="example-card">
+                <div class="example-title" data-i18n="basic_translation">{{ _('Basic Translation') }}</div>
+                <div class="example-content">_('Hello'): <span id="basic-translation-result">-</span></div>
+            </div>
+            
+            <div class="example-card">
+                <div class="example-title" data-i18n="parameterized_translation">{{ _('Parameterized Translation') }}</div>
+                <div class="example-content">_('Hello {{name}}', {name: 'World'}): <span id="param-translation-result">-</span></div>
+            </div>
+            
+            <div class="example-card">
+                <div class="example-title" data-i18n="missing_translation">{{ _('Missing Translation') }}</div>
+                <div class="example-content">_('nonexistent_key'): <span id="missing-translation-result">-</span></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Formatting Function Test -->
+    <div class="test-section">
+        <h2 data-i18n="formatting_test">{{ _('Formatting Function Test') }}</h2>
+        <p data-i18n="formatting_description">{{ _('Testing locale-aware formatting functions.') }}</p>
+        
+        <div class="format-examples">
+            <div class="format-example">
+                <strong data-i18n="date_formatting">{{ _('Date Formatting') }}</strong>
+                <div class="example-content">
+                    <div>formatDate(new Date()): <span id="date-format-result">-</span></div>
+                    <div>formatDate(new Date(), 'long'): <span id="date-long-format-result">-</span></div>
+                </div>
+            </div>
+            
+            <div class="format-example">
+                <strong data-i18n="number_formatting">{{ _('Number Formatting') }}</strong>
+                <div class="example-content">
+                    <div>formatNumber(1234.56): <span id="number-format-result">-</span></div>
+                    <div>formatNumber(0.75, {style: 'percent'}): <span id="percent-format-result">-</span></div>
+                </div>
+            </div>
+            
+            <div class="format-example">
+                <strong data-i18n="currency_formatting">{{ _('Currency Formatting') }}</strong>
+                <div class="example-content">
+                    <div>formatCurrency(99.99, 'EUR'): <span id="currency-eur-result">-</span></div>
+                    <div>formatCurrency(99.99, 'USD'): <span id="currency-usd-result">-</span></div>
+                </div>
+            </div>
+            
+            <div class="format-example">
+                <strong data-i18n="relative_time_formatting">{{ _('Relative Time Formatting') }}</strong>
+                <div class="example-content">
+                    <div>formatRelativeTime(1 hour ago): <span id="relative-time-result">-</span></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Dynamic Content Test -->
+    <div class="test-section">
+        <h2 data-i18n="dynamic_content_test">{{ _('Dynamic Content Test') }}</h2>
+        <p data-i18n="dynamic_content_description">{{ _('Testing dynamic content updates when language changes.') }}</p>
+        
+        <div class="example-card">
+            <div class="example-title" data-i18n="current_time">{{ _('Current Time') }}</div>
+            <div class="example-content">
+                <div data-datetime="{{ moment().isoformat() }}" id="current-time-display">{{ moment().strftime('%Y-%m-%d %H:%M:%S') }}</div>
+            </div>
+        </div>
+        
+        <div class="example-card">
+            <div class="example-title" data-i18n="sample_date">{{ _('Sample Date') }}</div>
+            <div class="example-content">
+                <div data-date="2025-01-15" id="sample-date-display">2025-01-15</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- API Integration Test -->
+    <div class="test-section">
+        <h2 data-i18n="api_integration_test">{{ _('API Integration Test') }}</h2>
+        <p data-i18n="api_integration_description">{{ _('Testing API endpoints for i18n functionality.') }}</p>
+        
+        <div class="row">
+            <div class="col-md-6">
+                <button class="btn btn-primary" onclick="testApiEndpoints()" data-i18n="test_api_endpoints">{{ _('Test API Endpoints') }}</button>
+            </div>
+            <div class="col-md-6">
+                <button class="btn btn-secondary" onclick="testLanguageSwitch()" data-i18n="test_language_switch">{{ _('Test Language Switch') }}</button>
+            </div>
+        </div>
+        
+        <div id="api-test-results" class="mt-3"></div>
+    </div>
+
+    <!-- Statistics -->
+    <div class="test-section">
+        <h2 data-i18n="i18n_statistics">{{ _('I18n Statistics') }}</h2>
+        <div id="i18n-stats" class="test-result test-info">
+            <span data-i18n="loading_stats">{{ _('Loading statistics...') }}</span>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Test functions
+let testResults = {};
+
+// Initialize tests when page loads
+document.addEventListener('DOMContentLoaded', () => {
+    // Wait for i18n to initialize
+    setTimeout(() => {
+        runAllTests();
+    }, 1000);
+});
+
+// Listen for language changes
+window.addEventListener('localechange', (event) => {
+    console.log('Language changed to:', event.detail.locale);
+    setTimeout(() => {
+        runAllTests();
+    }, 500);
+});
+
+function runAllTests() {
+    testLanguageSwitcher();
+    testTranslationFunctions();
+    testFormattingFunctions();
+    testI18nStatistics();
+}
+
+function testLanguageSwitcher() {
+    const resultEl = document.getElementById('language-test-result');
+    
+    if (window.i18n && window.languageSwitcher) {
+        const currentLang = window.i18n.getLocale();
+        const availableLanguages = window.i18n.getAvailableLocales();
+        
+        resultEl.className = 'test-result test-success';
+        resultEl.innerHTML = `
+            <strong>✓ Language switcher initialized</strong><br>
+            Current language: ${currentLang}<br>
+            Available languages: ${availableLanguages.join(', ')}
+        `;
+        testResults.languageSwitcher = true;
+    } else {
+        resultEl.className = 'test-result test-error';
+        resultEl.innerHTML = '✗ Language switcher not initialized';
+        testResults.languageSwitcher = false;
+    }
+}
+
+function testTranslationFunctions() {
+    // Basic translation
+    const basicResult = _('Hello');
+    document.getElementById('basic-translation-result').textContent = basicResult;
+    
+    // Parameterized translation
+    const paramResult = _('Hello {{name}}', {name: 'World'});
+    document.getElementById('param-translation-result').textContent = paramResult;
+    
+    // Missing translation
+    const missingResult = _('nonexistent_key_12345');
+    document.getElementById('missing-translation-result').textContent = missingResult;
+    
+    testResults.translations = {
+        basic: basicResult !== 'Hello' || basicResult.length > 0,
+        parameterized: paramResult.includes('World'),
+        missing: missingResult === 'nonexistent_key_12345'
+    };
+}
+
+function testFormattingFunctions() {
+    const now = new Date();
+    const testNumber = 1234.56;
+    const testCurrency = 99.99;
+    const oneHourAgo = new Date(now.getTime() - 3600000);
+    
+    // Date formatting
+    document.getElementById('date-format-result').textContent = formatDate(now);
+    document.getElementById('date-long-format-result').textContent = formatDate(now, 'long');
+    
+    // Number formatting
+    document.getElementById('number-format-result').textContent = formatNumber(testNumber);
+    document.getElementById('percent-format-result').textContent = formatNumber(0.75, {style: 'percent'});
+    
+    // Currency formatting
+    document.getElementById('currency-eur-result').textContent = formatCurrency(testCurrency, 'EUR');
+    document.getElementById('currency-usd-result').textContent = formatCurrency(testCurrency, 'USD');
+    
+    // Relative time formatting
+    document.getElementById('relative-time-result').textContent = formatRelativeTime(oneHourAgo);
+    
+    testResults.formatting = true;
+}
+
+function testI18nStatistics() {
+    if (window.i18n) {
+        const stats = window.i18n.getTranslationStats();
+        const statsEl = document.getElementById('i18n-stats');
+        
+        statsEl.className = 'test-result test-success';
+        statsEl.innerHTML = `
+            <strong>I18n Statistics</strong><br>
+            Locale: ${stats.locale}<br>
+            Total keys: ${stats.totalKeys}<br>
+            Translated keys: ${stats.translatedKeys}<br>
+            Coverage: ${stats.coverage.toFixed(1)}%
+        `;
+    }
+}
+
+async function testApiEndpoints() {
+    const resultsEl = document.getElementById('api-test-results');
+    resultsEl.innerHTML = '<div class="test-result test-info">Testing API endpoints...</div>';
+    
+    const tests = [
+        { name: 'Languages', url: '/api/v1/i18n/languages' },
+        { name: 'Context', url: '/api/v1/i18n/context' },
+        { name: 'User Language', url: '/api/v1/user/language' },
+        { name: 'Translation Stats', url: '/api/v1/i18n/stats' }
+    ];
+    
+    let results = [];
+    
+    for (const test of tests) {
+        try {
+            const response = await fetch(test.url);
+            const success = response.ok;
+            results.push({
+                name: test.name,
+                success: success,
+                status: response.status,
+                url: test.url
+            });
+        } catch (error) {
+            results.push({
+                name: test.name,
+                success: false,
+                error: error.message,
+                url: test.url
+            });
+        }
+    }
+    
+    const successCount = results.filter(r => r.success).length;
+    const resultClass = successCount === results.length ? 'test-success' : 
+                       successCount > 0 ? 'test-info' : 'test-error';
+    
+    resultsEl.innerHTML = `
+        <div class="test-result ${resultClass}">
+            <strong>API Test Results (${successCount}/${results.length} passed)</strong><br>
+            ${results.map(r => 
+                `${r.success ? '✓' : '✗'} ${r.name}: ${r.success ? r.status : (r.error || 'Failed')}`
+            ).join('<br>')}
+        </div>
+    `;
+}
+
+async function testLanguageSwitch() {
+    if (!window.i18n) {
+        alert('I18n system not initialized');
+        return;
+    }
+    
+    const currentLang = window.i18n.getLocale();
+    const targetLang = currentLang === 'en' ? 'de' : 'en';
+    
+    try {
+        const success = await window.i18n.setLocale(targetLang);
+        if (success) {
+            alert(`Language switched to ${targetLang}`);
+        } else {
+            alert('Language switch failed');
+        }
+    } catch (error) {
+        alert(`Language switch error: ${error.message}`);
+    }
+}
+
+// Add some sample translations for testing
+window.addEventListener('DOMContentLoaded', () => {
+    // Add sample data attributes for testing
+    const currentTimeEl = document.getElementById('current-time-display');
+    if (currentTimeEl) {
+        currentTimeEl.setAttribute('data-datetime', new Date().toISOString());
+    }
+});
+</script>
+{% endblock %}

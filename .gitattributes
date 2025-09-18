@@ -1,0 +1,32 @@
+# PowerShell files
+*.ps1 linguist-language=PowerShell
+*.psm1 linguist-language=PowerShell
+
+# Shell scripts
+*.sh linguist-language=Shell
+
+# Docker files
+Dockerfile* linguist-language=Dockerfile
+*.dockerfile linguist-language=Dockerfile
+
+# Configuration files
+*.yml linguist-language=YAML
+*.yaml linguist-language=YAML
+*.json linguist-language=JSON
+*.toml linguist-language=TOML
+
+# Python files
+*.py linguist-language=Python
+
+# Translation files
+*.po linguist-language=Gettext-Catalog
+*.pot linguist-language=Gettext-Catalog
+*.mo binary
+
+# Documentation
+*.md linguist-language=Markdown
+*.rst linguist-language=reStructuredText
+
+# Configuration
+babel.cfg linguist-language=INI
+requirements*.txt linguist-language=Text

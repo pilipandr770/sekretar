@@ -277,16 +277,92 @@ class User(BaseModel, SoftDeleteMixin, AuditMixin):
     
     @classmethod
     def authenticate(cls, email, password, tenant_id=None):
-        """Authenticate user by email and password."""
-        query = cls.query.filter_by(email=email, is_active=True)
-        
-        if tenant_id:
-            query = query.filter_by(tenant_id=tenant_id)
-        
-        user = query.first()
-        
-        if user and user.check_password(password):
-            user.update_last_login()
-            return user
-        
-        return None
+        """Authenticate user by email and password (database-agnostic)."""
+        try:
+            # Normalize email for consistent lookup
+            email = email.strip().lower()
+            
+            # Build query with database-agnostic filters
+            query = cls.query.filter(
+                cls.email == email,
+                cls.is_active == True,
+                cls.deleted_at.is_(None)  # Ensure soft-deleted users are excluded
+            )
+            
+            if tenant_id:
+                query = query.filter(cls.tenant_id == tenant_id)
+            
+            user = query.first()
+            
+            if user and user.check_password(password):
+                # Update last login timestamp
+                user.update_last_login()
+                return user
+            
+            return None
+            
+        except Exception as e:
+            # Log error but don't expose details
+            import structlog
+            logger = structlog.get_logger()
+            logger.error(
+                "User authentication query failed",
+                email=email,
+                tenant_id=tenant_id,
+                error=str(e),
+                exc_info=True
+            )
+            return None
+    
+    @classmethod
+    def find_by_email(cls, email, tenant_id=None):
+        """Find user by email (database-agnostic)."""
+        try:
+            # Normalize email for consistent lookup
+            email = email.strip().lower()
+            
+            # Build query with database-agnostic filters
+            query = cls.query.filter(
+                cls.email == email,
+                cls.deleted_at.is_(None)  # Ensure soft-deleted users are excluded
+            )
+            
+            if tenant_id:
+                query = query.filter(cls.tenant_id == tenant_id)
+            
+            return query.first()
+            
+        except Exception as e:
+            # Log error but don't expose details
+            import structlog
+            logger = structlog.get_logger()
+            logger.error(
+                "User lookup query failed",
+                email=email,
+                tenant_id=tenant_id,
+                error=str(e),
+                exc_info=True
+            )
+            return None
+    
+    @classmethod
+    def find_by_id(cls, user_id):
+        """Find user by ID (database-agnostic)."""
+        try:
+            return cls.query.filter(
+                cls.id == user_id,
+                cls.is_active == True,
+                cls.deleted_at.is_(None)
+            ).first()
+            
+        except Exception as e:
+            # Log error but don't expose details
+            import structlog
+            logger = structlog.get_logger()
+            logger.error(
+                "User ID lookup query failed",
+                user_id=user_id,
+                error=str(e),
+                exc_info=True
+            )
+            return None

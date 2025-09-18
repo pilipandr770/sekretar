@@ -1,0 +1,321 @@
+<!-- Service Notifications Component -->
+<div id="service-notifications" class="notifications-container">
+    {% if user_notifications %}
+        {% for notification in user_notifications %}
+            <div class="notification notification-{{ notification.type }} notification-priority-{{ notification.priority }}" 
+                 data-notification-id="{{ notification.id }}"
+                 {% if notification.auto_dismiss %}data-auto-dismiss="{{ notification.auto_dismiss_delay }}"{% endif %}>
+                
+                <div class="notification-header">
+                    <div class="notification-icon">
+                        {% if notification.type == 'error' %}
+                            <i class="fas fa-exclamation-circle"></i>
+                        {% elif notification.type == 'warning' %}
+                            <i class="fas fa-exclamation-triangle"></i>
+                        {% elif notification.type == 'success' %}
+                            <i class="fas fa-check-circle"></i>
+                        {% elif notification.type == 'service_degraded' %}
+                            <i class="fas fa-tools"></i>
+                        {% elif notification.type == 'service_unavailable' %}
+                            <i class="fas fa-times-circle"></i>
+                        {% else %}
+                            <i class="fas fa-info-circle"></i>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="notification-title">
+                        {{ notification.title }}
+                    </div>
+                    
+                    {% if notification.dismissible %}
+                        <button class="notification-dismiss" onclick="dismissNotification('{{ notification.id }}')">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    {% endif %}
+                </div>
+                
+                <div class="notification-body">
+                    <p class="notification-message">{{ notification.message }}</p>
+                    
+                    {% if notification.resolution_steps %}
+                        <div class="notification-resolution">
+                            <strong>Resolution steps:</strong>
+                            <ul>
+                                {% for step in notification.resolution_steps %}
+                                    <li>{{ step }}</li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    {% endif %}
+                    
+                    {% if notification.action_url and notification.action_text %}
+                        <div class="notification-actions">
+                            <a href="{{ notification.action_url }}" class="btn btn-sm btn-primary">
+                                {{ notification.action_text }}
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+                
+                <div class="notification-footer">
+                    <small class="text-muted">
+                        {% if notification.service_affected %}
+                            Service: {{ notification.service_affected }} • 
+                        {% endif %}
+                        {{ notification.timestamp | datetime_format }}
+                    </small>
+                </div>
+            </div>
+        {% endfor %}
+    {% endif %}
+</div>
+
+<style>
+.notifications-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 1050;
+    max-width: 400px;
+}
+
+.notification {
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    margin-bottom: 10px;
+    border-left: 4px solid;
+    animation: slideIn 0.3s ease-out;
+}
+
+.notification-error {
+    border-left-color: #dc3545;
+}
+
+.notification-warning {
+    border-left-color: #ffc107;
+}
+
+.notification-success {
+    border-left-color: #28a745;
+}
+
+.notification-info {
+    border-left-color: #17a2b8;
+}
+
+.notification-service_degraded {
+    border-left-color: #fd7e14;
+}
+
+.notification-service_unavailable {
+    border-left-color: #dc3545;
+}
+
+.notification-configuration_issue {
+    border-left-color: #6f42c1;
+}
+
+.notification-priority-urgent {
+    box-shadow: 0 4px 20px rgba(220, 53, 69, 0.3);
+}
+
+.notification-header {
+    display: flex;
+    align-items: center;
+    padding: 12px 16px 8px;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.notification-icon {
+    margin-right: 10px;
+    font-size: 18px;
+}
+
+.notification-error .notification-icon {
+    color: #dc3545;
+}
+
+.notification-warning .notification-icon {
+    color: #ffc107;
+}
+
+.notification-success .notification-icon {
+    color: #28a745;
+}
+
+.notification-info .notification-icon {
+    color: #17a2b8;
+}
+
+.notification-service_degraded .notification-icon {
+    color: #fd7e14;
+}
+
+.notification-service_unavailable .notification-icon {
+    color: #dc3545;
+}
+
+.notification-configuration_issue .notification-icon {
+    color: #6f42c1;
+}
+
+.notification-title {
+    flex: 1;
+    font-weight: 600;
+    font-size: 14px;
+    color: #333;
+}
+
+.notification-dismiss {
+    background: none;
+    border: none;
+    color: #6c757d;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 4px;
+}
+
+.notification-dismiss:hover {
+    background: #f8f9fa;
+    color: #495057;
+}
+
+.notification-body {
+    padding: 8px 16px 12px;
+}
+
+.notification-message {
+    margin: 0 0 8px;
+    font-size: 13px;
+    color: #495057;
+    line-height: 1.4;
+}
+
+.notification-resolution {
+    margin-top: 8px;
+    padding: 8px;
+    background: #f8f9fa;
+    border-radius: 4px;
+    font-size: 12px;
+}
+
+.notification-resolution ul {
+    margin: 4px 0 0;
+    padding-left: 16px;
+}
+
+.notification-resolution li {
+    margin-bottom: 2px;
+}
+
+.notification-actions {
+    margin-top: 8px;
+}
+
+.notification-footer {
+    padding: 8px 16px;
+    border-top: 1px solid #e9ecef;
+    background: #f8f9fa;
+    border-radius: 0 0 8px 8px;
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes slideOut {
+    from {
+        transform: translateX(0);
+        opacity: 1;
+    }
+    to {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+}
+
+.notification.dismissing {
+    animation: slideOut 0.3s ease-in forwards;
+}
+</style>
+
+<script>
+function dismissNotification(notificationId) {
+    const notification = document.querySelector(`[data-notification-id="${notificationId}"]`);
+    if (!notification) return;
+    
+    // Add dismissing animation
+    notification.classList.add('dismissing');
+    
+    // Send dismiss request to server
+    fetch(`/api/v1/service/notifications/${notificationId}/dismiss`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('access_token') || ''}`
+        }
+    }).catch(error => {
+        console.warn('Failed to dismiss notification on server:', error);
+    });
+    
+    // Remove from DOM after animation
+    setTimeout(() => {
+        notification.remove();
+    }, 300);
+}
+
+// Auto-dismiss notifications
+document.addEventListener('DOMContentLoaded', function() {
+    const autoDismissNotifications = document.querySelectorAll('[data-auto-dismiss]');
+    
+    autoDismissNotifications.forEach(notification => {
+        const delay = parseInt(notification.dataset.autoDismiss) || 5000;
+        const notificationId = notification.dataset.notificationId;
+        
+        setTimeout(() => {
+            dismissNotification(notificationId);
+        }, delay);
+    });
+});
+
+// Periodically check for new notifications
+function checkForNewNotifications() {
+    fetch('/api/v1/service/notifications', {
+        headers: {
+            'Authorization': `Bearer ${localStorage.getItem('access_token') || ''}`
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success && data.data.notifications.length > 0) {
+            // Check if we have new notifications
+            const existingIds = Array.from(document.querySelectorAll('[data-notification-id]'))
+                .map(el => el.dataset.notificationId);
+            
+            const newNotifications = data.data.notifications.filter(
+                notification => !existingIds.includes(notification.id)
+            );
+            
+            if (newNotifications.length > 0) {
+                // Reload page to show new notifications
+                // In a real implementation, you might want to dynamically add them
+                location.reload();
+            }
+        }
+    })
+    .catch(error => {
+        console.warn('Failed to check for new notifications:', error);
+    });
+}
+
+// Check for new notifications every 30 seconds
+setInterval(checkForNewNotifications, 30000);
+</script>

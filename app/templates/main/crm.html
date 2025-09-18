@@ -643,8 +643,10 @@ function formatTime(timestamp) {
     
     if (diffDays === 0) return '{{ _("Today") }}';
     if (diffDays === 1) return '{{ _("Yesterday") }}';
-    if (diffDays < 7) return `${diffDays} {{ _("days ago") }}`;
-    return date.toLocaleDateString();
+    if (diffDays < 7) {
+        return formatRelativeTime(timestamp);
+    }
+    return formatDate(date);
 }
 
 function formatDateTime(timestamp) {

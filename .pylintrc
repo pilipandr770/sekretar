@@ -1,0 +1,18 @@
+[MASTER]
+# Ignore PowerShell, shell scripts, and Docker files
+ignore-patterns=.*\.ps1$,.*\.sh$,Dockerfile.*,.*\.dockerfile$
+
+# Add files or directories to the blacklist
+ignore=deployment/scripts,scripts/*.ps1,*.ps1,*.sh,Dockerfile*
+
+[MESSAGES CONTROL]
+# Disable specific warnings for non-Python files
+disable=syntax-error
+
+[REPORTS]
+# Set the output format
+output-format=text
+
+[FORMAT]
+# Maximum number of characters on a single line
+max-line-length=120

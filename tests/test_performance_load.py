@@ -3,13 +3,41 @@ import pytest
 import time
 import threading
 import statistics
+import uuid
+import json
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from unittest.mock import patch, MagicMock
 import psutil
 import os
 
 
-class TestAPIPerformance:
+class TestConcurrentUserTesting:
+    """Test concurrent user operations as required by task 14.1."""
+    
+    def test_simultaneous_user_registration(self, client, app):
+        """Test simultaneous user registration with real company data."""
+        # Real company data for testing
+        test_companies = [
+            {
+                "name": "Microsoft Ireland Operations Limited",
+                "vat_number": "IE9825613N",
+                "country": "IE",
+                "domain": f"microsoft-test-{uuid.uuid4().hex[:8]}.com"
+            },
+            {
+                "name": "SAP SE",
+                "vat_number": "DE143593636", 
+                "country": "DE",
+                "domain": f"sap-test-{uuid.uuid4().hex[:8]}.com"
+            },
+            {
+                "name": "Unilever PLC",
+                "vat_number": "GB123456789",
+                "country": "GB",
+                "domain": f"unilever-test-{uuid.uuid4().hex[:8]}.com"
+            }
+        ]
+    
     """Test API endpoint performance under various conditions."""
     
     def test_single_request_response_time(self, client, tenant, user, auth_headers):

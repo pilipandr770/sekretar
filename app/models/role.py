@@ -82,7 +82,7 @@ class Role(TenantAwareModel):
                     'manage_users', 'manage_settings', 'manage_billing',
                     'manage_channels', 'manage_knowledge', 'manage_crm',
                     'manage_calendar', 'manage_kyb', 'view_analytics',
-                    'manage_roles', 'view_audit_logs'
+                    'manage_roles', 'view_audit_logs', 'manage_translations'
                 ]
             },
             {
@@ -91,7 +91,8 @@ class Role(TenantAwareModel):
                 'permissions': [
                     'manage_users', 'manage_settings', 'manage_billing',
                     'manage_channels', 'manage_knowledge', 'manage_crm',
-                    'manage_calendar', 'manage_kyb', 'view_analytics'
+                    'manage_calendar', 'manage_kyb', 'view_analytics',
+                    'manage_translations'
                 ]
             },
             {
@@ -176,6 +177,9 @@ class Permission:
     # Audit
     VIEW_AUDIT_LOGS = 'view_audit_logs'
     
+    # Translations
+    MANAGE_TRANSLATIONS = 'manage_translations'
+    
     @classmethod
     def get_all_permissions(cls):
         """Get all available permissions."""
@@ -194,7 +198,8 @@ class Permission:
             cls.MANAGE_KYB,
             cls.VIEW_KYB,
             cls.VIEW_ANALYTICS,
-            cls.VIEW_AUDIT_LOGS
+            cls.VIEW_AUDIT_LOGS,
+            cls.MANAGE_TRANSLATIONS
         ]
     
     @classmethod
@@ -210,5 +215,6 @@ class Permission:
             'Calendar': [cls.MANAGE_CALENDAR, cls.VIEW_CALENDAR],
             'KYB': [cls.MANAGE_KYB, cls.VIEW_KYB],
             'Analytics': [cls.VIEW_ANALYTICS],
-            'Audit': [cls.VIEW_AUDIT_LOGS]
+            'Audit': [cls.VIEW_AUDIT_LOGS],
+            'Translations': [cls.MANAGE_TRANSLATIONS]
         }

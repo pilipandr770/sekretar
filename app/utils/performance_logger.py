@@ -225,22 +225,40 @@ class RequestPerformanceLogger:
         
         # Only log slow requests
         if execution_time_ms >= self.threshold_ms:
-            log_context = {
-                "request_id": getattr(g, 'request_id', None),
-                "method": request.method,
-                "path": request.path,
-                "endpoint": request.endpoint,
-                "status_code": response.status_code,
-                "execution_time_ms": round(execution_time_ms, 2),
-                "user_id": getattr(g, 'user_id', None),
-                "tenant_id": getattr(g, 'tenant_id', None),
-                "user_agent": request.headers.get('User-Agent', ''),
-                "remote_addr": request.remote_addr
-            }
-            
-            # Add query parameters for GET requests
-            if request.method == 'GET' and request.args:
-                log_context["query_params"] = dict(request.args)
+            # Check if we're in a request context before accessing request
+            try:
+                from flask import has_request_context
+                if has_request_context():
+                    log_context = {
+                        "request_id": getattr(g, 'request_id', None),
+                        "method": request.method,
+                        "path": request.path,
+                        "endpoint": request.endpoint,
+                        "status_code": response.status_code,
+                        "execution_time_ms": round(execution_time_ms, 2),
+                        "user_id": getattr(g, 'user_id', None),
+                        "tenant_id": getattr(g, 'tenant_id', None),
+                        "user_agent": request.headers.get('User-Agent', ''),
+                        "remote_addr": request.remote_addr
+                    }
+                    
+                    # Add query parameters for GET requests
+                    if request.method == 'GET' and request.args:
+                        log_context["query_params"] = dict(request.args)
+                else:
+                    # No request context, log minimal information
+                    log_context = {
+                        "execution_time_ms": round(execution_time_ms, 2),
+                        "status_code": response.status_code if response else None,
+                        "context": "no_request_context"
+                    }
+            except Exception:
+                # Fallback if has_request_context is not available
+                log_context = {
+                    "execution_time_ms": round(execution_time_ms, 2),
+                    "status_code": response.status_code if response else None,
+                    "context": "context_check_failed"
+                }
             
             # Log as warning if very slow, info otherwise
             if execution_time_ms >= 5000:  # 5 seconds
@@ -257,17 +275,37 @@ class RequestPerformanceLogger:
             if hasattr(g, 'request_start_time'):
                 execution_time_ms = (time.time() - g.request_start_time) * 1000
             
-            log_context = {
-                "request_id": getattr(g, 'request_id', None),
-                "method": request.method,
-                "path": request.path,
-                "endpoint": request.endpoint,
-                "execution_time_ms": round(execution_time_ms, 2),
-                "error": str(exception),
-                "error_type": type(exception).__name__,
-                "user_id": getattr(g, 'user_id', None),
-                "tenant_id": getattr(g, 'tenant_id', None)
-            }
+            # Check if we're in a request context before accessing request
+            try:
+                from flask import has_request_context
+                if has_request_context():
+                    log_context = {
+                        "request_id": getattr(g, 'request_id', None),
+                        "method": request.method,
+                        "path": request.path,
+                        "endpoint": request.endpoint,
+                        "execution_time_ms": round(execution_time_ms, 2),
+                        "error": str(exception),
+                        "error_type": type(exception).__name__,
+                        "user_id": getattr(g, 'user_id', None),
+                        "tenant_id": getattr(g, 'tenant_id', None)
+                    }
+                else:
+                    # No request context, log minimal information
+                    log_context = {
+                        "execution_time_ms": round(execution_time_ms, 2),
+                        "error": str(exception),
+                        "error_type": type(exception).__name__,
+                        "context": "no_request_context"
+                    }
+            except Exception:
+                # Fallback if has_request_context is not available
+                log_context = {
+                    "execution_time_ms": round(execution_time_ms, 2),
+                    "error": str(exception),
+                    "error_type": type(exception).__name__,
+                    "context": "context_check_failed"
+                }
             
             logger.error("Request error", **log_context)
     

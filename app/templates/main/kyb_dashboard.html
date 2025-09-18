@@ -24,7 +24,7 @@
         <div class="card text-center">
             <div class="card-body">
                 <h2 class="card-title text-success" id="checked-counterparties">-</h2>
-                <p class="card-text">Verified</p>
+                <p class="card-text">{{ _("Verified") }}</p>
             </div>
         </div>
     </div>
@@ -32,7 +32,7 @@
         <div class="card text-center">
             <div class="card-body">
                 <h2 class="card-title text-warning" id="pending-checks">-</h2>
-                <p class="card-text">Pending</p>
+                <p class="card-text">{{ _("Pending") }}</p>
             </div>
         </div>
     </div>
@@ -40,7 +40,7 @@
         <div class="card text-center">
             <div class="card-body">
                 <h2 class="card-title text-danger" id="high-risk">-</h2>
-                <p class="card-text">High Risk</p>
+                <p class="card-text">{{ _("High Risk") }}</p>
             </div>
         </div>
     </div>
@@ -56,7 +56,7 @@
             <div class="card-body">
                 <div class="row">
                     <div class="col-md-4 mb-3">
-                        <label for="quick-company-name" class="form-label">Company Name</label>
+                        <label for="quick-company-name" class="form-label">Company {{ _("Name") }}</label>
                         <input type="text" class="form-control" id="quick-company-name" placeholder="ACME GmbH">
                     </div>
                     <div class="col-md-3 mb-3">
@@ -77,7 +77,7 @@
                         <label class="form-label">&nbsp;</label>
                         <div>
                             <button class="btn btn-primary" onclick="performQuickCheck()">🔍 Check Now</button>
-                            <button class="btn btn-outline-secondary" onclick="addCounterparty()">➕ Add</button>
+                            <button class="btn btn-outline-secondary" onclick="addCounterparty()">➕ {{ _("Add") }}</button>
                         </div>
                     </div>
                 </div>
@@ -100,11 +100,11 @@
                     <table class="table table-hover">
                         <thead>
                             <tr>
-                                <th>Company Name</th>
+                                <th>Company {{ _("Name") }}</th>
                                 <th>VAT Number</th>
                                 <th>Country</th>
-                                <th>Status</th>
-                                <th>Risk Level</th>
+                                <th>{{ _("Status") }}</th>
+                                <th>{{ _("Risk Level") }}</th>
                                 <th>Last Check</th>
                                 <th>Actions</th>
                             </tr>
@@ -156,7 +156,7 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-outline-primary" onclick="recheckCounterparty()">🔄 Re-check</button>
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ _("Close") }}</button>
             </div>
         </div>
     </div>
@@ -179,7 +179,7 @@ async function loadDashboardData() {
         if (data.success) {
             const summary = data.data;
             
-            // Update overview cards
+            // {{ _("Update") }} overview cards
             document.getElementById('total-counterparties').textContent = summary.total_counterparties || 0;
             document.getElementById('checked-counterparties').textContent = summary.checked_counterparties || 0;
             document.getElementById('pending-checks').textContent = summary.pending_checks || 0;
@@ -191,10 +191,10 @@ async function loadDashboardData() {
             // Load alerts
             loadAlerts(summary.recent_changes || []);
         } else {
-            showError('Failed to load dashboard data');
+            showError('{{ _("Failed") }} to load dashboard data');
         }
     } catch (error) {
-        console.error('Error loading dashboard:', error);
+        console.error('{{ _("Error") }} loading dashboard:', error);
         showError('Network error loading dashboard');
     }
 }
@@ -213,7 +213,7 @@ async function loadCounterparties() {
                 tbody.innerHTML = `
                     <tr>
                         <td colspan="7" class="text-center text-muted">
-                            No counterparties found. <a href="#" onclick="addCounterparty()">Add your first counterparty</a>
+                            No counterparties found. <a href="#" onclick="addCounterparty()">{{ _("Add") }} your first counterparty</a>
                         </td>
                     </tr>
                 `;
@@ -248,11 +248,11 @@ async function loadCounterparties() {
             `).join('');
         }
     } catch (error) {
-        console.error('Error loading counterparties:', error);
+        console.error('{{ _("Error") }} loading counterparties:', error);
         document.getElementById('counterparties-table').innerHTML = `
             <tr>
                 <td colspan="7" class="text-center text-danger">
-                    Error loading counterparties
+                    {{ _("Error") }} loading counterparties
                 </td>
             </tr>
         `;
@@ -302,7 +302,7 @@ async function performQuickCheck() {
         const response = await fetch('/api/v1/secretary/vat-check', {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json'
+                'Content-{{ _("Type") }}': 'application/json'
             },
             body: JSON.stringify({
                 vat_number: vatNumber,
@@ -319,8 +319,8 @@ async function performQuickCheck() {
                 resultDiv.innerHTML = `
                     <div class="alert alert-success">
                         <h6>✅ Valid Company Found</h6>
-                        <strong>Name:</strong> ${result.name || 'N/A'}<br>
-                        <strong>Address:</strong> ${result.address || 'N/A'}<br>
+                        <strong>{{ _("Name") }}:</strong> ${result.name || 'N/A'}<br>
+                        <strong>{{ _("Address") }}:</strong> ${result.address || 'N/A'}<br>
                         <strong>VAT Number:</strong> ${result.vat_number}<br>
                         <strong>Country:</strong> ${result.country_code}<br>
                         <small class="text-muted">Response time: ${result.response_time_ms}ms</small>
@@ -337,7 +337,7 @@ async function performQuickCheck() {
         } else {
             resultDiv.innerHTML = `
                 <div class="alert alert-danger">
-                    <h6>Error</h6>
+                    <h6>{{ _("Error") }}</h6>
                     ${data.error?.message || 'Unknown error occurred'}
                 </div>
             `;
@@ -345,14 +345,14 @@ async function performQuickCheck() {
     } catch (error) {
         resultDiv.innerHTML = `
             <div class="alert alert-danger">
-                <h6>Network Error</h6>
+                <h6>Network {{ _("Error") }}</h6>
                 ${error.message}
             </div>
         `;
     }
 }
 
-// Add counterparty
+// {{ _("Add") }} counterparty
 async function addCounterparty() {
     const companyName = document.getElementById('quick-company-name').value.trim();
     const vatNumber = document.getElementById('quick-vat-number').value.trim();
@@ -367,7 +367,7 @@ async function addCounterparty() {
         const response = await fetch(`/api/v1/secretary/companies/${currentCompanyId}/counterparties`, {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json'
+                'Content-{{ _("Type") }}': 'application/json'
             },
             body: JSON.stringify({
                 name: companyName,
@@ -382,7 +382,7 @@ async function addCounterparty() {
         if (data.success) {
             showSuccess('Counterparty added successfully');
             
-            // Clear form
+            // {{ _("Clear") }} form
             document.getElementById('quick-company-name').value = '';
             document.getElementById('quick-vat-number').value = '';
             document.getElementById('quick-check-result').innerHTML = '';
@@ -390,7 +390,7 @@ async function addCounterparty() {
             // Refresh data
             refreshData();
         } else {
-            showError(data.error?.message || 'Failed to add counterparty');
+            showError(data.error?.message || '{{ _("Failed") }} to add counterparty');
         }
     } catch (error) {
         showError(`Network error: ${error.message}`);
@@ -475,8 +475,8 @@ function getRiskColor(risk) {
 function formatDate(dateString) {
     if (!dateString) return 'Never';
     
-    const date = new Date(dateString);
-    const now = new Date();
+    const date = new {{ _("Date") }}(dateString);
+    const now = new {{ _("Date") }}();
     const diffMs = now - date;
     const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
     const diffDays = Math.floor(diffHours / 24);

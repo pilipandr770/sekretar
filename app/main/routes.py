@@ -156,3 +156,15 @@ def kyb_dashboard():
 def widget_demo():
     """Web widget demonstration page."""
     return render_template('widget_demo.html')
+
+@main_bp.route('/i18n-test')
+def i18n_test():
+    """I18n integration test page."""
+    return render_template('i18n_test.html')
+
+
+@main_bp.route('/localization-demo')
+def localization_demo():
+    """Advanced localization features demonstration page."""
+    from datetime import datetime, timedelta
+    return render_template('localization_demo.html', timedelta=timedelta)

@@ -71,18 +71,40 @@ def register_jwt_handlers(jwt_manager):
     
     @jwt_manager.user_lookup_loader
     def user_lookup_callback(_jwt_header, jwt_data):
-        """Load user from JWT."""
-        from app.models.user import User
+        """Load user from JWT using authentication adapter."""
         try:
+            from app.utils.auth_adapter import auth_adapter
+            from app.models.user import User
+            
             identity = jwt_data["sub"]
-            # Convert to int if it's a string representation of a number
+            
+            # Validate identity format
             if isinstance(identity, str) and identity.isdigit():
                 identity = int(identity)
-            elif not isinstance(identity, (int, str)):
+            elif not isinstance(identity, int):
                 logger.warning("Invalid JWT subject type", subject=identity, type=type(identity))
                 return None
             
-            return User.query.filter_by(id=identity).one_or_none()
+            # Use database-agnostic user lookup
+            user = User.find_by_id(identity)
+            
+            if user:
+                # Validate user and tenant status
+                validation_result = auth_adapter.validate_user_status(user)
+                if validation_result['valid']:
+                    return user
+                else:
+                    logger.warning(
+                        "User lookup failed validation",
+                        user_id=identity,
+                        error_code=validation_result.get('error_code'),
+                        message=validation_result.get('message')
+                    )
+                    return None
+            else:
+                logger.warning("User not found or inactive", user_id=identity)
+                return None
+                
         except Exception as e:
             logger.warning("Failed to load user from JWT", error=str(e), jwt_data=jwt_data)
             return None

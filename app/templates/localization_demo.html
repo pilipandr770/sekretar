@@ -1,0 +1,394 @@
+{% extends "base.html" %}
+
+{% block title %}{{ _('Advanced Localization Demo') }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="mb-4">{{ _('Advanced Localization Features Demo') }}</h1>
+            
+            <!-- Language Selector -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">{{ _('Language Selection') }}</h5>
+                </div>
+                <div class="card-body">
+                    <p>{{ _('Current Language') }}: <strong>{{ locale.name }}</strong> ({{ locale.code }})</p>
+                    <p>{{ _('Text Direction') }}: {{ 'RTL' if locale.is_rtl else 'LTR' }}</p>
+                    
+                    <div class="btn-group" role="group">
+                        {% for code, name in available_languages.items() %}
+                        <a href="?lang={{ code }}" 
+                           class="btn {{ 'btn-primary' if code == locale.code else 'btn-outline-primary' }}">
+                            {{ name }}
+                        </a>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Date and Time Formatting -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">{{ _('Date and Time Formatting') }}</h5>
+                </div>
+                <div class="card-body">
+                    {% set sample_date = current_time %}
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6>{{ _('Server-side Formatting') }}</h6>
+                            <ul class="list-unstyled">
+                                <li><strong>{{ _('Short Date') }}:</strong> {{ sample_date|format_date('short') }}</li>
+                                <li><strong>{{ _('Medium Date') }}:</strong> {{ sample_date|format_date('medium') }}</li>
+                                <li><strong>{{ _('Long Date') }}:</strong> {{ sample_date|format_date('long') }}</li>
+                                <li><strong>{{ _('Full Date') }}:</strong> {{ sample_date|format_date('full') }}</li>
+                                <li><strong>{{ _('Short Time') }}:</strong> {{ sample_date|format_time('short') }}</li>
+                                <li><strong>{{ _('Medium Time') }}:</strong> {{ sample_date|format_time('medium') }}</li>
+                                <li><strong>{{ _('Short DateTime') }}:</strong> {{ sample_date|format_datetime('short') }}</li>
+                                <li><strong>{{ _('Medium DateTime') }}:</strong> {{ sample_date|format_datetime('medium') }}</li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>{{ _('Client-side Formatting') }}</h6>
+                            <ul class="list-unstyled">
+                                <li><strong>{{ _('Short Date') }}:</strong> <span data-localize="date" data-format="short" data-value="{{ sample_date.isoformat() }}">{{ sample_date|format_date('short') }}</span></li>
+                                <li><strong>{{ _('Medium Date') }}:</strong> <span data-localize="date" data-format="medium" data-value="{{ sample_date.isoformat() }}">{{ sample_date|format_date('medium') }}</span></li>
+                                <li><strong>{{ _('Long Date') }}:</strong> <span data-localize="date" data-format="long" data-value="{{ sample_date.isoformat() }}">{{ sample_date|format_date('long') }}</span></li>
+                                <li><strong>{{ _('Full Date') }}:</strong> <span data-localize="date" data-format="full" data-value="{{ sample_date.isoformat() }}">{{ sample_date|format_date('full') }}</span></li>
+                                <li><strong>{{ _('Short Time') }}:</strong> <span data-localize="time" data-format="short" data-value="{{ sample_date.isoformat() }}">{{ sample_date|format_time('short') }}</span></li>
+                                <li><strong>{{ _('Medium Time') }}:</strong> <span data-localize="time" data-format="medium" data-value="{{ sample_date.isoformat() }}">{{ sample_date|format_time('medium') }}</span></li>
+                                <li><strong>{{ _('Short DateTime') }}:</strong> <span data-localize="datetime" data-format="short" data-value="{{ sample_date.isoformat() }}">{{ sample_date|format_datetime('short') }}</span></li>
+                                <li><strong>{{ _('Medium DateTime') }}:</strong> <span data-localize="datetime" data-format="medium" data-value="{{ sample_date.isoformat() }}">{{ sample_date|format_datetime('medium') }}</span></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Relative Time Formatting -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">{{ _('Relative Time Formatting') }}</h5>
+                </div>
+                <div class="card-body">
+                    {% set now = current_time %}
+                    {% set past_times = [
+                        now - timedelta(minutes=5),
+                        now - timedelta(hours=2),
+                        now - timedelta(days=1),
+                        now - timedelta(days=3),
+                        now - timedelta(weeks=1)
+                    ] %}
+                    {% set future_times = [
+                        now + timedelta(minutes=15),
+                        now + timedelta(hours=4),
+                        now + timedelta(days=2),
+                        now + timedelta(days=7)
+                    ] %}
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6>{{ _('Past Times') }}</h6>
+                            <ul class="list-unstyled">
+                                {% for time in past_times %}
+                                <li>
+                                    <strong>{{ time|format_datetime('short') }}:</strong> 
+                                    {{ time|relative_time }}
+                                    <small class="text-muted">
+                                        (<span data-localize="relative-time" data-value="{{ time.isoformat() }}">{{ time|relative_time }}</span>)
+                                    </small>
+                                </li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>{{ _('Future Times') }}</h6>
+                            <ul class="list-unstyled">
+                                {% for time in future_times %}
+                                <li>
+                                    <strong>{{ time|format_datetime('short') }}:</strong> 
+                                    {{ time|relative_time }}
+                                    <small class="text-muted">
+                                        (<span data-localize="relative-time" data-value="{{ time.isoformat() }}">{{ time|relative_time }}</span>)
+                                    </small>
+                                </li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Number and Currency Formatting -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">{{ _('Number and Currency Formatting') }}</h5>
+                </div>
+                <div class="card-body">
+                    {% set sample_numbers = [1234.56, 1234567.89, 0.1234] %}
+                    {% set sample_currencies = ['EUR', 'USD', 'GBP', 'UAH'] %}
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6>{{ _('Number Formatting') }}</h6>
+                            <ul class="list-unstyled">
+                                {% for number in sample_numbers %}
+                                <li>
+                                    <strong>{{ number }}:</strong> 
+                                    {{ number|format_number }}
+                                    <small class="text-muted">
+                                        (<span data-localize="number" data-value="{{ number }}">{{ number|format_number }}</span>)
+                                    </small>
+                                </li>
+                                {% endfor %}
+                            </ul>
+                            
+                            <h6 class="mt-3">{{ _('Percentage Formatting') }}</h6>
+                            <ul class="list-unstyled">
+                                {% for number in sample_numbers %}
+                                <li>
+                                    <strong>{{ number }}:</strong> 
+                                    {{ number|format_percent }}
+                                    <small class="text-muted">
+                                        (<span data-localize="percent" data-value="{{ number }}">{{ number|format_percent }}</span>)
+                                    </small>
+                                </li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>{{ _('Currency Formatting') }}</h6>
+                            {% for currency in sample_currencies %}
+                            <div class="mb-2">
+                                <strong>{{ currency }}:</strong>
+                                <ul class="list-unstyled ms-3">
+                                    {% for amount in sample_numbers[:2] %}
+                                    <li>
+                                        {{ amount|format_currency(currency) }}
+                                        <small class="text-muted">
+                                            (<span data-localize="currency" data-currency="{{ currency }}" data-value="{{ amount }}">{{ amount|format_currency(currency) }}</span>)
+                                        </small>
+                                    </li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Pluralization -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">{{ _('Pluralization') }}</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6>{{ _('Items Count') }}</h6>
+                            <ul class="list-unstyled">
+                                {% for count in [0, 1, 2, 5, 21, 101] %}
+                                <li>
+                                    {{ count|pluralize_count(_('item'), _('items')) }}
+                                </li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>{{ _('Messages Count') }}</h6>
+                            <ul class="list-unstyled">
+                                {% for count in [0, 1, 2, 5, 21, 101] %}
+                                <li>
+                                    {{ ngettext('%(num)d message', '%(num)d messages', count, num=count) }}
+                                </li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- File Size Formatting -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">{{ _('File Size Formatting') }}</h5>
+                </div>
+                <div class="card-body">
+                    {% set file_sizes = [0, 1024, 1048576, 1073741824, 1099511627776] %}
+                    
+                    <ul class="list-unstyled">
+                        {% for size in file_sizes %}
+                        <li>
+                            <strong>{{ size }} {{ _('bytes') }}:</strong> 
+                            {{ size|format_file_size }}
+                            <small class="text-muted">
+                                (<span data-localize="file-size" data-value="{{ size }}">{{ size|format_file_size }}</span>)
+                            </small>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+            
+            <!-- Locale Information -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">{{ _('Locale Information') }}</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6>{{ _('Basic Information') }}</h6>
+                            <ul class="list-unstyled">
+                                <li><strong>{{ _('Code') }}:</strong> {{ locale.info.code or locale.code }}</li>
+                                <li><strong>{{ _('Display Name') }}:</strong> {{ locale.info.display_name or locale.name }}</li>
+                                <li><strong>{{ _('English Name') }}:</strong> {{ locale.info.english_name or locale.name }}</li>
+                                <li><strong>{{ _('Language') }}:</strong> {{ locale.info.language or locale.code }}</li>
+                                <li><strong>{{ _('Territory') }}:</strong> {{ locale.info.territory or 'N/A' }}</li>
+                                <li><strong>{{ _('Currency') }}:</strong> {{ locale.info.currency or 'EUR' }}</li>
+                                <li><strong>{{ _('Currency Symbol') }}:</strong> {{ locale.info.currency_symbol or '€' }}</li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>{{ _('Formatting Symbols') }}</h6>
+                            <ul class="list-unstyled">
+                                <li><strong>{{ _('Decimal Symbol') }}:</strong> {{ locale.info.decimal_symbol or '.' }}</li>
+                                <li><strong>{{ _('Group Symbol') }}:</strong> {{ locale.info.group_symbol or ',' }}</li>
+                                <li><strong>{{ _('First Week Day') }}:</strong> {{ locale.info.first_week_day or 0 }}</li>
+                                <li><strong>{{ _('Weekend Start') }}:</strong> {{ locale.info.weekend_start or 5 }}</li>
+                                <li><strong>{{ _('Weekend End') }}:</strong> {{ locale.info.weekend_end or 6 }}</li>
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    {% if locale.info.date_formats %}
+                    <div class="mt-3">
+                        <h6>{{ _('Date Format Patterns') }}</h6>
+                        <ul class="list-unstyled">
+                            {% for format_name, pattern in locale.info.date_formats.items() %}
+                            <li><strong>{{ format_name.title() }}:</strong> {{ pattern }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    {% endif %}
+                    
+                    {% if locale.info.time_formats %}
+                    <div class="mt-3">
+                        <h6>{{ _('Time Format Patterns') }}</h6>
+                        <ul class="list-unstyled">
+                            {% for format_name, pattern in locale.info.time_formats.items() %}
+                            <li><strong>{{ format_name.title() }}:</strong> {{ pattern }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Month and Day Names -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">{{ _('Localized Names') }}</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6>{{ _('Month Names') }}</h6>
+                            {% set months = get_month_names() %}
+                            {% if months.wide %}
+                            <div class="mb-3">
+                                <strong>{{ _('Full Names') }}:</strong>
+                                <ul class="list-unstyled ms-3">
+                                    {% for month in months.wide %}
+                                    <li>{{ loop.index }}. {{ month }}</li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                            {% endif %}
+                            {% if months.abbreviated %}
+                            <div>
+                                <strong>{{ _('Abbreviated') }}:</strong>
+                                <ul class="list-unstyled ms-3">
+                                    {% for month in months.abbreviated %}
+                                    <li>{{ loop.index }}. {{ month }}</li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <h6>{{ _('Day Names') }}</h6>
+                            {% set days = get_day_names() %}
+                            {% if days.wide %}
+                            <div class="mb-3">
+                                <strong>{{ _('Full Names') }}:</strong>
+                                <ul class="list-unstyled ms-3">
+                                    {% for day in days.wide %}
+                                    <li>{{ loop.index }}. {{ day }}</li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                            {% endif %}
+                            {% if days.abbreviated %}
+                            <div>
+                                <strong>{{ _('Abbreviated') }}:</strong>
+                                <ul class="list-unstyled ms-3">
+                                    {% for day in days.abbreviated %}
+                                    <li>{{ loop.index }}. {{ day }}</li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Template Tests -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">{{ _('Template Tests') }}</h5>
+                </div>
+                <div class="card-body">
+                    {% set test_date = current_time %}
+                    {% set past_date = current_time - timedelta(days=1) %}
+                    {% set future_date = current_time + timedelta(days=1) %}
+                    
+                    <ul class="list-unstyled">
+                        <li><strong>{{ _('Current time is past') }}:</strong> {{ test_date is past }}</li>
+                        <li><strong>{{ _('Current time is future') }}:</strong> {{ test_date is future }}</li>
+                        <li><strong>{{ _('Current time is today') }}:</strong> {{ test_date is today }}</li>
+                        <li><strong>{{ _('Current time is this week') }}:</strong> {{ test_date is this_week }}</li>
+                        <li><strong>{{ _('Current time is this month') }}:</strong> {{ test_date is this_month }}</li>
+                        <li><strong>{{ _('Past date is past') }}:</strong> {{ past_date is past }}</li>
+                        <li><strong>{{ _('Future date is future') }}:</strong> {{ future_date is future }}</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Set current locale for JavaScript
+window.currentLocale = '{{ locale.code }}';
+
+// Initialize localization client when page loads
+document.addEventListener('DOMContentLoaded', function() {
+    if (window.LocalizationClient) {
+        window.localization = new LocalizationClient('{{ locale.code }}');
+        window.localization.updateElementsWithLocalization();
+        window.localization.startAutoUpdate();
+        
+        console.log('Localization client initialized for locale:', '{{ locale.code }}');
+    }
+});
+</script>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/localization.js') }}"></script>
+{% endblock %}

@@ -262,12 +262,122 @@ class NotificationService:
             self.logger.error(f"Error getting user preferences: {str(e)}")
             return []
     
+    def send_localized_email_notification(
+        self,
+        recipient: User,
+        template_name: str,
+        context: Dict[str, Any],
+        subject_key: Optional[str] = None,
+        subject_params: Optional[Dict[str, Any]] = None,
+        priority: str = 'normal'
+    ) -> bool:
+        """Send localized email notification using email localization service."""
+        try:
+            from app.services.email_localization_service import get_email_localization_service
+            email_service = get_email_localization_service()
+            
+            return email_service.send_localized_email(
+                recipient=recipient,
+                template_name=template_name,
+                context=context,
+                subject_key=subject_key,
+                subject_params=subject_params,
+                priority=priority
+            )
+        
+        except Exception as e:
+            self.logger.error(f"Error sending localized email notification: {str(e)}")
+            return False
+    
+    @staticmethod
+    def send_welcome_email(user: User, setup_url: Optional[str] = None) -> bool:
+        """Send welcome email to new user."""
+        try:
+            from app.models import Tenant
+            
+            tenant = Tenant.query.get(user.tenant_id) if user.tenant_id else None
+            company_name = tenant.name if tenant else "AI Secretary"
+            
+            context = {
+                'user': user,
+                'company_name': company_name,
+                'setup_url': setup_url
+            }
+            
+            service = NotificationService()
+            return service.send_localized_email_notification(
+                recipient=user,
+                template_name='welcome.html',
+                context=context,
+                priority='normal'
+            )
+            
+        except Exception as e:
+            current_app.logger.error(f"Welcome email error: {str(e)}")
+            return False
+    
+    @staticmethod
+    def send_password_reset_email(user: User, reset_url: str) -> bool:
+        """Send password reset email to user."""
+        try:
+            from app.models import Tenant
+            
+            tenant = Tenant.query.get(user.tenant_id) if user.tenant_id else None
+            company_name = tenant.name if tenant else "AI Secretary"
+            
+            context = {
+                'user': user,
+                'company_name': company_name,
+                'reset_url': reset_url
+            }
+            
+            service = NotificationService()
+            return service.send_localized_email_notification(
+                recipient=user,
+                template_name='password_reset.html',
+                context=context,
+                priority='high'
+            )
+            
+        except Exception as e:
+            current_app.logger.error(f"Password reset email error: {str(e)}")
+            return False
+    
+    @staticmethod
+    def send_invoice_notification_email(user: User, invoice_data: Dict[str, Any]) -> bool:
+        """Send invoice notification email to user."""
+        try:
+            from app.models import Tenant
+            
+            tenant = Tenant.query.get(user.tenant_id) if user.tenant_id else None
+            company_name = tenant.name if tenant else "AI Secretary"
+            
+            context = {
+                'user': user,
+                'company_name': company_name,
+                **invoice_data
+            }
+            
+            service = NotificationService()
+            priority = 'high' if invoice_data.get('status') == 'overdue' else 'normal'
+            
+            return service.send_localized_email_notification(
+                recipient=user,
+                template_name='invoice_notification.html',
+                context=context,
+                priority=priority
+            )
+            
+        except Exception as e:
+            current_app.logger.error(f"Invoice notification email error: {str(e)}")
+            return False
+    
     # Legacy methods for backward compatibility
     @staticmethod
     def send_change_notification(change_data: Dict) -> bool:
         """Send notification about counterparty changes."""
         try:
-            from app.models import Counterparty, Tenant
+            from app.models import Counterparty, Tenant, User
             
             # Get counterparty and tenant info
             counterparty = Counterparty.query.get(change_data['counterparty_id'])
@@ -278,33 +388,42 @@ class NotificationService:
             if not tenant:
                 return False
             
-            # Prepare notification data
-            notification_data = {
+            # Get recipient user
+            recipient_email = change_data.get('recipient_email', 'admin@example.com')
+            recipient = User.query.filter_by(email=recipient_email, tenant_id=tenant.id).first()
+            
+            if not recipient:
+                # Fallback to tenant owner
+                recipient = User.query.filter_by(tenant_id=tenant.id, role='owner').first()
+            
+            if not recipient:
+                current_app.logger.warning(f"No recipient found for change notification")
+                return False
+            
+            # Prepare notification context
+            context = {
                 'company_name': tenant.name,
                 'counterparty_name': counterparty.name,
-                'field_changed': change_data['field_name'],
-                'old_value': change_data['old_value'],
-                'new_value': change_data['new_value'],
+                'alert_type': 'Data Change',
+                'severity': 'medium',
+                'details': f"Field '{change_data['field_name']}' changed from '{change_data['old_value']}' to '{change_data['new_value']}'",
                 'detected_at': change_data['detected_at'],
-                'change_source': change_data.get('change_source', 'Unknown')
+                'change_source': change_data.get('change_source', 'Unknown'),
+                'recommendations': [
+                    'Review the changes for accuracy',
+                    'Update internal records if necessary',
+                    'Contact counterparty if clarification needed'
+                ]
             }
             
-            # Send email notification using new service
+            # Send localized email notification
             service = NotificationService()
-            notification = service.create_notification(
-                tenant_id=tenant.id,
-                recipient=change_data.get('recipient_email', 'admin@example.com'),
-                notification_type=NotificationType.EMAIL,
-                subject=f"KYB Alert: Changes detected for {counterparty.name}",
-                body=f"Changes detected for {counterparty.name}",
-                variables=notification_data
+            return service.send_localized_email_notification(
+                recipient=recipient,
+                template_name='kyb_alert.html',
+                context=context,
+                priority='normal'
             )
-            
-            if notification:
-                service.send_notification_async(notification.id)
-                return True
-            
-            return False
             
         except Exception as e:
             current_app.logger.error(f"Change notification error: {str(e)}")
@@ -314,7 +433,7 @@ class NotificationService:
     def send_sanctions_alert(counterparty_id: str, match_data: Dict) -> bool:
         """Send high-priority sanctions alert."""
         try:
-            from app.models import Counterparty, Tenant
+            from app.models import Counterparty, Tenant, User
             
             counterparty = Counterparty.query.get(counterparty_id)
             if not counterparty:
@@ -324,34 +443,47 @@ class NotificationService:
             if not tenant:
                 return False
             
-            # Prepare alert data
-            alert_data = {
+            # Get recipient user
+            recipient_email = match_data.get('recipient_email', 'admin@example.com')
+            recipient = User.query.filter_by(email=recipient_email, tenant_id=tenant.id).first()
+            
+            if not recipient:
+                # Fallback to tenant owner
+                recipient = User.query.filter_by(tenant_id=tenant.id, role='owner').first()
+            
+            if not recipient:
+                current_app.logger.warning(f"No recipient found for sanctions alert")
+                return False
+            
+            # Prepare alert context
+            context = {
                 'company_name': tenant.name,
                 'counterparty_name': counterparty.name,
+                'alert_type': 'Sanctions Match',
+                'severity': 'urgent',
+                'details': f"Match found on {match_data['list']} with {match_data['score']}% confidence",
+                'detected_at': match_data['detected_at'],
                 'sanctions_list': match_data['list'],
                 'match_type': match_data['type'],
                 'match_score': match_data['score'],
                 'matched_keyword': match_data.get('matched_keyword', ''),
-                'detected_at': match_data['detected_at']
+                'recommendations': [
+                    'Immediately review the counterparty relationship',
+                    'Consult with legal/compliance team',
+                    'Consider suspending transactions',
+                    'Document all actions taken',
+                    'Report to relevant authorities if required'
+                ]
             }
             
-            # Send high-priority notification using new service
+            # Send urgent localized email notification
             service = NotificationService()
-            notification = service.create_notification(
-                tenant_id=tenant.id,
-                recipient=match_data.get('recipient_email', 'admin@example.com'),
-                notification_type=NotificationType.EMAIL,
-                subject=f"🚨 URGENT: Sanctions match found for {counterparty.name}",
-                body=f"Sanctions match found for {counterparty.name}",
-                priority=NotificationPriority.URGENT,
-                variables=alert_data
+            return service.send_localized_email_notification(
+                recipient=recipient,
+                template_name='kyb_alert.html',
+                context=context,
+                priority='urgent'
             )
-            
-            if notification:
-                service.send_notification_async(notification.id)
-                return True
-            
-            return False
             
         except Exception as e:
             current_app.logger.error(f"Sanctions alert error: {str(e)}")

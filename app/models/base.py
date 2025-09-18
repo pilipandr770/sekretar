@@ -11,8 +11,12 @@ def get_fk_reference(table_name):
     """Get foreign key reference with proper schema handling."""
     try:
         from flask import current_app
-        if current_app.config.get('TESTING', False):
+        
+        # Check if we're using SQLite (no schema support)
+        detected_db_type = current_app.config.get('DETECTED_DATABASE_TYPE')
+        if detected_db_type == 'sqlite' or current_app.config.get('TESTING', False):
             return f'{table_name}.id'
+        
         schema_name = get_schema_name()
         if schema_name:
             return f'{schema_name}.{table_name}.id'
@@ -24,7 +28,13 @@ def get_fk_reference(table_name):
         testing = os.environ.get('TESTING', 'False').lower() == 'true'
         if testing:
             return f'{table_name}.id'
-        schema_name = os.environ.get('DB_SCHEMA', 'ai_secretary')
+        
+        # Check if SQLite is being used
+        database_url = os.environ.get('DATABASE_URL', '')
+        if database_url.startswith('sqlite://') or os.environ.get('DETECTED_DATABASE_TYPE') == 'sqlite':
+            return f'{table_name}.id'
+        
+        schema_name = os.environ.get('DB_SCHEMA')
         if schema_name:
             return f'{schema_name}.{table_name}.id'
         else:
@@ -48,8 +58,12 @@ class BaseModel(db.Model, BaseModelMixin, TimestampMixin):
         """Set schema for all tables."""
         try:
             from flask import current_app
-            if current_app.config.get('TESTING', False):
+            
+            # Check if we're using SQLite (no schema support)
+            detected_db_type = current_app.config.get('DETECTED_DATABASE_TYPE')
+            if detected_db_type == 'sqlite' or current_app.config.get('TESTING', False):
                 return {}
+            
             schema_name = get_schema_name()
             if schema_name:
                 return {'schema': schema_name}
@@ -60,7 +74,13 @@ class BaseModel(db.Model, BaseModelMixin, TimestampMixin):
             testing = os.environ.get('TESTING', 'False').lower() == 'true'
             if testing:
                 return {}
-            schema_name = os.environ.get('DB_SCHEMA', 'ai_secretary')
+            
+            # Check if SQLite is being used
+            database_url = os.environ.get('DATABASE_URL', '')
+            if database_url.startswith('sqlite://') or os.environ.get('DETECTED_DATABASE_TYPE') == 'sqlite':
+                return {}
+            
+            schema_name = os.environ.get('DB_SCHEMA')
             if schema_name:
                 return {'schema': schema_name}
             return {}

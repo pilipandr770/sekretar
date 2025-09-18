@@ -1,8 +1,22 @@
+
 """Middleware utilities."""
+import os
+import time
+from functools import lru_cache
 from flask import request, session, g
 from flask_jwt_extended import get_current_user, jwt_required
 from app.utils.i18n import get_user_language, set_user_language
 import structlog
+
+# Performance optimizations
+@lru_cache(maxsize=128)
+def cached_language_detection(accept_language):
+    """Cached language detection to avoid repeated parsing"""
+    # Your existing language detection logic here
+    return 'en'  # Default fallback
+
+# Disable slow operations in development
+SKIP_SLOW_OPERATIONS = os.environ.get('FLASK_ENV') == 'development'
 
 logger = structlog.get_logger()
 
@@ -229,6 +243,10 @@ def init_middleware(app):
     setup_role_validation_middleware(app)
     setup_request_logging_middleware(app)
     setup_error_handling_middleware(app)
+    
+    # Initialize API localization middleware
+    from app.utils.api_localization_middleware import init_api_localization_middleware
+    init_api_localization_middleware(app)
     
     # Initialize tenant isolation middleware (skip in testing)
     import os

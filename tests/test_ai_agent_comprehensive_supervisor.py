@@ -12,4 +12,5 @@ class TestSupervisorAgentComprehensive:
     
     @pytest.fixture
     def supervisor_agent(self):
-        """Create a Sup
+        """Create a SupervisorAgent instance for testing."""
+        return SupervisorAgent()

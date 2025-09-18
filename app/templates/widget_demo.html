@@ -1,3 +1,7 @@
+{% extends "base.html" %}
+
+{% block title %}{{ _("{{ _("Widget Demo") }}") }} - {{ _("AI Secretary") }}{% endblock %}
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -161,14 +165,14 @@
         <div class="demo-section">
             <h3>Widget Controls</h3>
             <div class="button-group">
-                <button class="btn btn-primary" onclick="openWidget()">Open Widget</button>
-                <button class="btn btn-secondary" onclick="closeWidget()">Close Widget</button>
+                <button class="btn btn-primary" onclick="openWidget()">{{ _("Open") }} Widget</button>
+                <button class="btn btn-secondary" onclick="closeWidget()">{{ _("{{ _("Close") }}") }} Widget</button>
                 <button class="btn btn-success" onclick="toggleTheme()">Toggle Theme</button>
                 <button class="btn btn-secondary" onclick="sendTestMessage()">Send Test Message</button>
             </div>
             
             <div id="widget-status" class="status info">
-                Widget Status: Initializing...
+                Widget {{ _("Status") }}: Initializing...
             </div>
         </div>
         
@@ -228,7 +232,7 @@ const widget = new AISecretaryWidget({
     // Content
     title: 'AI Secretary',
     subtitle: 'How can I help you today?',
-    placeholder: 'Type your message...',
+    placeholder: '{{ _("Type") }} your message...',
     
     // Behavior
     autoOpen: false,
@@ -252,19 +256,19 @@ const widget = new AISecretaryWidget({
             <h3>API Methods</h3>
             <div class="config-example">
 // Widget control
-widget.open();           // Open the widget
-widget.close();          // Close the widget
+widget.open();           // {{ _("Open") }} the widget
+widget.close();          // {{ _("{{ _("Close") }}") }} the widget
 widget.toggle();         // Toggle widget open/close
 
 // Configuration
 widget.setTheme('dark'); // Change theme
-widget.updateConfig({   // Update configuration
+widget.updateConfig({   // {{ _("Update") }} configuration
     title: 'New Title',
     enableSound: false
 });
 
 // Cleanup
-widget.destroy();        // Remove widget from DOM
+widget.destroy();        // {{ _("Remove") }} widget from DOM
             </div>
         </div>
     </div>
@@ -313,14 +317,14 @@ widget.destroy();        // Remove widget from DOM
                 
                 updateStatus('Widget initialized successfully', 'success');
             } catch (error) {
-                console.error('Failed to initialize widget:', error);
-                updateStatus('Failed to initialize widget: ' + error.message, 'warning');
+                console.error('{{ _("Failed") }} to initialize widget:', error);
+                updateStatus('{{ _("Failed") }} to initialize widget: ' + error.message, 'warning');
             }
         }
         
         function updateStatus(message, type = 'info') {
             const statusEl = document.getElementById('widget-status');
-            statusEl.textContent = 'Widget Status: ' + message;
+            statusEl.textContent = 'Widget {{ _("Status") }}: ' + message;
             statusEl.className = 'status ' + type;
         }
         

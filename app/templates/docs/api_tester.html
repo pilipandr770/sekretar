@@ -1,3 +1,7 @@
+{% extends "base.html" %}
+
+{% block title %}{{ _("{{ _("API Tester") }}") }} - {{ _("AI Secretary") }}{% endblock %}
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -327,7 +331,7 @@
             <h3>Authentication <span id="auth-status" class="auth-status unauthenticated">Not Authenticated</span></h3>
             <div class="auth-form">
                 <div class="form-group">
-                    <label for="email">Email:</label>
+                    <label for="email">{{ _("Email") }}:</label>
                     <input type="email" id="email" placeholder="your@email.com">
                 </div>
                 <div class="form-group">
@@ -354,19 +358,19 @@
                             <option value="PATCH">PATCH</option>
                         </select>
                         <input type="text" class="url-input" id="url" placeholder="/api/v1/health" value="/api/v1/health">
-                        <button class="btn btn-success" onclick="sendRequest()">Send Request</button>
+                        <button class="btn btn-success" onclick="sendRequest()">{{ _("Send Request") }}</button>
                     </div>
 
                     <div class="headers-section">
-                        <h4>Headers</h4>
+                        <h4>{{ _("Headers") }}</h4>
                         <div class="headers-container" id="headers-container">
                             <div class="header-row">
-                                <input type="text" placeholder="Header name" value="Content-Type">
+                                <input type="text" placeholder="Header name" value="Content-{{ _("Type") }}">
                                 <input type="text" placeholder="Header value" value="application/json">
-                                <button class="btn btn-danger" onclick="removeHeader(this)">Remove</button>
+                                <button class="btn btn-danger" onclick="removeHeader(this)">{{ _("Remove") }}</button>
                             </div>
                         </div>
-                        <button class="btn btn-primary" onclick="addHeader()">Add Header</button>
+                        <button class="btn btn-primary" onclick="addHeader()">{{ _("Add") }} Header</button>
                     </div>
 
                     <div class="body-section">
@@ -377,7 +381,7 @@
             </div>
 
             <div class="response-section" id="response-section" style="display: none;">
-                <h3>Response</h3>
+                <h3>{{ _("Response") }}</h3>
                 <div class="response-info" id="response-info"></div>
                 <div class="response-body" id="response-body"></div>
             </div>
@@ -389,9 +393,9 @@
                     <button class="example-btn" onclick="loadExample('login')">Login</button>
                     <button class="example-btn" onclick="loadExample('tenant')">Get Tenant</button>
                     <button class="example-btn" onclick="loadExample('leads')">List Leads</button>
-                    <button class="example-btn" onclick="loadExample('create-lead')">Create Lead</button>
+                    <button class="example-btn" onclick="loadExample('create-lead')">{{ _("Create") }} Lead</button>
                     <button class="example-btn" onclick="loadExample('messages')">List Messages</button>
-                    <button class="example-btn" onclick="loadExample('knowledge-search')">Search Knowledge</button>
+                    <button class="example-btn" onclick="loadExample('knowledge-search')">{{ _("Search") }} Knowledge</button>
                 </div>
             </div>
         </div>
@@ -401,7 +405,7 @@
         let accessToken = localStorage.getItem('access_token');
         let refreshToken = localStorage.getItem('refresh_token');
 
-        // Update auth status on page load
+        // {{ _("Update") }} auth status on page load
         updateAuthStatus();
 
         function updateAuthStatus() {
@@ -413,7 +417,7 @@
                 authStatus.className = 'auth-status authenticated';
                 tokenInfo.textContent = `Token: ${accessToken.substring(0, 20)}...`;
                 
-                // Add Authorization header if not present
+                // {{ _("Add") }} Authorization header if not present
                 addAuthHeader();
             } else {
                 authStatus.textContent = 'Not Authenticated';
@@ -453,7 +457,7 @@
                 const response = await fetch('/api/v1/auth/login', {
                     method: 'POST',
                     headers: {
-                        'Content-Type': 'application/json'
+                        'Content-{{ _("Type") }}': 'application/json'
                     },
                     body: JSON.stringify({ email, password })
                 });
@@ -486,7 +490,7 @@
             
             updateAuthStatus();
             
-            // Remove Authorization header
+            // {{ _("Remove") }} Authorization header
             const headers = document.querySelectorAll('#headers-container .header-row');
             headers.forEach(row => {
                 const nameInput = row.querySelector('input:first-child');
@@ -503,7 +507,7 @@
             headerRow.innerHTML = `
                 <input type="text" placeholder="Header name" value="${name}">
                 <input type="text" placeholder="Header value" value="${value}">
-                <button class="btn btn-danger" onclick="removeHeader(this)">Remove</button>
+                <button class="btn btn-danger" onclick="removeHeader(this)">{{ _("Remove") }}</button>
             `;
             container.appendChild(headerRow);
         }
@@ -542,9 +546,9 @@
             document.body.classList.add('loading');
 
             try {
-                const startTime = Date.now();
+                const startTime = {{ _("Date") }}.now();
                 const response = await fetch(url, options);
-                const endTime = Date.now();
+                const endTime = {{ _("Date") }}.now();
                 const responseTime = endTime - startTime;
 
                 let responseData;
@@ -578,12 +582,12 @@
                                   response.status < 500 ? 'status-400' : 'status-500';
                 
                 responseInfo.innerHTML = `
-                    <div>Status: <span class="status-code ${statusClass}">${response.status} ${response.statusText}</span></div>
-                    <div>Time: ${responseTime}ms</div>
+                    <div>{{ _("Status") }}: <span class="status-code ${statusClass}">${response.status} ${response.statusText}</span></div>
+                    <div>{{ _("Time") }}: ${responseTime}ms</div>
                     <div>Size: ${JSON.stringify(data).length} bytes</div>
                 `;
             } else {
-                responseInfo.innerHTML = '<div>Status: <span class="status-code status-500">Network Error</span></div>';
+                responseInfo.innerHTML = '<div>{{ _("Status") }}: <span class="status-code status-500">Network {{ _("Error") }}</span></div>';
             }
 
             responseBody.textContent = typeof data === 'string' ? data : JSON.stringify(data, null, 2);
@@ -600,7 +604,7 @@
                 'login': {
                     method: 'POST',
                     url: '/api/v1/auth/login',
-                    headers: [['Content-Type', 'application/json']],
+                    headers: [['Content-{{ _("Type") }}', 'application/json']],
                     body: JSON.stringify({
                         email: 'user@example.com',
                         password: 'password123'
@@ -623,7 +627,7 @@
                     url: '/api/v1/crm/leads',
                     headers: [
                         ['Authorization', `Bearer ${accessToken || 'YOUR_ACCESS_TOKEN'}`],
-                        ['Content-Type', 'application/json']
+                        ['Content-{{ _("Type") }}', 'application/json']
                     ],
                     body: JSON.stringify({
                         contact: {
@@ -648,7 +652,7 @@
                     url: '/api/v1/knowledge/search',
                     headers: [
                         ['Authorization', `Bearer ${accessToken || 'YOUR_ACCESS_TOKEN'}`],
-                        ['Content-Type', 'application/json']
+                        ['Content-{{ _("Type") }}', 'application/json']
                     ],
                     body: JSON.stringify({
                         query: 'How to reset password?',
@@ -665,18 +669,18 @@
             document.getElementById('url').value = config.url;
             document.getElementById('request-body').value = config.body;
 
-            // Clear existing headers
+            // {{ _("{{ _("Clear") }}") }} existing headers
             const container = document.getElementById('headers-container');
             container.innerHTML = '';
 
-            // Add headers
+            // {{ _("Add") }} headers
             config.headers.forEach(([name, value]) => {
                 addHeader(name, value);
             });
         }
 
         // Initialize with default headers
-        addHeader('Content-Type', 'application/json');
+        addHeader('Content-{{ _("Type") }}', 'application/json');
         if (accessToken) {
             addHeader('Authorization', `Bearer ${accessToken}`);
         }

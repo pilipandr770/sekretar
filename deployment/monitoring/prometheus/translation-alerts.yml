@@ -1,0 +1,187 @@
+# Prometheus alerting rules for translation system
+
+groups:
+  - name: translation_system
+    rules:
+      # High response time alert
+      - alert: TranslationHighResponseTime
+        expr: histogram_quantile(0.95, sum(rate(translation_response_time_seconds_bucket[5m])) by (language, le)) > 2.0
+        for: 2m
+        labels:
+          severity: critical
+          service: translation
+        annotations:
+          summary: "High translation response time for {{ $labels.language }}"
+          description: "95th percentile response time for {{ $labels.language }} translations is {{ $value }}s, which is above the 2s threshold."
+          runbook_url: "https://docs.yourcompany.com/runbooks/translation-high-response-time"
+
+      # Low cache hit rate alert
+      - alert: TranslationLowCacheHitRate
+        expr: sum(rate(translation_cache_hits_total[5m])) / (sum(rate(translation_cache_hits_total[5m])) + sum(rate(translation_cache_misses_total[5m]))) * 100 < 20
+        for: 5m
+        labels:
+          severity: critical
+          service: translation
+        annotations:
+          summary: "Low translation cache hit rate"
+          description: "Translation cache hit rate is {{ $value }}%, which is below the 20% critical threshold."
+          runbook_url: "https://docs.yourcompany.com/runbooks/translation-low-cache-hit-rate"
+
+      # High error rate alert
+      - alert: TranslationHighErrorRate
+        expr: sum(rate(translation_errors_total[5m])) / sum(rate(translation_requests_total[5m])) * 100 > 15
+        for: 2m
+        labels:
+          severity: critical
+          service: translation
+        annotations:
+          summary: "High translation error rate"
+          description: "Translation error rate is {{ $value }}%, which is above the 15% critical threshold."
+          runbook_url: "https://docs.yourcompany.com/runbooks/translation-high-error-rate"
+
+      # Low translation coverage alert
+      - alert: TranslationLowCoverage
+        expr: translation_coverage_percentage < 60
+        for: 10m
+        labels:
+          severity: critical
+          service: translation
+        annotations:
+          summary: "Low translation coverage for {{ $labels.language }}"
+          description: "Translation coverage for {{ $labels.language }} is {{ $value }}%, which is below the 60% critical threshold."
+          runbook_url: "https://docs.yourcompany.com/runbooks/translation-low-coverage"
+
+      # Translation file missing alert
+      - alert: TranslationFileMissing
+        expr: translation_file_size_bytes == 0
+        for: 1m
+        labels:
+          severity: critical
+          service: translation
+        annotations:
+          summary: "Translation file missing for {{ $labels.language }}"
+          description: "{{ $labels.file_type }} file for {{ $labels.language }} is missing or empty."
+          runbook_url: "https://docs.yourcompany.com/runbooks/translation-file-missing"
+
+      # Warning alerts
+      - alert: TranslationSlowResponseTime
+        expr: histogram_quantile(0.95, sum(rate(translation_response_time_seconds_bucket[5m])) by (language, le)) > 0.5
+        for: 5m
+        labels:
+          severity: warning
+          service: translation
+        annotations:
+          summary: "Slow translation response time for {{ $labels.language }}"
+          description: "95th percentile response time for {{ $labels.language }} translations is {{ $value }}s, which is above the 0.5s warning threshold."
+
+      - alert: TranslationModerateCacheHitRate
+        expr: sum(rate(translation_cache_hits_total[5m])) / (sum(rate(translation_cache_hits_total[5m])) + sum(rate(translation_cache_misses_total[5m]))) * 100 < 50
+        for: 10m
+        labels:
+          severity: warning
+          service: translation
+        annotations:
+          summary: "Moderate translation cache hit rate"
+          description: "Translation cache hit rate is {{ $value }}%, which is below the 50% warning threshold."
+
+      - alert: TranslationModerateErrorRate
+        expr: sum(rate(translation_errors_total[5m])) / sum(rate(translation_requests_total[5m])) * 100 > 5
+        for: 5m
+        labels:
+          severity: warning
+          service: translation
+        annotations:
+          summary: "Moderate translation error rate"
+          description: "Translation error rate is {{ $value }}%, which is above the 5% warning threshold."
+
+      - alert: TranslationModerateCoverage
+        expr: translation_coverage_percentage < 80
+        for: 15m
+        labels:
+          severity: warning
+          service: translation
+        annotations:
+          summary: "Moderate translation coverage for {{ $labels.language }}"
+          description: "Translation coverage for {{ $labels.language }} is {{ $value }}%, which is below the 80% warning threshold."
+
+      # System resource alerts
+      - alert: TranslationSystemHighMemory
+        expr: (process_resident_memory_bytes{job="ai-secretary"} / 1024 / 1024 / 1024) > 2
+        for: 5m
+        labels:
+          severity: warning
+          service: translation
+        annotations:
+          summary: "High memory usage in translation system"
+          description: "Translation system is using {{ $value }}GB of memory, which is above the 2GB warning threshold."
+
+      - alert: TranslationSystemHighDisk
+        expr: (1 - (node_filesystem_avail_bytes{mountpoint="/"} / node_filesystem_size_bytes{mountpoint="/"})) * 100 > 90
+        for: 5m
+        labels:
+          severity: critical
+          service: translation
+        annotations:
+          summary: "High disk usage on translation system"
+          description: "Disk usage is {{ $value }}%, which is above the 90% critical threshold."
+
+  - name: translation_health_checks
+    rules:
+      # Health check failure
+      - alert: TranslationHealthCheckFailed
+        expr: up{job="ai-secretary-health"} == 0
+        for: 2m
+        labels:
+          severity: critical
+          service: translation
+        annotations:
+          summary: "Translation health check failed"
+          description: "Translation system health check has been failing for more than 2 minutes."
+          runbook_url: "https://docs.yourcompany.com/runbooks/translation-health-check-failed"
+
+      # Service down
+      - alert: TranslationServiceDown
+        expr: up{job="ai-secretary"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          service: translation
+        annotations:
+          summary: "Translation service is down"
+          description: "Translation service has been down for more than 1 minute."
+          runbook_url: "https://docs.yourcompany.com/runbooks/translation-service-down"
+
+  - name: translation_business_metrics
+    rules:
+      # Low request volume (might indicate issues)
+      - alert: TranslationLowRequestVolume
+        expr: sum(rate(translation_requests_total[5m])) < 0.1
+        for: 10m
+        labels:
+          severity: warning
+          service: translation
+        annotations:
+          summary: "Low translation request volume"
+          description: "Translation request rate is {{ $value }} requests/second, which is unusually low."
+
+      # High request volume (might indicate load issues)
+      - alert: TranslationHighRequestVolume
+        expr: sum(rate(translation_requests_total[5m])) > 100
+        for: 5m
+        labels:
+          severity: warning
+          service: translation
+        annotations:
+          summary: "High translation request volume"
+          description: "Translation request rate is {{ $value }} requests/second, which is unusually high."
+
+      # Language-specific issues
+      - alert: TranslationLanguageSpecificErrors
+        expr: sum(rate(translation_errors_total[5m])) by (language) > 1
+        for: 3m
+        labels:
+          severity: warning
+          service: translation
+        annotations:
+          summary: "High error rate for {{ $labels.language }} translations"
+          description: "Error rate for {{ $labels.language }} translations is {{ $value }} errors/second."

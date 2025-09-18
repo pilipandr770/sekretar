@@ -14,7 +14,7 @@
                     </h3>
                 </div>
                 <div class="card-body">
-                    <!-- Status Section -->
+                    <!-- {{ _("Status") }} Section -->
                     <div class="row mb-4">
                         <div class="col-12">
                             <div class="alert alert-info" id="status-alert">
@@ -57,11 +57,11 @@
 
                                     <hr>
 
-                                    <!-- Step 2: Register Phone Number -->
+                                    <!-- Step 2: Register {{ _("Phone") }} Number -->
                                     <div class="setup-step" id="step-register">
                                         <div class="d-flex align-items-center mb-3">
                                             <div class="step-number">2</div>
-                                            <h5 class="mb-0 ml-3">Register Phone Number</h5>
+                                            <h5 class="mb-0 ml-3">Register {{ _("Phone") }} Number</h5>
                                             <div class="ml-auto">
                                                 <span class="badge badge-secondary" id="register-status">Not Started</span>
                                             </div>
@@ -71,7 +71,7 @@
                                         </p>
                                         <form id="register-form">
                                             <div class="form-group">
-                                                <label for="phone-number">Phone Number</label>
+                                                <label for="phone-number">{{ _("Phone") }} Number</label>
                                                 <input type="tel" class="form-control" id="phone-number" 
                                                        placeholder="+1234567890" required>
                                                 <small class="form-text text-muted">
@@ -88,18 +88,18 @@
                                             </div>
                                             <button type="submit" class="btn btn-primary" id="register-btn" disabled>
                                                 <i class="fas fa-phone"></i>
-                                                Register Phone Number
+                                                Register {{ _("Phone") }} Number
                                             </button>
                                         </form>
                                     </div>
 
                                     <hr>
 
-                                    <!-- Step 3: Verify Phone Number -->
+                                    <!-- Step 3: Verify {{ _("Phone") }} Number -->
                                     <div class="setup-step" id="step-verify">
                                         <div class="d-flex align-items-center mb-3">
                                             <div class="step-number">3</div>
-                                            <h5 class="mb-0 ml-3">Verify Phone Number</h5>
+                                            <h5 class="mb-0 ml-3">Verify {{ _("Phone") }} Number</h5>
                                             <div class="ml-auto">
                                                 <span class="badge badge-secondary" id="verify-status">Not Started</span>
                                             </div>
@@ -109,7 +109,7 @@
                                         </p>
                                         <form id="verify-form">
                                             <div class="form-group">
-                                                <label for="verification-code">Verification Code</label>
+                                                <label for="verification-code">{{ _("Verification Code") }}</label>
                                                 <input type="text" class="form-control" id="verification-code" 
                                                        placeholder="123456" maxlength="6" required>
                                                 <small class="form-text text-muted">
@@ -118,28 +118,28 @@
                                             </div>
                                             <button type="submit" class="btn btn-primary" id="verify-btn" disabled>
                                                 <i class="fas fa-check"></i>
-                                                Verify Phone Number
+                                                Verify {{ _("Phone") }} Number
                                             </button>
                                         </form>
                                     </div>
 
                                     <hr>
 
-                                    <!-- Step 4: Create Channel -->
+                                    <!-- Step 4: {{ _("Create") }} Channel -->
                                     <div class="setup-step" id="step-channel">
                                         <div class="d-flex align-items-center mb-3">
                                             <div class="step-number">4</div>
-                                            <h5 class="mb-0 ml-3">Create Signal Channel</h5>
+                                            <h5 class="mb-0 ml-3">{{ _("Create") }} Signal Channel</h5>
                                             <div class="ml-auto">
                                                 <span class="badge badge-secondary" id="channel-status">Not Started</span>
                                             </div>
                                         </div>
                                         <p class="text-muted mb-3">
-                                            Create a Signal channel to start receiving and responding to messages.
+                                            {{ _("Create") }} a Signal channel to start receiving and responding to messages.
                                         </p>
                                         <form id="channel-form">
                                             <div class="form-group">
-                                                <label for="channel-name">Channel Name</label>
+                                                <label for="channel-name">Channel {{ _("Name") }}</label>
                                                 <input type="text" class="form-control" id="channel-name" 
                                                        placeholder="My Signal Channel">
                                                 <small class="form-text text-muted">
@@ -160,7 +160,7 @@
                                             </div>
                                             <button type="submit" class="btn btn-success" id="channel-btn" disabled>
                                                 <i class="fas fa-plus"></i>
-                                                Create Signal Channel
+                                                {{ _("Create") }} Signal Channel
                                             </button>
                                         </form>
                                     </div>
@@ -181,10 +181,10 @@
                                         <table class="table table-striped" id="channels-table">
                                             <thead>
                                                 <tr>
-                                                    <th>Name</th>
-                                                    <th>Phone Number</th>
-                                                    <th>Status</th>
-                                                    <th>Created</th>
+                                                    <th>{{ _("Name") }}</th>
+                                                    <th>{{ _("Phone") }} Number</th>
+                                                    <th>{{ _("Status") }}</th>
+                                                    <th>{{ _("Created") }}</th>
                                                     <th>Actions</th>
                                                 </tr>
                                             </thead>
@@ -214,7 +214,7 @@
                                             <input type="tel" class="form-control" id="test-recipient" 
                                                    placeholder="+1234567890" required>
                                             <small class="form-text text-muted">
-                                                Phone number to send test message to
+                                                {{ _("Phone") }} number to send test message to
                                             </small>
                                         </div>
                                         <div class="form-group">
@@ -294,7 +294,7 @@ function loadSignalStatus() {
         },
         error: function(xhr) {
             hideLoading();
-            showError('Failed to load Signal status: ' + getErrorMessage(xhr));
+            showError('{{ _("Failed") }} to load Signal status: ' + getErrorMessage(xhr));
         }
     });
 }
@@ -322,7 +322,7 @@ function updateStatusDisplay(data) {
                       .addClass(statusClass)
                       .html(statusHtml);
     
-    // Update existing channels
+    // {{ _("Update") }} existing channels
     if (channels.length > 0) {
         updateChannelsTable(channels);
         $('#existing-channels').show();
@@ -337,7 +337,7 @@ function updateSetupSteps(data) {
     // Step 1: Installation
     if (installation.is_installed) {
         setupState.installed = true;
-        $('#install-status').removeClass('badge-secondary').addClass('badge-success').text('Completed');
+        $('#install-status').removeClass('badge-secondary').addClass('badge-success').text('{{ _("Completed") }}');
         $('#install-btn').prop('disabled', true).html('<i class="fas fa-check"></i> Already Installed');
         $('#register-btn').prop('disabled', false);
     }
@@ -357,14 +357,14 @@ function updateSetupSteps(data) {
         setupState.verified = true;
         setupState.channelCreated = true;
         
-        $('#register-status').removeClass('badge-secondary').addClass('badge-success').text('Completed');
-        $('#verify-status').removeClass('badge-secondary').addClass('badge-success').text('Completed');
-        $('#channel-status').removeClass('badge-secondary').addClass('badge-success').text('Completed');
+        $('#register-status').removeClass('badge-secondary').addClass('badge-success').text('{{ _("Completed") }}');
+        $('#verify-status').removeClass('badge-secondary').addClass('badge-success').text('{{ _("Completed") }}');
+        $('#channel-status').removeClass('badge-secondary').addClass('badge-success').text('{{ _("Completed") }}');
         
         $('#phone-number').val(currentPhoneNumber).prop('disabled', true);
         $('#register-btn').prop('disabled', true).html('<i class="fas fa-check"></i> Already Registered');
         $('#verify-btn').prop('disabled', true).html('<i class="fas fa-check"></i> Already Verified');
-        $('#channel-btn').prop('disabled', true).html('<i class="fas fa-check"></i> Channel Created');
+        $('#channel-btn').prop('disabled', true).html('<i class="fas fa-check"></i> Channel {{ _("Created") }}');
     }
 }
 
@@ -385,7 +385,7 @@ function installSignalCLI() {
         method: 'POST',
         headers: {
             'Authorization': 'Bearer ' + localStorage.getItem('access_token'),
-            'Content-Type': 'application/json'
+            'Content-{{ _("Type") }}': 'application/json'
         },
         data: JSON.stringify({
             version: 'latest'
@@ -428,7 +428,7 @@ function registerPhoneNumber(e) {
         method: 'POST',
         headers: {
             'Authorization': 'Bearer ' + localStorage.getItem('access_token'),
-            'Content-Type': 'application/json'
+            'Content-{{ _("Type") }}': 'application/json'
         },
         data: JSON.stringify({
             phone_number: phoneNumber,
@@ -475,7 +475,7 @@ function verifyPhoneNumber(e) {
         method: 'POST',
         headers: {
             'Authorization': 'Bearer ' + localStorage.getItem('access_token'),
-            'Content-Type': 'application/json'
+            'Content-{{ _("Type") }}': 'application/json'
         },
         data: JSON.stringify({
             phone_number: currentPhoneNumber,
@@ -510,7 +510,7 @@ function createSignalChannel(e) {
         method: 'POST',
         headers: {
             'Authorization': 'Bearer ' + localStorage.getItem('access_token'),
-            'Content-Type': 'application/json'
+            'Content-{{ _("Type") }}': 'application/json'
         },
         data: JSON.stringify({
             phone_number: currentPhoneNumber,
@@ -522,7 +522,7 @@ function createSignalChannel(e) {
             hideLoading();
             setupState.channelCreated = true;
             
-            $('#channel-status').removeClass('badge-secondary').addClass('badge-success').text('Created');
+            $('#channel-status').removeClass('badge-secondary').addClass('badge-success').text('{{ _("Created") }}');
             
             showSuccess(response.message);
             loadSignalStatus();
@@ -540,10 +540,10 @@ function updateChannelsTable(channels) {
     
     channels.forEach(channel => {
         const statusBadge = channel.is_active ? 
-            '<span class="badge badge-success">Active</span>' : 
-            '<span class="badge badge-secondary">Inactive</span>';
+            '<span class="badge badge-success">{{ _("Active") }}</span>' : 
+            '<span class="badge badge-secondary">{{ _("Inactive") }}</span>';
         
-        const createdDate = new Date(channel.created_at).toLocaleDateString();
+        const createdDate = new {{ _("Date") }}(channel.created_at).toLocaleDateString();
         
         const row = `
             <tr>
@@ -556,7 +556,7 @@ function updateChannelsTable(channels) {
                         <i class="fas fa-vial"></i> Test
                     </button>
                     <button class="btn btn-sm btn-warning" onclick="editChannel(${channel.id})">
-                        <i class="fas fa-edit"></i> Edit
+                        <i class="fas fa-edit"></i> {{ _("Edit") }}
                     </button>
                 </td>
             </tr>
@@ -584,7 +584,7 @@ function sendTestMessage(e) {
         method: 'POST',
         headers: {
             'Authorization': 'Bearer ' + localStorage.getItem('access_token'),
-            'Content-Type': 'application/json'
+            'Content-{{ _("Type") }}': 'application/json'
         },
         data: JSON.stringify({
             recipient: recipient,
@@ -597,7 +597,7 @@ function sendTestMessage(e) {
         },
         error: function(xhr) {
             hideLoading();
-            showError('Failed to send test message: ' + getErrorMessage(xhr));
+            showError('{{ _("Failed") }} to send test message: ' + getErrorMessage(xhr));
         }
     });
 }

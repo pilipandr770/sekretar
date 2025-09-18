@@ -11,10 +11,12 @@ logger = structlog.get_logger()
 def get_schema_name():
     """Get current database schema name."""
     try:
-        # Return None for testing to disable schema usage with SQLite
-        if current_app.config.get('TESTING', False):
-            return current_app.config.get('DB_SCHEMA')  # This will be None from conftest.py
-        schema = current_app.config.get('DB_SCHEMA', 'ai_secretary')
+        # Check if we're using SQLite (no schema support)
+        detected_db_type = current_app.config.get('DETECTED_DATABASE_TYPE')
+        if detected_db_type == 'sqlite' or current_app.config.get('TESTING', False):
+            return None
+        
+        schema = current_app.config.get('DB_SCHEMA')
         return schema
     except RuntimeError:
         # Fallback when outside application context
@@ -22,7 +24,13 @@ def get_schema_name():
         testing = os.environ.get('TESTING', 'False').lower() == 'true'
         if testing:
             return None
-        return os.environ.get('DB_SCHEMA', 'ai_secretary')
+        
+        # Check if SQLite is being used
+        database_url = os.environ.get('DATABASE_URL', '')
+        if database_url.startswith('sqlite://') or os.environ.get('DETECTED_DATABASE_TYPE') == 'sqlite':
+            return None
+        
+        return os.environ.get('DB_SCHEMA')
 
 
 def create_schema_if_not_exists():

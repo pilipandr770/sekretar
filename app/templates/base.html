@@ -10,6 +10,7 @@
     
     <!-- Custom CSS -->
     <link href="{{ url_for('static', filename='css/app.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/i18n.css') }}" rel="stylesheet">
     
     {% block head %}{% endblock %}
 </head>
@@ -70,16 +71,7 @@
                 </ul>
                 
                 <!-- Language Selector -->
-                <div class="dropdown me-3">
-                    <button class="btn btn-outline-light btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown">
-                        🇺🇸 English
-                    </button>
-                    <ul class="dropdown-menu">
-                        <li><a class="dropdown-item" href="?lang=en">🇺🇸 English</a></li>
-                        <li><a class="dropdown-item" href="?lang=de">🇩🇪 Deutsch</a></li>
-                        <li><a class="dropdown-item" href="?lang=uk">🇺🇦 Українська</a></li>
-                    </ul>
-                </div>
+                <div id="language-switcher" class="me-3"></div>
                 
                 <!-- User Menu -->
                 <div class="dropdown" id="user-menu">
@@ -144,13 +136,13 @@
             <div class="row">
                 <div class="col-md-6">
                     <p class="text-muted mb-0">
-                        &copy; 2025 AI Secretary. All rights reserved.
+                        &copy; 2025 {{ _('AI Secretary. All rights reserved.') }}
                     </p>
                 </div>
                 <div class="col-md-6 text-end">
-                    <a href="#" class="text-muted me-3">Privacy Policy</a>
-                    <a href="#" class="text-muted me-3">Terms of Service</a>
-                    <a href="#" class="text-muted">Support</a>
+                    <a href="#" class="text-muted me-3">{{ _('Privacy Policy') }}</a>
+                    <a href="#" class="text-muted me-3">{{ _('Terms of Service') }}</a>
+                    <a href="#" class="text-muted">{{ _('Support') }}</a>
                 </div>
             </div>
         </div>
@@ -165,6 +157,131 @@
     <!-- Custom JS -->
     <script src="{{ url_for('static', filename='js/app.js') }}"></script>
     <script src="{{ url_for('static', filename='js/websocket-client.js') }}"></script>
+    
+    <!-- i18n System -->
+    <script src="{{ url_for('static', filename='js/i18n.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/language-switcher.js') }}"></script>
+    
+    <!-- i18n Initialization -->
+    <script>
+    // Initialize i18n system
+    document.addEventListener('DOMContentLoaded', async () => {
+        try {
+            // Get i18n context from server
+            const response = await fetch('/api/v1/i18n/context');
+            const contextData = await response.json();
+            
+            if (contextData.success) {
+                const context = contextData.data;
+                
+                // Initialize i18n client
+                window.i18n = new I18nClient(
+                    context.current_language,
+                    context.translations
+                );
+                
+                // Set fallback translations
+                window.i18nFallbackTranslations = context.fallback_translations;
+                window.i18nAvailableLocales = Object.keys(context.available_languages);
+                
+                // Initialize language switcher
+                window.languageSwitcher = new LanguageSwitcher({
+                    containerId: 'language-switcher',
+                    style: 'dropdown',
+                    position: 'navbar',
+                    showFlags: true,
+                    showNames: true
+                });
+                
+                // Update page elements with translations
+                updateTranslatableElements();
+                
+                console.log('i18n system initialized successfully');
+            } else {
+                console.error('Failed to load i18n context:', contextData.message);
+                // Fallback initialization
+                initializeFallbackI18n();
+            }
+        } catch (error) {
+            console.error('Error initializing i18n system:', error);
+            // Fallback initialization
+            initializeFallbackI18n();
+        }
+    });
+    
+    // Fallback initialization when API is not available
+    function initializeFallbackI18n() {
+        const currentLang = '{{ get_current_language() }}';
+        window.i18n = new I18nClient(currentLang, {});
+        
+        // Basic language switcher
+        window.languageSwitcher = new LanguageSwitcher({
+            containerId: 'language-switcher',
+            style: 'dropdown',
+            position: 'navbar',
+            showFlags: true,
+            showNames: true
+        });
+    }
+    
+    // Update all translatable elements
+    function updateTranslatableElements() {
+        const elements = document.querySelectorAll('[data-i18n]');
+        elements.forEach(element => {
+            const key = element.dataset.i18n;
+            const params = element.dataset.i18nParams ? 
+                JSON.parse(element.dataset.i18nParams) : {};
+            
+            if (element.tagName === 'INPUT' && (element.type === 'submit' || element.type === 'button')) {
+                element.value = _(key, params);
+            } else if (element.hasAttribute('placeholder')) {
+                element.placeholder = _(key, params);
+            } else if (element.hasAttribute('title')) {
+                element.title = _(key, params);
+            } else {
+                element.textContent = _(key, params);
+            }
+        });
+    }
+    
+    // Listen for language changes and update UI
+    window.addEventListener('localechange', (event) => {
+        updateTranslatableElements();
+        updateDateTimeDisplays();
+        
+        // Update HTML lang attribute
+        document.documentElement.lang = event.detail.locale;
+        
+        // Update page title if it has translation key
+        const titleElement = document.querySelector('title');
+        if (titleElement && titleElement.dataset.i18nKey) {
+            titleElement.textContent = _(titleElement.dataset.i18nKey);
+        }
+    });
+    
+    // Update date/time displays
+    function updateDateTimeDisplays() {
+        const dateElements = document.querySelectorAll('[data-date], [data-datetime], [data-relative-time]');
+        
+        dateElements.forEach(element => {
+            if (element.dataset.date) {
+                const date = new Date(element.dataset.date);
+                element.textContent = formatDate(date);
+            } else if (element.dataset.datetime) {
+                const date = new Date(element.dataset.datetime);
+                element.textContent = formatDate(date, 'datetime');
+            } else if (element.dataset.relativeTime) {
+                const date = new Date(element.dataset.relativeTime);
+                element.textContent = formatRelativeTime(date);
+            }
+        });
+    }
+    
+    // Backward compatibility functions
+    function pluralize(count, singular, plural) {
+        return window.i18n ? window.i18n.pluralize(count, singular, plural) : (count === 1 ? singular : plural);
+    }
+    </script>
     
     <!-- Authentication JS -->
     <script>

@@ -137,35 +137,33 @@ def login():
                 'email': [_('Invalid email address')]
             })
         
-        # Authenticate user
-        user = User.authenticate(email, password)
+        # Use authentication adapter for database-agnostic authentication
+        from app.utils.auth_adapter import auth_adapter
+        
+        user = auth_adapter.authenticate_user(email, password)
         if not user:
-            # Log failed login attempt
-            AuditLog.log_action(
-                action='login_failed',
-                resource_type='user',
-                tenant_id=None,
-                metadata={'email': email, 'reason': 'invalid_credentials'},
-                ip_address=request.remote_addr,
-                user_agent=request.headers.get('User-Agent'),
-                status='failed'
-            )
+            # Try to log failed login attempt, but don't fail if we can't
+            try:
+                # For failed logins, we might not have a tenant_id, so we'll skip audit logging
+                # This is acceptable since we're logging the failure in the application logs
+                logger.warning(
+                    "Failed login attempt",
+                    email=email,
+                    ip_address=request.remote_addr,
+                    user_agent=request.headers.get('User-Agent'),
+                    reason='invalid_credentials'
+                )
+            except Exception as audit_error:
+                logger.warning(f"Failed to log audit entry: {audit_error}")
             
             return unauthorized_response(_('Invalid email or password'))
         
-        # Check if account is active
-        if not user.is_active:
+        # Validate user and tenant status
+        validation_result = auth_adapter.validate_user_status(user)
+        if not validation_result['valid']:
             return error_response(
-                error_code='AUTHENTICATION_ERROR',
-                message=_('Account is disabled'),
-                status_code=401
-            )
-        
-        # Check tenant status
-        if not user.tenant or not user.tenant.is_active:
-            return error_response(
-                error_code='AUTHENTICATION_ERROR',
-                message=_('Organization account is disabled'),
+                error_code=validation_result['error_code'],
+                message=_(validation_result['message']),
                 status_code=401
             )
         
@@ -173,38 +171,55 @@ def login():
         if user.language:
             set_user_language(user.language)
         
-        # Create access tokens
-        access_token = create_access_token(identity=user)
-        refresh_token = create_refresh_token(identity=user)
-        
-        # Update last login
-        user.update_last_login()
-        
-        # Log successful login
-        AuditLog.log_login(
-            user=user,
-            ip_address=request.remote_addr,
-            user_agent=request.headers.get('User-Agent'),
-            success=True
-        )
-        
-        logger.info(
-            "User logged in successfully",
-            user_id=user.id,
-            tenant_id=user.tenant_id,
-            email=email
-        )
-        
-        return success_response(
-            message=_('Login successful. Welcome back!'),
-            data={
-                'user': user.to_dict(),
-                'tenant': user.tenant.to_dict(),
-                'access_token': access_token,
-                'refresh_token': refresh_token,
-                'token_type': 'Bearer'
-            }
-        )
+        try:
+            # Generate JWT tokens using authentication adapter
+            tokens = auth_adapter.generate_tokens(user)
+            
+            # Update last login
+            user.update_last_login()
+            
+            # Log successful login
+            AuditLog.log_login(
+                user=user,
+                ip_address=request.remote_addr,
+                user_agent=request.headers.get('User-Agent'),
+                success=True
+            )
+            
+            logger.info(
+                "User logged in successfully",
+                user_id=user.id,
+                tenant_id=user.tenant_id,
+                email=email
+            )
+            
+            # Get user permissions
+            permissions = auth_adapter.get_user_permissions(user)
+            
+            return success_response(
+                message=_('Login successful. Welcome back!'),
+                data={
+                    'user': user.to_dict(),
+                    'tenant': user.tenant.to_dict(),
+                    'permissions': permissions,
+                    **tokens
+                }
+            )
+            
+        except Exception as token_error:
+            logger.error(
+                "Token generation failed during login",
+                user_id=user.id,
+                tenant_id=user.tenant_id,
+                email=email,
+                error=str(token_error),
+                exc_info=True
+            )
+            return error_response(
+                error_code='TOKEN_GENERATION_ERROR',
+                message=_('Login successful but token generation failed. Please try again.'),
+                status_code=500
+            )
         
     except Exception as e:
         logger.error("Login failed", error=str(e), exc_info=True)
@@ -262,16 +277,16 @@ def get_profile():
         if not user:
             return unauthorized_response(_('Authentication required'))
         
+        # Get comprehensive user permissions using authentication adapter
+        from app.utils.auth_adapter import auth_adapter
+        permissions = auth_adapter.get_user_permissions(user)
+        
         return success_response(
             message=_('Profile retrieved successfully'),
             data={
                 'user': user.to_dict(),
                 'tenant': user.tenant.to_dict() if user.tenant else None,
-                'permissions': {
-                    'can_manage_users': user.can_manage_users,
-                    'can_access_billing': user.can_access_billing,
-                    'can_manage_settings': user.can_manage_settings
-                }
+                'permissions': permissions
             }
         )
         
@@ -360,8 +375,19 @@ def refresh():
     try:
         user = get_current_user()
         
-        if not user or not user.is_active:
+        if not user:
             return unauthorized_response(_('Authentication required'))
+        
+        # Validate user status using authentication adapter
+        from app.utils.auth_adapter import auth_adapter
+        validation_result = auth_adapter.validate_user_status(user)
+        
+        if not validation_result['valid']:
+            return error_response(
+                error_code=validation_result['error_code'],
+                message=_(validation_result['message']),
+                status_code=401
+            )
         
         # Create new access token
         access_token = create_access_token(identity=user)

@@ -111,6 +111,31 @@ def require_active_subscription():
     return decorator
 
 
+def admin_required(f):
+    """Decorator to require admin role."""
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        user = getattr(request, 'current_user', None)
+        if not user:
+            # Try to get from JWT
+            try:
+                user = get_current_user()
+                if user:
+                    request.current_user = user
+            except:
+                return unauthorized_response(_('Authentication required'))
+        
+        if not user:
+            return unauthorized_response(_('Authentication required'))
+        
+        # Check if user is admin
+        if not hasattr(user, 'role') or user.role != 'admin':
+            return forbidden_response(_('Administrator access required'))
+        
+        return f(*args, **kwargs)
+    return decorated_function
+
+
 def get_current_tenant():
     """Get current tenant from request context."""
     user = getattr(request, 'current_user', None)

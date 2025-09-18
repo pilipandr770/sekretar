@@ -1,0 +1,39 @@
+# Dockerfile for translation health check service
+FROM python:3.11-slim
+
+# Set environment variables
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PATH="/opt/venv/bin:$PATH"
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Create and activate virtual environment
+RUN python -m venv /opt/venv
+
+# Install Python dependencies
+COPY requirements.txt .
+RUN pip install --upgrade pip && \
+    pip install -r requirements.txt
+
+# Create app user
+RUN groupadd -r appuser && useradd -r -g appuser appuser
+
+# Create app directory
+WORKDIR /app
+
+# Copy application code
+COPY --chown=appuser:appuser . .
+
+# Switch to app user
+USER appuser
+
+# Health check
+HEALTHCHECK --interval=60s --timeout=30s --start-period=10s --retries=3 \
+    CMD python -c "from app.services.translation_monitoring_service import get_translation_monitoring_service; service = get_translation_monitoring_service(); health = service.perform_health_check(); exit(0 if health['overall_status'] == 'healthy' else 1)"
+
+# Default command
+CMD ["python", "-m", "app.services.translation_health_checker"]

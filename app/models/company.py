@@ -1,18 +1,17 @@
 """Company and related models."""
 from datetime import datetime
-from sqlalchemy.dialects.postgresql import UUID
-from sqlalchemy import JSON
 from sqlalchemy import Column, String, Text, Boolean, DateTime, ForeignKey, Integer
 from sqlalchemy.orm import relationship
 import uuid
 from app import db
+from app.utils.database_types import UUID, JSON
 
 
 class Company(db.Model):
     """Company model for AI Secretary users."""
     __tablename__ = 'companies'
     
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    id = Column(UUID(), primary_key=True, default=uuid.uuid4)
     name = Column(String(255), nullable=False)
     vat_number = Column(String(50))
     address = Column(Text)
@@ -52,10 +51,10 @@ class CommunicationChannel(db.Model):
     """Communication channels for AI Secretary."""
     __tablename__ = 'communication_channels'
     
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    company_id = Column(UUID(as_uuid=True), ForeignKey('companies.id'), nullable=False)
+    id = Column(UUID(), primary_key=True, default=uuid.uuid4)
+    company_id = Column(UUID(), ForeignKey('companies.id'), nullable=False)
     channel_type = Column(String(50), nullable=False)  # phone, email, telegram, etc.
-    config = Column(JSON)  # Channel-specific configuration
+    config = Column(JSON())  # Channel-specific configuration
     enabled = Column(Boolean, default=True)
     
     # Metadata
@@ -85,13 +84,13 @@ class KnowledgeDocument(db.Model):
     """Documents uploaded to the knowledge base."""
     __tablename__ = 'knowledge_documents'
     
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    company_id = Column(UUID(as_uuid=True), ForeignKey('companies.id'), nullable=False)
+    id = Column(UUID(), primary_key=True, default=uuid.uuid4)
+    company_id = Column(UUID(), ForeignKey('companies.id'), nullable=False)
     filename = Column(String(255), nullable=False)
     content_type = Column(String(100))
     file_size = Column(Integer)
     # vector_embeddings would be added when we implement pgvector
-    document_metadata = Column(JSON)
+    document_metadata = Column(JSON())
     processing_status = Column(String(50), default='pending')  # pending, processing, completed, error
     
     # Metadata

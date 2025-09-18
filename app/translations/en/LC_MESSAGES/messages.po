@@ -1,83 +1,294 @@
 # English translations for AI Secretary (default language)
 # Copyright (C) 2024
-# This file is distributed under the same license as the AI Secretary project.
+# This file is distributed under the same license as the AI Secretary
+# project.
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: AI Secretary 1.0\n"
 "Report-Msgid-Bugs-To: support@ai-secretary.com\n"
-"POT-Creation-Date: 2024-01-01 12:00+0000\n"
+"POT-Creation-Date: 2025-09-18 14:09+0200\n"
 "PO-Revision-Date: 2024-01-01 12:00+0000\n"
 "Last-Translator: AI Secretary Team\n"
 "Language: en\n"
 "Language-Team: English\n"
-"Plural-Forms: nplurals=2; plural=(n != 1)\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Generated-By: Babel 2.12.1\n"
+"Generated-By: Babel 2.17.0\n"
 
 # Note: English is the default language, so most strings remain as-is
 # This file is mainly for completeness and future reference
-
 # Authentication
-msgid "Authentication required"
-msgstr "Authentication required"
+#~ msgid "Authentication required"
+#~ msgstr "Authentication required"
 
-msgid "Invalid email or password"
-msgstr "Invalid email or password"
+#~ msgid "Invalid email or password"
+#~ msgstr "Invalid email or password"
 
-msgid "Account is disabled"
-msgstr "Account is disabled"
+#~ msgid "Account is disabled"
+#~ msgstr "Account is disabled"
 
-msgid "Token has expired"
-msgstr "Token has expired"
+#~ msgid "Token has expired"
+#~ msgstr "Token has expired"
 
 # Validation
-msgid "This field is required"
-msgstr "This field is required"
+#~ msgid "This field is required"
+#~ msgstr "This field is required"
 
-msgid "Invalid email address"
-msgstr "Invalid email address"
+#~ msgid "Invalid email address"
+#~ msgstr "Invalid email address"
 
-msgid "Invalid phone number"
-msgstr "Invalid phone number"
+#~ msgid "Invalid phone number"
+#~ msgstr "Invalid phone number"
 
-msgid "Password must be at least 8 characters"
-msgstr "Password must be at least 8 characters"
+#~ msgid "Password must be at least 8 characters"
+#~ msgstr "Password must be at least 8 characters"
 
 # UI Elements
-msgid "Dashboard"
-msgstr "Dashboard"
+# Permissions
+#~ msgid "Access denied"
+#~ msgstr "Access denied"
 
-msgid "Inbox"
-msgstr "Inbox"
+#~ msgid "Insufficient permissions"
+#~ msgstr "Insufficient permissions"
 
-msgid "CRM"
-msgstr "CRM"
+# API Response Messages
+#~ msgid "Operation completed successfully"
+#~ msgstr "Operation completed successfully"
 
-msgid "Calendar"
-msgstr "Calendar"
+#~ msgid "Operation failed"
+#~ msgstr "Operation failed"
 
-msgid "Knowledge"
-msgstr "Knowledge"
+#~ msgid "Validation failed"
+#~ msgstr "Validation failed"
 
-msgid "Settings"
-msgstr "Settings"
+#~ msgid "Form validation failed"
+#~ msgstr "Form validation failed"
 
-msgid "Profile"
-msgstr "Profile"
+#~ msgid "Business validation failed"
+#~ msgstr "Business validation failed"
 
-msgid "Account"
-msgstr "Account"
+#~ msgid "Request must be JSON"
+#~ msgstr "Request must be JSON"
 
-msgid "Logout"
-msgstr "Logout"
+#~ msgid "Request body cannot be empty"
+#~ msgstr "Request body cannot be empty"
 
-msgid "Login"
-msgstr "Login"
+# Field Validation Messages
+#~ msgid "Please enter a valid email address"
+#~ msgstr "Please enter a valid email address"
 
-msgid "Register"
-msgstr "Register"
+#~ msgid "Please enter a valid URL"
+#~ msgstr "Please enter a valid URL"
 
-# All other messages remain in English as default
+#~ msgid "Please enter a valid number"
+#~ msgstr "Please enter a valid number"
+
+#~ msgid "Please enter true or false"
+#~ msgstr "Please enter true or false"
+
+#~ msgid "Please enter a valid date"
+#~ msgstr "Please enter a valid date"
+
+#~ msgid "Please enter a valid date and time"
+#~ msgstr "Please enter a valid date and time"
+
+#~ msgid "This field cannot be empty"
+#~ msgstr "This field cannot be empty"
+
+#~ msgid "Must be a text value"
+#~ msgstr "Must be a text value"
+
+#~ msgid "Must be a valid number"
+#~ msgstr "Must be a valid number"
+
+#~ msgid "Length must be between {min} and {max} characters"
+#~ msgstr "Length must be between {min} and {max} characters"
+
+#~ msgid "Must be at least {min} characters long"
+#~ msgstr "Must be at least {min} characters long"
+
+#~ msgid "Must be no more than {max} characters long"
+#~ msgstr "Must be no more than {max} characters long"
+
+#~ msgid "Value must be between {min} and {max}"
+#~ msgstr "Value must be between {min} and {max}"
+
+#~ msgid "Value must be at least {min}"
+#~ msgstr "Value must be at least {min}"
+
+#~ msgid "Value must be no more than {max}"
+#~ msgstr "Value must be no more than {max}"
+
+#~ msgid "Invalid choice. Valid options are: {choices}"
+#~ msgstr "Invalid choice. Valid options are: {choices}"
+
+# Pagination Messages
+#~ msgid "Page and per_page must be valid numbers"
+#~ msgstr "Page and per_page must be valid numbers"
+
+#~ msgid "Page number must be positive"
+#~ msgstr "Page number must be positive"
+
+#~ msgid "Per page value must be positive"
+#~ msgstr "Per page value must be positive"
+
+#~ msgid "Per page value cannot exceed 100"
+#~ msgstr "Per page value cannot exceed 100"
+
+# CRUD Operation Messages
+#~ msgid "Retrieved {resource} successfully"
+#~ msgstr "Retrieved {resource} successfully"
+
+#~ msgid "Created {resource} successfully"
+#~ msgstr "Created {resource} successfully"
+
+#~ msgid "Updated {resource} successfully"
+#~ msgstr "Updated {resource} successfully"
+
+#~ msgid "Deleted {resource} successfully"
+#~ msgstr "Deleted {resource} successfully"
+
+#~ msgid "Operation failed for {resource}"
+#~ msgstr "Operation failed for {resource}"
+
+# Resource Names
+#~ msgid "contact"
+#~ msgstr "contact"
+
+#~ msgid "user"
+#~ msgstr "user"
+
+#~ msgid "tenant"
+#~ msgstr "tenant"
+
+#~ msgid "task"
+#~ msgstr "task"
+
+#~ msgid "note"
+#~ msgstr "note"
+
+#~ msgid "pipeline"
+#~ msgstr "pipeline"
+
+#~ msgid "stage"
+#~ msgstr "stage"
+
+#~ msgid "item"
+#~ msgstr "item"
+
+# Contact-specific Messages
+#~ msgid "At least one of first name, last name, or company is required"
+#~ msgstr "At least one of first name, last name, or company is required"
+
+#~ msgid "A contact with this email address already exists"
+#~ msgstr "A contact with this email address already exists"
+
+#~ msgid "Contact validation failed"
+#~ msgstr "Contact validation failed"
+
+#~ msgid "Contact update validation failed"
+#~ msgstr "Contact update validation failed"
+
+#~ msgid "Contacts retrieved successfully"
+#~ msgstr "Contacts retrieved successfully"
+
+#~ msgid "Failed to create contact"
+#~ msgstr "Failed to create contact"
+
+#~ msgid "Failed to retrieve contacts"
+#~ msgstr "Failed to retrieve contacts"
+
+#~ msgid "Failed to update contact"
+#~ msgstr "Failed to update contact"
+
+#~ msgid "Contact not found"
+#~ msgstr "Contact not found"
+
+# Contact Types
+#~ msgid "prospect"
+#~ msgstr "prospect"
+
+#~ msgid "customer"
+#~ msgstr "customer"
+
+#~ msgid "partner"
+#~ msgstr "partner"
+
+#~ msgid "Invalid contact type. Valid types are: {types}"
+#~ msgstr "Invalid contact type. Valid types are: {types}"
+
+#~ msgid "Invalid contact type filter"
+#~ msgstr "Invalid contact type filter"
+
+# Error Types
+#~ msgid "Your organization was not found"
+#~ msgstr "Your organization was not found"
+
+#~ msgid "The requested {resource} was not found"
+#~ msgstr "The requested {resource} was not found"
+
+#~ msgid "Business rule violated: {rule}"
+#~ msgstr "Business rule violated: {rule}"
+
+#~ msgid "Maximum limit exceeded"
+#~ msgstr "Maximum limit exceeded"
+
+#~ msgid "You do not have permission to {action}"
+#~ msgstr "You do not have permission to {action}"
+
+#~ msgid "perform this action"
+#~ msgstr "perform this action"
+
+#~ msgid "Unknown error type: {type}"
+#~ msgstr "Unknown error type: {type}"
+
+# Demo Messages
+#~ msgid "All validations passed"
+#~ msgstr "All validations passed"
+
+#~ msgid "This field has an error"
+#~ msgstr "This field has an error"
+
+#~ msgid "Another validation error"
+#~ msgstr "Another validation error"
+
+#~ msgid "Multiple errors possible"
+#~ msgstr "Multiple errors possible"
+
+# UI Elements
+#~ msgid "Dashboard"
+#~ msgstr "Dashboard"
+
+#~ msgid "Inbox"
+#~ msgstr "Inbox"
+
+#~ msgid "CRM"
+#~ msgstr "CRM"
+
+#~ msgid "Calendar"
+#~ msgstr "Calendar"
+
+#~ msgid "Knowledge"
+#~ msgstr "Knowledge"
+
+#~ msgid "Settings"
+#~ msgstr "Settings"
+
+#~ msgid "Profile"
+#~ msgstr "Profile"
+
+#~ msgid "Account"
+#~ msgstr "Account"
+
+#~ msgid "Logout"
+#~ msgstr "Logout"
+
+#~ msgid "Login"
+#~ msgstr "Login"
+
+#~ msgid "Register"
+#~ msgstr "Register"
+

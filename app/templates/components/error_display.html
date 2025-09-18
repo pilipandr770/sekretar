@@ -1,0 +1,562 @@
+{% extends "base.html" %}
+
+{% block title %}{{ _("Error") }} - {{ _("AI Secretary") }}{% endblock %}
+
+<!-- {{ _("Error") }} Display Component -->
+<div id="error-display" class="error-display-container" style="display: none;">
+    <div class="error-card">
+        <div class="error-header">
+            <div class="error-icon">
+                <i class="fas fa-exclamation-triangle"></i>
+            </div>
+            <div class="error-title">
+                <h4 id="error-title">Something went wrong</h4>
+                <small id="error-subtitle" class="text-muted">We're working to fix this issue</small>
+            </div>
+            <button class="error-close" onclick="hideError()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        
+        <div class="error-body">
+            <p id="error-message" class="error-message">
+                An unexpected error occurred. Please try again.
+            </p>
+            
+            <div id="error-resolution" class="error-resolution" style="display: none;">
+                <h6>What you can do:</h6>
+                <ul id="error-resolution-steps"></ul>
+            </div>
+            
+            <div id="error-technical" class="error-technical" style="display: none;">
+                <details>
+                    <summary>Technical Details</summary>
+                    <div id="error-technical-content"></div>
+                </details>
+            </div>
+        </div>
+        
+        <div class="error-actions">
+            <button class="btn btn-primary btn-sm" onclick="retryLastAction()">
+                <i class="fas fa-redo"></i> Try Again
+            </button>
+            <button class="btn btn-outline-secondary btn-sm" onclick="refreshPage()">
+                <i class="fas fa-refresh"></i> Refresh Page
+            </button>
+            <button class="btn btn-outline-info btn-sm" onclick="reportError()">
+                <i class="fas fa-bug"></i> Report Issue
+            </button>
+        </div>
+    </div>
+</div>
+
+<style>
+.error-display-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 1060;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.error-card {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+    max-width: 500px;
+    width: 100%;
+    max-height: 80vh;
+    overflow-y: auto;
+    animation: errorSlideIn 0.3s ease-out;
+}
+
+.error-header {
+    display: flex;
+    align-items: flex-start;
+    padding: 20px 20px 16px;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.error-icon {
+    margin-right: 12px;
+    margin-top: 2px;
+}
+
+.error-icon i {
+    font-size: 24px;
+    color: #dc3545;
+}
+
+.error-title {
+    flex: 1;
+}
+
+.error-title h4 {
+    margin: 0 0 4px;
+    color: #333;
+    font-size: 18px;
+    font-weight: 600;
+}
+
+.error-close {
+    background: none;
+    border: none;
+    color: #6c757d;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 4px;
+    margin-left: 12px;
+}
+
+.error-close:hover {
+    background: #f8f9fa;
+    color: #495057;
+}
+
+.error-body {
+    padding: 16px 20px;
+}
+
+.error-message {
+    margin: 0 0 16px;
+    color: #495057;
+    line-height: 1.5;
+}
+
+.error-resolution {
+    background: #f8f9fa;
+    border-left: 4px solid #17a2b8;
+    padding: 12px 16px;
+    margin: 16px 0;
+    border-radius: 0 4px 4px 0;
+}
+
+.error-resolution h6 {
+    margin: 0 0 8px;
+    color: #17a2b8;
+    font-weight: 600;
+}
+
+.error-resolution ul {
+    margin: 0;
+    padding-left: 20px;
+}
+
+.error-resolution li {
+    margin-bottom: 4px;
+    color: #495057;
+}
+
+.error-technical {
+    margin-top: 16px;
+    padding: 12px;
+    background: #f8f9fa;
+    border-radius: 4px;
+}
+
+.error-technical details summary {
+    cursor: pointer;
+    font-weight: 600;
+    color: #6c757d;
+    margin-bottom: 8px;
+}
+
+.error-technical details[open] summary {
+    margin-bottom: 12px;
+}
+
+.error-technical-content {
+    font-family: 'Courier New', monospace;
+    font-size: 12px;
+    color: #495057;
+    background: white;
+    padding: 8px;
+    border-radius: 4px;
+    border: 1px solid #dee2e6;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+.error-actions {
+    padding: 16px 20px;
+    border-top: 1px solid #e9ecef;
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.error-actions .btn {
+    font-size: 13px;
+}
+
+@keyframes errorSlideIn {
+    from {
+        opacity: 0;
+        transform: scale(0.9) translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+@keyframes errorSlideOut {
+    from {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+    to {
+        opacity: 0;
+        transform: scale(0.9) translateY(-20px);
+    }
+}
+
+.error-display-container.hiding {
+    animation: errorSlideOut 0.3s ease-in forwards;
+}
+
+/* Responsive design */
+@media (max-width: 576px) {
+    .error-display-container {
+        padding: 10px;
+    }
+    
+    .error-card {
+        max-height: 90vh;
+    }
+    
+    .error-header {
+        padding: 16px 16px 12px;
+    }
+    
+    .error-body {
+        padding: 12px 16px;
+    }
+    
+    .error-actions {
+        padding: 12px 16px;
+        flex-direction: column;
+    }
+    
+    .error-actions .btn {
+        width: 100%;
+        margin-bottom: 4px;
+    }
+}
+</style>
+
+<script>
+// Global error handling variables
+let lastErrorInfo = null;
+let lastAction = null;
+
+// Show error with comprehensive information
+function showError(errorInfo) {
+    lastErrorInfo = errorInfo;
+    
+    const errorDisplay = document.getElementById('error-display');
+    const errorTitle = document.getElementById('error-title');
+    const errorSubtitle = document.getElementById('error-subtitle');
+    const errorMessage = document.getElementById('error-message');
+    const errorResolution = document.getElementById('error-resolution');
+    const errorResolutionSteps = document.getElementById('error-resolution-steps');
+    const errorTechnical = document.getElementById('error-technical');
+    const errorTechnicalContent = document.getElementById('error-technical-content');
+    
+    // Set title and subtitle
+    errorTitle.textContent = errorInfo.title || 'Something went wrong';
+    errorSubtitle.textContent = errorInfo.subtitle || 'We\'re working to fix this issue';
+    
+    // Set main message
+    errorMessage.textContent = errorInfo.message || 'An unexpected error occurred. Please try again.';
+    
+    // Show resolution steps if available
+    if (errorInfo.resolution_steps && errorInfo.resolution_steps.length > 0) {
+        errorResolutionSteps.innerHTML = '';
+        errorInfo.resolution_steps.forEach(step => {
+            const li = document.createElement('li');
+            li.textContent = step;
+            errorResolutionSteps.appendChild(li);
+        });
+        errorResolution.style.display = 'block';
+    } else {
+        errorResolution.style.display = 'none';
+    }
+    
+    // Show technical details if available
+    if (errorInfo.technical_details) {
+        const technicalText = JSON.stringify(errorInfo.technical_details, null, 2);
+        errorTechnicalContent.textContent = technicalText;
+        errorTechnical.style.display = 'block';
+    } else {
+        errorTechnical.style.display = 'none';
+    }
+    
+    // Show the error display
+    errorDisplay.style.display = 'flex';
+    
+    // Auto-hide after 30 seconds for non-critical errors
+    if (!errorInfo.critical) {
+        setTimeout(() => {
+            if (errorDisplay.style.display !== 'none') {
+                hideError();
+            }
+        }, 30000);
+    }
+}
+
+// Hide error display
+function hideError() {
+    const errorDisplay = document.getElementById('error-display');
+    errorDisplay.classList.add('hiding');
+    
+    setTimeout(() => {
+        errorDisplay.style.display = 'none';
+        errorDisplay.classList.remove('hiding');
+    }, 300);
+}
+
+// Retry last action
+function retryLastAction() {
+    if (lastAction && typeof lastAction === 'function') {
+        hideError();
+        lastAction();
+    } else {
+        // Default retry action - reload the page
+        refreshPage();
+    }
+}
+
+// Refresh page
+function refreshPage() {
+    window.location.reload();
+}
+
+// Report error
+function reportError() {
+    if (lastErrorInfo) {
+        // {{ _("Create") }} error report
+        const errorReport = {
+            timestamp: new {{ _("Date") }}().toISOString(),
+            url: window.location.href,
+            userAgent: navigator.userAgent,
+            error: lastErrorInfo
+        };
+        
+        // Try to send error report to server
+        fetch('/api/v1/service/error-report', {
+            method: 'POST',
+            headers: {
+                'Content-{{ _("Type") }}': 'application/json',
+                'Authorization': `Bearer ${localStorage.getItem('access_token') || ''}`
+            },
+            body: JSON.stringify(errorReport)
+        }).then(response => {
+            if (response.ok) {
+                alert('{{ _("Error") }} report sent successfully. Thank you for helping us improve!');
+            } else {
+                // Fallback - copy to clipboard
+                copyErrorToClipboard(errorReport);
+            }
+        }).catch(() => {
+            // Fallback - copy to clipboard
+            copyErrorToClipboard(errorReport);
+        });
+    }
+}
+
+// Copy error to clipboard as fallback
+function copyErrorToClipboard(errorReport) {
+    const errorText = JSON.stringify(errorReport, null, 2);
+    
+    if (navigator.clipboard) {
+        navigator.clipboard.writeText(errorText).then(() => {
+            alert('{{ _("Error") }} details copied to clipboard. Please send this to support.');
+        });
+    } else {
+        // Fallback for older browsers
+        const textArea = document.createElement('textarea');
+        textArea.value = errorText;
+        document.body.appendChild(textArea);
+        textArea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textArea);
+        alert('{{ _("Error") }} details copied to clipboard. Please send this to support.');
+    }
+}
+
+// Set last action for retry functionality
+function setLastAction(action) {
+    lastAction = action;
+}
+
+// Handle fetch errors globally
+function handleFetchError(error, context = {}) {
+    console.error('Fetch error:', error);
+    
+    let errorInfo = {
+        title: 'Connection {{ _("Error") }}',
+        subtitle: 'Unable to connect to the server',
+        message: 'Please check your internet connection and try again.',
+        resolution_steps: [
+            'Check your internet connection',
+            'Try refreshing the page',
+            'Wait a moment and try again',
+            'Contact support if the problem persists'
+        ],
+        context: context
+    };
+    
+    // Customize error based on error type
+    if (error.name === 'TypeError' && error.message.includes('fetch')) {
+        errorInfo.message = 'Unable to connect to the server. Please check your internet connection.';
+    } else if (error.message.includes('timeout')) {
+        errorInfo.title = 'Request Timeout';
+        errorInfo.message = 'The request took too long to complete. Please try again.';
+    }
+    
+    showError(errorInfo);
+}
+
+// Handle API response errors
+function handleApiError(response, data = null) {
+    console.error('API error:', response.status, data);
+    
+    let errorInfo = {
+        title: 'Server {{ _("Error") }}',
+        subtitle: `HTTP ${response.status}`,
+        message: 'An error occurred while processing your request.',
+        resolution_steps: [
+            'Try again in a few moments',
+            'Refresh the page',
+            'Contact support if the problem persists'
+        ]
+    };
+    
+    // Customize based on status code
+    if (response.status === 401) {
+        errorInfo.title = 'Authentication Required';
+        errorInfo.message = 'Please log in to continue.';
+        errorInfo.resolution_steps = [
+            'Log in to your account',
+            'Check if your session has expired',
+            '{{ _("Clear") }} browser cache if necessary'
+        ];
+    } else if (response.status === 403) {
+        errorInfo.title = 'Access Denied';
+        errorInfo.message = 'You do not have permission to perform this action.';
+        errorInfo.resolution_steps = [
+            'Contact your administrator for access',
+            'Check if you have the required permissions',
+            'Try logging out and back in'
+        ];
+    } else if (response.status === 404) {
+        errorInfo.title = 'Not Found';
+        errorInfo.message = 'The requested resource could not be found.';
+        errorInfo.resolution_steps = [
+            'Check the URL for typos',
+            'Go back to the previous page',
+            'Use the navigation menu to find what you need'
+        ];
+    } else if (response.status === 429) {
+        errorInfo.title = 'Too Many Requests';
+        errorInfo.message = 'You are making requests too quickly. Please slow down.';
+        errorInfo.resolution_steps = [
+            'Wait a moment before trying again',
+            'Avoid rapid clicking or refreshing',
+            'Contact support if you need higher limits'
+        ];
+    } else if (response.status >= 500) {
+        errorInfo.title = 'Server {{ _("Error") }}';
+        errorInfo.message = 'The server encountered an error. Our team has been notified.';
+        errorInfo.critical = true;
+    }
+    
+    // {{ _("Add") }} server error details if available
+    if (data && data.error) {
+        if (data.error.message) {
+            errorInfo.message = data.error.message;
+        }
+        if (data.error.resolution_steps) {
+            errorInfo.resolution_steps = data.error.resolution_steps;
+        }
+        if (data.error.technical_details) {
+            errorInfo.technical_details = data.error.technical_details;
+        }
+    }
+    
+    showError(errorInfo);
+}
+
+// Enhanced fetch wrapper with error handling
+async function safeFetch(url, options = {}) {
+    try {
+        const response = await fetch(url, options);
+        
+        if (!response.ok) {
+            let errorData = null;
+            try {
+                errorData = await response.json();
+            } catch (e) {
+                // Response is not JSON
+            }
+            
+            handleApiError(response, errorData);
+            throw new {{ _("Error") }}(`HTTP ${response.status}: ${response.statusText}`);
+        }
+        
+        return response;
+    } catch (error) {
+        if (error.name === 'TypeError' || error.message.includes('fetch')) {
+            handleFetchError(error, { url, options });
+        }
+        throw error;
+    }
+}
+
+// Initialize error handling on page load
+document.addEventListener('DOMContentLoaded', function() {
+    // Handle unhandled promise rejections
+    window.addEventListener('unhandledrejection', function(event) {
+        console.error('Unhandled promise rejection:', event.reason);
+        
+        handleFetchError(event.reason, {
+            type: 'unhandled_promise_rejection',
+            url: window.location.href
+        });
+    });
+    
+    // Handle JavaScript errors
+    window.addEventListener('error', function(event) {
+        console.error('JavaScript error:', event.error);
+        
+        // Only show error display for critical errors
+        if (event.error && event.error.name !== 'ChunkLoadError') {
+            showError({
+                title: 'JavaScript {{ _("Error") }}',
+                subtitle: 'An unexpected error occurred',
+                message: 'A JavaScript error occurred. Please refresh the page.',
+                resolution_steps: [
+                    'Refresh the page',
+                    '{{ _("Clear") }} browser cache',
+                    'Try using a different browser',
+                    'Contact support if the problem persists'
+                ],
+                technical_details: {
+                    error_type: event.error.name,
+                    error_message: event.error.message,
+                    filename: event.filename,
+                    line: event.lineno,
+                    column: event.colno
+                }
+            });
+        }
+    });
+});
+</script>

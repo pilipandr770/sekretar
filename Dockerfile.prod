@@ -52,8 +52,16 @@ RUN mkdir -p uploads logs evidence/kyb && \
 # Copy application code
 COPY --chown=appuser:appuser . .
 
-# Compile translations
-RUN python -m babel.messages.frontend compile_catalog -d app/translations
+# Install Babel for translation compilation
+RUN pip install Babel
+
+# Extract and compile translations
+RUN python -m babel.messages.frontend extract_messages -F babel.cfg -k _l -o messages.pot . && \
+    python -m babel.messages.frontend update_catalog -d app/translations -i messages.pot && \
+    python -m babel.messages.frontend compile_catalog -d app/translations
+
+# Verify translation files exist
+RUN ls -la app/translations/*/LC_MESSAGES/
 
 # Switch to app user
 USER appuser

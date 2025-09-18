@@ -1,6 +1,10 @@
 import os
+import logging
 from datetime import timedelta
-from typing import Optional
+from typing import Optional, Dict, Any, Union
+
+
+logger = logging.getLogger(__name__)
 
 
 class Config:
@@ -92,6 +96,246 @@ class Config:
             return 'testing'
         else:
             return 'development'
+    
+    # Service Detection Configuration
+    SERVICE_DETECTION_ENABLED = os.environ.get('SERVICE_DETECTION_ENABLED', 'true').lower() == 'true'
+    SERVICE_CONNECTION_TIMEOUT = int(os.environ.get('SERVICE_CONNECTION_TIMEOUT', '5'))
+    
+    # Database Service Detection
+    DATABASE_DETECTION_ENABLED = os.environ.get('DATABASE_DETECTION_ENABLED', 'true').lower() == 'true'
+    POSTGRESQL_FALLBACK_ENABLED = os.environ.get('POSTGRESQL_FALLBACK_ENABLED', 'true').lower() == 'true'
+    SQLITE_FALLBACK_ENABLED = os.environ.get('SQLITE_FALLBACK_ENABLED', 'true').lower() == 'true'
+    
+    # SQLite Configuration Options
+    SQLITE_DATABASE_URL = os.environ.get('SQLITE_DATABASE_URL', 'sqlite:///ai_secretary.db')
+    SQLITE_TIMEOUT = int(os.environ.get('SQLITE_TIMEOUT', '20'))
+    SQLITE_CHECK_SAME_THREAD = os.environ.get('SQLITE_CHECK_SAME_THREAD', 'false').lower() == 'true'
+    
+    # Cache Service Detection
+    CACHE_DETECTION_ENABLED = os.environ.get('CACHE_DETECTION_ENABLED', 'true').lower() == 'true'
+    REDIS_FALLBACK_ENABLED = os.environ.get('REDIS_FALLBACK_ENABLED', 'true').lower() == 'true'
+    SIMPLE_CACHE_FALLBACK = os.environ.get('SIMPLE_CACHE_FALLBACK', 'true').lower() == 'true'
+    
+    # External Service Detection
+    EXTERNAL_SERVICE_DETECTION_ENABLED = os.environ.get('EXTERNAL_SERVICE_DETECTION_ENABLED', 'true').lower() == 'true'
+    EXTERNAL_SERVICE_TIMEOUT = int(os.environ.get('EXTERNAL_SERVICE_TIMEOUT', '10'))
+    
+    # Configuration Validation
+    CONFIG_VALIDATION_ENABLED = os.environ.get('CONFIG_VALIDATION_ENABLED', 'true').lower() == 'true'
+    CONFIG_VALIDATION_STRICT = os.environ.get('CONFIG_VALIDATION_STRICT', 'false').lower() == 'true'
+    
+    @classmethod
+    def validate_configuration(cls) -> Dict[str, Any]:
+        """
+        Validate current configuration and return validation results.
+        
+        Returns:
+            Dictionary containing validation results and any errors
+        """
+        validation_results = {
+            'valid': True,
+            'errors': [],
+            'warnings': [],
+            'service_status': {},
+            'configuration_issues': []
+        }
+        
+        if not cls.CONFIG_VALIDATION_ENABLED:
+            validation_results['warnings'].append("Configuration validation is disabled")
+            return validation_results
+        
+        try:
+            # Validate database configuration
+            database_validation = cls._validate_database_config()
+            validation_results['service_status']['database'] = database_validation
+            
+            if not database_validation['valid']:
+                validation_results['errors'].extend(database_validation['errors'])
+                validation_results['valid'] = False
+            
+            # Validate cache configuration
+            cache_validation = cls._validate_cache_config()
+            validation_results['service_status']['cache'] = cache_validation
+            
+            if not cache_validation['valid'] and cls.CONFIG_VALIDATION_STRICT:
+                validation_results['errors'].extend(cache_validation['errors'])
+                validation_results['valid'] = False
+            else:
+                validation_results['warnings'].extend(cache_validation.get('warnings', []))
+            
+            # Validate external services
+            external_validation = cls._validate_external_services()
+            validation_results['service_status']['external'] = external_validation
+            validation_results['warnings'].extend(external_validation.get('warnings', []))
+            
+            # Check for configuration conflicts
+            conflicts = cls._check_configuration_conflicts()
+            if conflicts:
+                validation_results['configuration_issues'].extend(conflicts)
+                if cls.CONFIG_VALIDATION_STRICT:
+                    validation_results['valid'] = False
+                    validation_results['errors'].extend(conflicts)
+                else:
+                    validation_results['warnings'].extend(conflicts)
+            
+        except Exception as e:
+            validation_results['valid'] = False
+            validation_results['errors'].append(f"Configuration validation failed: {str(e)}")
+            logger.error(f"Configuration validation error: {e}")
+        
+        return validation_results
+    
+    @classmethod
+    def _validate_database_config(cls) -> Dict[str, Any]:
+        """Validate database configuration."""
+        result = {'valid': True, 'errors': [], 'warnings': []}
+        
+        # Check if DATABASE_URL is set
+        if not cls.SQLALCHEMY_DATABASE_URI:
+            result['valid'] = False
+            result['errors'].append("DATABASE_URL is not configured")
+            return result
+        
+        # Check database URL format
+        db_url = cls.SQLALCHEMY_DATABASE_URI
+        if not (db_url.startswith('postgresql://') or db_url.startswith('sqlite://')):
+            result['valid'] = False
+            result['errors'].append(f"Invalid database URL format: {db_url}")
+        
+        # PostgreSQL specific validation
+        if db_url.startswith('postgresql://'):
+            if not cls.DB_SCHEMA:
+                result['warnings'].append("DB_SCHEMA not set for PostgreSQL")
+        
+        # SQLite specific validation
+        if db_url.startswith('sqlite://'):
+            if cls.DB_SCHEMA:
+                result['warnings'].append("DB_SCHEMA is set but not used with SQLite")
+        
+        return result
+    
+    @classmethod
+    def _validate_cache_config(cls) -> Dict[str, Any]:
+        """Validate cache configuration."""
+        result = {'valid': True, 'errors': [], 'warnings': []}
+        
+        # Check cache type
+        if not hasattr(cls, 'CACHE_TYPE'):
+            result['warnings'].append("CACHE_TYPE not explicitly set")
+        
+        # Redis specific validation
+        if getattr(cls, 'CACHE_TYPE', None) == 'redis':
+            if not cls.REDIS_URL:
+                result['valid'] = False
+                result['errors'].append("REDIS_URL required for Redis cache")
+        
+        return result
+    
+    @classmethod
+    def _validate_external_services(cls) -> Dict[str, Any]:
+        """Validate external service configuration."""
+        result = {'warnings': []}
+        
+        # Check OpenAI configuration
+        if not cls.OPENAI_API_KEY:
+            result['warnings'].append("OPENAI_API_KEY not configured - AI features will be disabled")
+        
+        # Check Stripe configuration
+        if not cls.STRIPE_SECRET_KEY:
+            result['warnings'].append("STRIPE_SECRET_KEY not configured - billing features will be disabled")
+        
+        # Check Google OAuth configuration
+        if not cls.GOOGLE_CLIENT_ID or not cls.GOOGLE_CLIENT_SECRET:
+            result['warnings'].append("Google OAuth not configured - Google integration will be disabled")
+        
+        # Check Telegram configuration
+        if not cls.TELEGRAM_BOT_TOKEN:
+            result['warnings'].append("TELEGRAM_BOT_TOKEN not configured - Telegram integration will be disabled")
+        
+        return result
+    
+    @classmethod
+    def _check_configuration_conflicts(cls) -> list:
+        """Check for configuration conflicts."""
+        conflicts = []
+        
+        # Check for conflicting database configurations
+        if cls.SQLALCHEMY_DATABASE_URI.startswith('sqlite://') and cls.DB_SCHEMA:
+            conflicts.append("DB_SCHEMA is set but SQLite doesn't support schemas")
+        
+        # Check for Redis dependencies
+        if cls.CELERY_BROKER_URL and not cls.REDIS_URL:
+            conflicts.append("Celery configured but Redis URL not available")
+        
+        if hasattr(cls, 'RATE_LIMIT_STORAGE_URL') and cls.RATE_LIMIT_STORAGE_URL and not cls.REDIS_URL:
+            conflicts.append("Rate limiting configured but Redis URL not available")
+        
+        return conflicts
+    
+    @classmethod
+    def get_adaptive_database_config(cls) -> Dict[str, Any]:
+        """
+        Get adaptive database configuration based on environment variables.
+        
+        Returns:
+            Dictionary containing database configuration
+        """
+        config = {
+            'primary_url': cls.SQLALCHEMY_DATABASE_URI,
+            'fallback_url': cls.SQLITE_DATABASE_URL,
+            'detection_enabled': cls.DATABASE_DETECTION_ENABLED,
+            'postgresql_fallback': cls.POSTGRESQL_FALLBACK_ENABLED,
+            'sqlite_fallback': cls.SQLITE_FALLBACK_ENABLED,
+            'connection_timeout': cls.SERVICE_CONNECTION_TIMEOUT,
+            'engine_options': cls.SQLALCHEMY_ENGINE_OPTIONS.copy()
+        }
+        
+        # Add SQLite-specific options
+        if cls.SQLITE_DATABASE_URL.startswith('sqlite://'):
+            config['sqlite_options'] = {
+                'timeout': cls.SQLITE_TIMEOUT,
+                'check_same_thread': cls.SQLITE_CHECK_SAME_THREAD
+            }
+        
+        return config
+    
+    @classmethod
+    def get_adaptive_cache_config(cls) -> Dict[str, Any]:
+        """
+        Get adaptive cache configuration based on environment variables.
+        
+        Returns:
+            Dictionary containing cache configuration
+        """
+        config = {
+            'primary_type': cls.CACHE_TYPE,
+            'redis_url': cls.REDIS_URL,
+            'detection_enabled': cls.CACHE_DETECTION_ENABLED,
+            'redis_fallback': cls.REDIS_FALLBACK_ENABLED,
+            'simple_fallback': cls.SIMPLE_CACHE_FALLBACK,
+            'connection_timeout': cls.SERVICE_CONNECTION_TIMEOUT
+        }
+        
+        return config
+    
+    @classmethod
+    def get_service_detection_config(cls) -> Dict[str, Any]:
+        """
+        Get service detection configuration.
+        
+        Returns:
+            Dictionary containing service detection settings
+        """
+        return {
+            'enabled': cls.SERVICE_DETECTION_ENABLED,
+            'connection_timeout': cls.SERVICE_CONNECTION_TIMEOUT,
+            'database_detection': cls.DATABASE_DETECTION_ENABLED,
+            'cache_detection': cls.CACHE_DETECTION_ENABLED,
+            'external_service_detection': cls.EXTERNAL_SERVICE_DETECTION_ENABLED,
+            'external_service_timeout': cls.EXTERNAL_SERVICE_TIMEOUT,
+            'validation_enabled': cls.CONFIG_VALIDATION_ENABLED,
+            'validation_strict': cls.CONFIG_VALIDATION_STRICT
+        }
     
     # Internationalization
     LANGUAGES = {
@@ -189,9 +433,95 @@ class TestingConfig(Config):
     DB_SCHEMA = None  # Remove schema for SQLite testing
     WTF_CSRF_ENABLED = False
     JWT_ACCESS_TOKEN_EXPIRES = timedelta(minutes=5)
+    
     # Disable health checks for testing to avoid external dependencies
     HEALTH_CHECK_DATABASE_ENABLED = False
     HEALTH_CHECK_REDIS_ENABLED = False
+    
+    # Override service detection for testing
+    SERVICE_DETECTION_ENABLED = False
+    DATABASE_DETECTION_ENABLED = False
+    CACHE_DETECTION_ENABLED = False
+    EXTERNAL_SERVICE_DETECTION_ENABLED = False
+    
+    # Use simple cache for testing
+    CACHE_TYPE = 'simple'
+    CACHE_REDIS_URL = None
+    
+    # Disable external services for testing
+    CELERY_BROKER_URL = None
+    CELERY_RESULT_BACKEND = None
+    RATE_LIMIT_STORAGE_URL = None
+    
+    @classmethod
+    def get_sqlite_engine_options(cls) -> Dict[str, Any]:
+        """Get SQLite-specific engine options for testing."""
+        return {
+            'pool_pre_ping': True,
+            'connect_args': {
+                'check_same_thread': False,
+                'timeout': cls.SQLITE_TIMEOUT
+            }
+        }
+
+
+class SQLiteConfig(Config):
+    """SQLite-specific configuration for local development and testing."""
+    
+    # Override database configuration for SQLite
+    SQLALCHEMY_DATABASE_URI = os.environ.get('SQLITE_DATABASE_URL', 'sqlite:///ai_secretary.db')
+    DB_SCHEMA = None  # SQLite doesn't support schemas
+    
+    # SQLite-specific engine options
+    SQLALCHEMY_ENGINE_OPTIONS = {
+        'pool_pre_ping': True,
+        'pool_recycle': 300,
+        'connect_args': {
+            'check_same_thread': False,
+            'timeout': int(os.environ.get('SQLITE_TIMEOUT', '20'))
+        }
+    }
+    
+    # Use simple cache instead of Redis for SQLite mode
+    CACHE_TYPE = 'simple'
+    CACHE_REDIS_URL = None
+    
+    # Disable services that require Redis
+    CELERY_BROKER_URL = None
+    CELERY_RESULT_BACKEND = None
+    RATE_LIMIT_STORAGE_URL = None
+    
+    # Disable health checks for external services
+    HEALTH_CHECK_REDIS_ENABLED = False
+    
+    # Enable SQLite-specific features
+    SQLITE_MODE = True
+    ENABLE_CELERY = False
+    ENABLE_REDIS_CACHE = False
+    ENABLE_RATE_LIMITING = False
+    ENABLE_WEBSOCKETS = True  # SocketIO can work without Redis
+    
+    @staticmethod
+    def init_app(app):
+        """Initialize app with SQLite configuration."""
+        Config.init_app(app)
+        
+        # Create necessary directories
+        import os
+        from pathlib import Path
+        
+        # Create upload folder
+        upload_folder = Path(app.config.get('UPLOAD_FOLDER', 'uploads'))
+        upload_folder.mkdir(exist_ok=True)
+        
+        # Create logs folder
+        logs_folder = Path('logs')
+        logs_folder.mkdir(exist_ok=True)
+        
+        logger.info("✅ SQLite configuration initialized")
+        logger.info(f"📍 Database: {app.config['SQLALCHEMY_DATABASE_URI']}")
+        logger.info(f"📁 Upload folder: {app.config.get('UPLOAD_FOLDER', 'uploads')}")
+        logger.info("🔧 External services disabled for SQLite mode")
 
 
 class ProductionConfig(Config):
@@ -235,5 +565,124 @@ config = {
     'development': DevelopmentConfig,
     'testing': TestingConfig,
     'production': ProductionConfig,
+    'sqlite': SQLiteConfig,
     'default': DevelopmentConfig
 }
+
+
+def get_config_class(environment: Optional[str] = None) -> type:
+    """
+    Get configuration class for the specified environment.
+    
+    Args:
+        environment: Environment name or None to auto-detect
+        
+    Returns:
+        Configuration class for the environment
+    """
+    if environment is None:
+        environment = Config.get_environment()
+    
+    # Check for SQLite mode override
+    if os.environ.get('SQLITE_MODE', '').lower() == 'true':
+        environment = 'sqlite'
+    
+    config_class = config.get(environment, config['default'])
+    
+    # Log configuration selection
+    logger.info(f"🔧 Selected configuration: {config_class.__name__} for environment: {environment}")
+    
+    return config_class
+
+
+def validate_environment_variables() -> Dict[str, Any]:
+    """
+    Validate required environment variables and return validation results.
+    
+    Returns:
+        Dictionary containing validation results
+    """
+    validation_results = {
+        'valid': True,
+        'errors': [],
+        'warnings': [],
+        'missing_required': [],
+        'missing_optional': []
+    }
+    
+    # Required environment variables
+    required_vars = [
+        'SECRET_KEY',
+        'JWT_SECRET_KEY'
+    ]
+    
+    # Optional but recommended environment variables
+    optional_vars = [
+        'DATABASE_URL',
+        'REDIS_URL',
+        'OPENAI_API_KEY',
+        'STRIPE_SECRET_KEY',
+        'GOOGLE_CLIENT_ID',
+        'GOOGLE_CLIENT_SECRET'
+    ]
+    
+    # Check required variables
+    for var in required_vars:
+        if not os.environ.get(var):
+            validation_results['missing_required'].append(var)
+            validation_results['errors'].append(f"Required environment variable {var} is not set")
+            validation_results['valid'] = False
+    
+    # Check optional variables
+    for var in optional_vars:
+        if not os.environ.get(var):
+            validation_results['missing_optional'].append(var)
+            validation_results['warnings'].append(f"Optional environment variable {var} is not set")
+    
+    # Check for development-specific issues
+    if Config.get_environment() == 'production':
+        if os.environ.get('SECRET_KEY') == 'dev-secret-key-change-in-production':
+            validation_results['errors'].append("Using default SECRET_KEY in production")
+            validation_results['valid'] = False
+        
+        if os.environ.get('JWT_SECRET_KEY') == 'jwt-secret-key-change-in-production':
+            validation_results['errors'].append("Using default JWT_SECRET_KEY in production")
+            validation_results['valid'] = False
+    
+    return validation_results
+
+
+def create_error_report(validation_results: Dict[str, Any]) -> str:
+    """
+    Create a formatted error report from validation results.
+    
+    Args:
+        validation_results: Results from validate_environment_variables()
+        
+    Returns:
+        Formatted error report string
+    """
+    report_lines = []
+    
+    if validation_results['valid']:
+        report_lines.append("✅ Configuration validation passed")
+    else:
+        report_lines.append("❌ Configuration validation failed")
+    
+    if validation_results['errors']:
+        report_lines.append("\n🚨 Errors:")
+        for error in validation_results['errors']:
+            report_lines.append(f"  • {error}")
+    
+    if validation_results['warnings']:
+        report_lines.append("\n⚠️  Warnings:")
+        for warning in validation_results['warnings']:
+            report_lines.append(f"  • {warning}")
+    
+    if validation_results['missing_required']:
+        report_lines.append(f"\n❌ Missing required variables: {', '.join(validation_results['missing_required'])}")
+    
+    if validation_results['missing_optional']:
+        report_lines.append(f"\n⚠️  Missing optional variables: {', '.join(validation_results['missing_optional'])}")
+    
+    return '\n'.join(report_lines)

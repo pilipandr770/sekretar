@@ -1,454 +1,3776 @@
-# German translations for AI Secretary
-# Copyright (C) 2024
-# This file is distributed under the same license as the AI Secretary project.
+# German translations for PROJECT.
+# Copyright (C) 2025 ORGANIZATION
+# This file is distributed under the same license as the PROJECT project.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2025.
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: AI Secretary 1.0\n"
-"Report-Msgid-Bugs-To: support@ai-secretary.com\n"
-"POT-Creation-Date: 2024-01-01 12:00+0000\n"
-"PO-Revision-Date: 2024-01-01 12:00+0000\n"
-"Last-Translator: AI Secretary Team\n"
+"Project-Id-Version: PROJECT VERSION\n"
+"Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
+"POT-Creation-Date: 2025-09-18 14:08+0200\n"
+"PO-Revision-Date: 2025-09-17 18:55+0200\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: de\n"
-"Language-Team: German\n"
-"Plural-Forms: nplurals=2; plural=(n != 1)\n"
+"Language-Team: de <LL@li.org>\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Generated-By: Babel 2.12.1\n"
+"Generated-By: Babel 2.17.0\n"
 
-# Authentication
-msgid "Authentication required"
-msgstr "Authentifizierung erforderlich"
+#~ msgid "Users retrieved successfully"
+#~ msgstr "Benutzer erfolgreich abgerufen"
 
-msgid "Invalid email or password"
-msgstr "Ungültige E-Mail oder Passwort"
+#~ msgid "Failed to retrieve users"
+#~ msgstr "Fehler beim Abrufen der Benutzer"
 
-msgid "Account is disabled"
-msgstr "Konto ist deaktiviert"
+#~ msgid "Invalid email address"
+#~ msgstr "Ungültige E-Mail-Adresse"
 
-msgid "Token has expired"
-msgstr "Token ist abgelaufen"
+#~ msgid "Invalid role. Must be one of: %(roles)s"
+#~ msgstr ""
 
-# Validation
-msgid "This field is required"
-msgstr "Dieses Feld ist erforderlich"
+#~ msgid "User with this email already exists in your organization"
+#~ msgstr ""
 
-msgid "Invalid email address"
-msgstr "Ungültige E-Mail-Adresse"
+#~ msgid "User created successfully. Invitation email sent."
+#~ msgstr ""
 
-msgid "Invalid phone number"
-msgstr "Ungültige Telefonnummer"
+#~ msgid "Failed to create user"
+#~ msgstr ""
 
-msgid "Password must be at least 8 characters"
-msgstr "Passwort muss mindestens 8 Zeichen haben"
+#~ msgid "User not found"
+#~ msgstr ""
 
-# Permissions
-msgid "Access denied"
-msgstr "Zugriff verweigert"
+#~ msgid "User retrieved successfully"
+#~ msgstr ""
 
-msgid "Insufficient permissions"
-msgstr "Unzureichende Berechtigungen"
+#~ msgid "Failed to retrieve user"
+#~ msgstr ""
 
-# Operations
-msgid "Created successfully"
-msgstr "Erfolgreich erstellt"
+#~ msgid "Cannot modify your own role or status"
+#~ msgstr ""
 
-msgid "Updated successfully"
-msgstr "Erfolgreich aktualisiert"
+#~ msgid "Invalid role"
+#~ msgstr ""
 
-msgid "Deleted successfully"
-msgstr "Erfolgreich gelöscht"
+#~ msgid "User updated successfully"
+#~ msgstr ""
 
-msgid "Operation failed"
-msgstr "Vorgang fehlgeschlagen"
+#~ msgid "Failed to update user"
+#~ msgstr ""
 
-# Errors
-msgid "Resource not found"
-msgstr "Ressource nicht gefunden"
+#~ msgid "Cannot delete your own account"
+#~ msgstr ""
 
-msgid "Resource already exists"
-msgstr "Ressource existiert bereits"
+#~ msgid "Cannot delete the organization owner"
+#~ msgstr ""
 
-msgid "Internal server error"
-msgstr "Interner Serverfehler"
+#~ msgid "User deleted successfully"
+#~ msgstr ""
 
-# Trial and billing
-msgid "Trial period has expired"
-msgstr "Testphase ist abgelaufen"
+#~ msgid "Failed to delete user"
+#~ msgstr ""
 
-msgid "Active subscription required"
-msgstr "Aktives Abonnement erforderlich"
+#~ msgid "Roles retrieved successfully"
+#~ msgstr ""
 
-msgid "Payment failed"
-msgstr "Zahlung fehlgeschlagen"
+#~ msgid "Failed to retrieve roles"
+#~ msgstr ""
 
-# KYB
-msgid "Counterparty added successfully"
-msgstr "Geschäftspartner erfolgreich hinzugefügt"
+#~ msgid "Role name must be at least 2 characters"
+#~ msgstr ""
 
-msgid "Sanctions match found"
-msgstr "Sanktionstreffer gefunden"
+#~ msgid "Role with this name already exists"
+#~ msgstr ""
 
-msgid "VAT number validation failed"
-msgstr "USt-IdNr. Validierung fehlgeschlagen"
+#~ msgid "Invalid permissions: %(perms)s"
+#~ msgstr ""
 
-# AI
-msgid "AI processing failed"
-msgstr "KI-Verarbeitung fehlgeschlagen"
+#~ msgid "Role created successfully"
+#~ msgstr ""
 
-msgid "Message is too long"
-msgstr "Nachricht ist zu lang"
+#~ msgid "Failed to create role"
+#~ msgstr ""
 
-# File upload
-msgid "File is too large"
-msgstr "Datei ist zu groß"
+#~ msgid "Role not found"
+#~ msgstr ""
 
-msgid "Invalid file type"
-msgstr "Ungültiger Dateityp"
+#~ msgid "Cannot modify system roles"
+#~ msgstr ""
 
-msgid "File upload failed"
-msgstr "Datei-Upload fehlgeschlagen"
+#~ msgid "Role updated successfully"
+#~ msgstr ""
 
-# CRM
-msgid "Lead created successfully"
-msgstr "Lead erfolgreich erstellt"
+#~ msgid "Failed to update role"
+#~ msgstr ""
 
-msgid "Lead updated successfully"
-msgstr "Lead erfolgreich aktualisiert"
+#~ msgid "Cannot delete system roles"
+#~ msgstr ""
 
-msgid "Lead marked as won"
-msgstr "Lead als gewonnen markiert"
+#~ msgid "Cannot delete role that is assigned to users"
+#~ msgstr ""
 
-msgid "Lead marked as lost"
-msgstr "Lead als verloren markiert"
+#~ msgid "Role deleted successfully"
+#~ msgstr ""
 
-msgid "Task assigned successfully"
-msgstr "Aufgabe erfolgreich zugewiesen"
+#~ msgid "Failed to delete role"
+#~ msgstr ""
 
-msgid "Task completed"
-msgstr "Aufgabe abgeschlossen"
+#~ msgid "Permissions retrieved successfully"
+#~ msgstr ""
 
-msgid "Task is overdue"
-msgstr "Aufgabe ist überfällig"
+#~ msgid "Failed to retrieve permissions"
+#~ msgstr ""
 
-msgid "Contact added successfully"
-msgstr "Kontakt erfolgreich hinzugefügt"
+#~ msgid "Contacts retrieved successfully"
+#~ msgstr ""
 
-msgid "Contact updated successfully"
-msgstr "Kontakt erfolgreich aktualisiert"
+#~ msgid "Failed to retrieve contacts"
+#~ msgstr ""
 
-# Channels
-msgid "Channel connected successfully"
-msgstr "Kanal erfolgreich verbunden"
+#~ msgid "At least one of first name, last name, or company is required"
+#~ msgstr ""
 
-msgid "Channel disconnected"
-msgstr "Kanal getrennt"
+#~ msgid "Contact with this email already exists"
+#~ msgstr ""
 
-msgid "Channel connection error"
-msgstr "Kanal-Verbindungsfehler"
+#~ msgid "Contact created successfully"
+#~ msgstr ""
 
-# Messages
-msgid "Message sent successfully"
-msgstr "Nachricht erfolgreich gesendet"
+#~ msgid "Failed to create contact"
+#~ msgstr ""
 
-msgid "Failed to send message"
-msgstr "Nachricht konnte nicht gesendet werden"
+#~ msgid "Contact retrieved successfully"
+#~ msgstr ""
 
-msgid "Auto-reply sent"
-msgstr "Automatische Antwort gesendet"
+#~ msgid "Failed to retrieve contact"
+#~ msgstr ""
 
-# Calendar
-msgid "Event created successfully"
-msgstr "Termin erfolgreich erstellt"
+#~ msgid "Contact updated successfully"
+#~ msgstr ""
 
-msgid "Event updated successfully"
-msgstr "Termin erfolgreich aktualisiert"
+#~ msgid "Failed to update contact"
+#~ msgstr ""
 
-msgid "Booking confirmed"
-msgstr "Buchung bestätigt"
+#~ msgid "Cannot delete contact with associated leads"
+#~ msgstr ""
 
-msgid "Booking cancelled"
-msgstr "Buchung storniert"
+#~ msgid "Contact deleted successfully"
+#~ msgstr ""
 
-# Knowledge
-msgid "Document uploaded successfully"
-msgstr "Dokument erfolgreich hochgeladen"
+#~ msgid "Failed to delete contact"
+#~ msgstr ""
 
-msgid "Document processed successfully"
-msgstr "Dokument erfolgreich verarbeitet"
+#~ msgid "Pipelines retrieved successfully"
+#~ msgstr ""
 
-msgid "Knowledge base updated"
-msgstr "Wissensdatenbank aktualisiert"
+#~ msgid "Failed to retrieve pipelines"
+#~ msgstr ""
 
-# Additional errors
-msgid "Rate limit exceeded"
-msgstr "Rate-Limit überschritten"
+#~ msgid "Pipeline name is required"
+#~ msgstr ""
 
-msgid "External service unavailable"
-msgstr "Externer Service nicht verfügbar"
+#~ msgid "Pipeline created successfully"
+#~ msgstr ""
 
-msgid "Database error occurred"
-msgstr "Datenbankfehler aufgetreten"
+#~ msgid "Failed to create pipeline"
+#~ msgstr ""
 
-msgid "Unknown error"
-msgstr "Unbekannter Fehler"
+#~ msgid "Pipeline retrieved successfully"
+#~ msgstr ""
 
-# UI Elements
-msgid "Dashboard"
-msgstr "Dashboard"
+#~ msgid "Failed to retrieve pipeline"
+#~ msgstr ""
 
-msgid "Inbox"
-msgstr "Posteingang"
+#~ msgid "Pipeline updated successfully"
+#~ msgstr ""
 
-msgid "CRM"
-msgstr "CRM"
+#~ msgid "Failed to update pipeline"
+#~ msgstr ""
 
-msgid "Calendar"
-msgstr "Kalender"
+#~ msgid "Invalid stage ID: %(stage_id)s"
+#~ msgstr ""
 
-msgid "Knowledge"
-msgstr "Wissensdatenbank"
+#~ msgid "Pipeline stages order updated successfully"
+#~ msgstr ""
 
-msgid "Settings"
-msgstr "Einstellungen"
+#~ msgid "Failed to update pipeline stages order"
+#~ msgstr ""
 
-msgid "Profile"
-msgstr "Profil"
+#~ msgid "Leads retrieved successfully"
+#~ msgstr ""
 
-msgid "Account"
-msgstr "Konto"
+#~ msgid "Failed to retrieve leads"
+#~ msgstr ""
 
-msgid "Logout"
-msgstr "Abmelden"
+#~ msgid "Lead title is required"
+#~ msgstr ""
 
-msgid "Login"
-msgstr "Anmelden"
+#~ msgid "No pipeline specified and no default pipeline found"
+#~ msgstr ""
 
-msgid "Register"
-msgstr "Registrieren"
+#~ msgid "Pipeline has no stages"
+#~ msgstr ""
 
-# Forms
-msgid "Email Address"
-msgstr "E-Mail-Adresse"
+#~ msgid "Invalid user assignment"
+#~ msgstr ""
 
-msgid "Password"
-msgstr "Passwort"
+#~ msgid "Lead created successfully"
+#~ msgstr ""
 
-msgid "Remember me"
-msgstr "Angemeldet bleiben"
+#~ msgid "Failed to create lead"
+#~ msgstr ""
 
-msgid "Sign In"
-msgstr "Anmelden"
+#~ msgid "Lead retrieved successfully"
+#~ msgstr ""
 
-msgid "Create Account"
-msgstr "Konto erstellen"
+#~ msgid "Failed to retrieve lead"
+#~ msgstr ""
 
-msgid "Welcome Back"
-msgstr "Willkommen zurück"
+#~ msgid "Lead updated successfully"
+#~ msgstr ""
 
-msgid "Sign in to your account"
-msgstr "Melden Sie sich in Ihrem Konto an"
+#~ msgid "Failed to update lead"
+#~ msgstr ""
 
-msgid "Enter your email"
-msgstr "Geben Sie Ihre E-Mail ein"
+#~ msgid "Lead deleted successfully"
+#~ msgstr ""
 
-msgid "Enter your password"
-msgstr "Geben Sie Ihr Passwort ein"
+#~ msgid "Failed to delete lead"
+#~ msgstr ""
 
-msgid "Forgot your password?"
-msgstr "Passwort vergessen?"
+#~ msgid "Invalid stage for this pipeline"
+#~ msgstr ""
 
-msgid "Don't have an account?"
-msgstr "Haben Sie noch kein Konto?"
+#~ msgid "Lead moved to stage successfully"
+#~ msgstr ""
 
-msgid "Language"
-msgstr "Sprache"
+#~ msgid "Failed to move lead stage"
+#~ msgstr ""
 
-msgid "All rights reserved."
-msgstr "Alle Rechte vorbehalten."
+#~ msgid "Invalid status. Valid values: %(statuses)s"
+#~ msgstr ""
 
-msgid "Privacy Policy"
-msgstr "Datenschutzerklärung"
+#~ msgid "Lead status updated successfully"
+#~ msgstr ""
 
-msgid "Terms of Service"
-msgstr "Nutzungsbedingungen"
+#~ msgid "Failed to update lead status"
+#~ msgstr ""
 
-msgid "Support"
-msgstr "Support"
+#~ msgid "Lead history retrieved successfully"
+#~ msgstr ""
 
-# Status messages
-msgid "healthy"
-msgstr "gesund"
+#~ msgid "Failed to retrieve lead history"
+#~ msgstr ""
 
-msgid "System is operational"
-msgstr "System ist betriebsbereit"
+#~ msgid "Pipeline statistics retrieved successfully"
+#~ msgstr ""
 
-msgid "Available languages"
-msgstr "Verfügbare Sprachen"
+#~ msgid "Failed to retrieve pipeline statistics"
+#~ msgstr ""
 
-msgid "Language updated successfully"
-msgstr "Sprache erfolgreich aktualisiert"
+#~ msgid "Pipeline analytics retrieved successfully"
+#~ msgstr ""
 
-msgid "Language code is required"
-msgstr "Sprachcode ist erforderlich"
+#~ msgid "Failed to retrieve pipeline analytics"
+#~ msgstr ""
 
-msgid "Invalid language code. Available: %(languages)s"
-msgstr "Ungültiger Sprachcode. Verfügbar: %(languages)s"
+#~ msgid "User workload statistics retrieved successfully"
+#~ msgstr ""
 
-# Authentication messages
-msgid "Registration successful. Welcome to %(app_name)s!"
-msgstr "Registrierung erfolgreich. Willkommen bei %(app_name)s!"
+#~ msgid "Failed to retrieve user workload statistics"
+#~ msgstr ""
 
-msgid "Organization name must be at least 2 characters"
-msgstr "Organisationsname muss mindestens 2 Zeichen haben"
+#~ msgid "Tasks retrieved successfully"
+#~ msgstr ""
 
-msgid "User with this email already exists"
-msgstr "Benutzer mit dieser E-Mail existiert bereits"
+#~ msgid "Failed to retrieve tasks"
+#~ msgstr ""
 
-msgid "Registration failed. Please try again."
-msgstr "Registrierung fehlgeschlagen. Bitte versuchen Sie es erneut."
+#~ msgid "Task title is required"
+#~ msgstr ""
 
-msgid "Login successful. Welcome back!"
-msgstr "Anmeldung erfolgreich. Willkommen zurück!"
+#~ msgid "Task created successfully"
+#~ msgstr ""
 
-msgid "Organization account is disabled"
-msgstr "Organisationskonto ist deaktiviert"
+#~ msgid "Failed to create task"
+#~ msgstr ""
 
-msgid "Login failed. Please try again."
-msgstr "Anmeldung fehlgeschlagen. Bitte versuchen Sie es erneut."
+#~ msgid "Task retrieved successfully"
+#~ msgstr ""
 
-msgid "Logged out successfully"
-msgstr "Erfolgreich abgemeldet"
+#~ msgid "Failed to retrieve task"
+#~ msgstr ""
 
-msgid "Profile retrieved successfully"
-msgstr "Profil erfolgreich abgerufen"
+#~ msgid "Task updated successfully"
+#~ msgstr ""
 
-msgid "Failed to retrieve profile"
-msgstr "Profil konnte nicht abgerufen werden"
+#~ msgid "Failed to update task"
+#~ msgstr ""
 
-msgid "Profile updated successfully"
-msgstr "Profil erfolgreich aktualisiert"
+#~ msgid "Task deleted successfully"
+#~ msgstr ""
 
-msgid "Failed to update profile"
-msgstr "Profil konnte nicht aktualisiert werden"
+#~ msgid "Failed to delete task"
+#~ msgstr ""
 
-msgid "Token refreshed successfully"
-msgstr "Token erfolgreich aktualisiert"
+#~ msgid "Task status updated successfully"
+#~ msgstr ""
 
-msgid "Token refresh failed"
-msgstr "Token-Aktualisierung fehlgeschlagen"
+#~ msgid "Failed to update task status"
+#~ msgstr ""
 
-# CRM messages
-msgid "Contacts retrieved successfully"
-msgstr "Kontakte erfolgreich abgerufen"
+#~ msgid "Notes retrieved successfully"
+#~ msgstr ""
 
-msgid "Failed to retrieve contacts"
-msgstr "Kontakte konnten nicht abgerufen werden"
+#~ msgid "Failed to retrieve notes"
+#~ msgstr ""
 
-msgid "Contact with this email already exists"
-msgstr "Kontakt mit dieser E-Mail existiert bereits"
+#~ msgid "Note content is required"
+#~ msgstr ""
 
-msgid "Failed to create contact"
-msgstr "Kontakt konnte nicht erstellt werden"
+#~ msgid "Note created successfully"
+#~ msgstr ""
 
-msgid "Contact retrieved successfully"
-msgstr "Kontakt erfolgreich abgerufen"
+#~ msgid "Failed to create note"
+#~ msgstr ""
 
-msgid "Failed to retrieve contact"
-msgstr "Kontakt konnte nicht abgerufen werden"
+#~ msgid "Access denied to private note"
+#~ msgstr ""
 
-msgid "Failed to update contact"
-msgstr "Kontakt konnte nicht aktualisiert werden"
+#~ msgid "Note retrieved successfully"
+#~ msgstr ""
 
-msgid "Leads retrieved successfully"
-msgstr "Leads erfolgreich abgerufen"
+#~ msgid "Failed to retrieve note"
+#~ msgstr ""
 
-msgid "Failed to retrieve leads"
-msgstr "Leads konnten nicht abgerufen werden"
+#~ msgid "Access denied to edit this note"
+#~ msgstr ""
 
-msgid "Failed to create lead"
-msgstr "Lead konnte nicht erstellt werden"
+#~ msgid "Note updated successfully"
+#~ msgstr ""
 
-msgid "Pipelines retrieved successfully"
-msgstr "Pipelines erfolgreich abgerufen"
+#~ msgid "Failed to update note"
+#~ msgstr ""
 
-msgid "Failed to retrieve pipelines"
-msgstr "Pipelines konnten nicht abgerufen werden"
+#~ msgid "Access denied to delete this note"
+#~ msgstr ""
 
-# Validation messages
-msgid "Request must be JSON"
-msgstr "Anfrage muss JSON sein"
+#~ msgid "Note deleted successfully"
+#~ msgstr ""
 
-msgid "Invalid JSON data"
-msgstr "Ungültige JSON-Daten"
+#~ msgid "Failed to delete note"
+#~ msgstr ""
 
-msgid "Tenant context required"
-msgstr "Mandantenkontext erforderlich"
+#~ msgid "Pipeline stages retrieved successfully"
+#~ msgstr ""
 
-msgid "Insufficient permissions. Required roles: %(roles)s"
-msgstr "Unzureichende Berechtigungen. Erforderliche Rollen: %(roles)s"
+#~ msgid "Failed to retrieve pipeline stages"
+#~ msgstr ""
 
-msgid "Permission required: %(permission)s"
-msgstr "Berechtigung erforderlich: %(permission)s"
+#~ msgid "Stage name is required"
+#~ msgstr ""
 
-msgid "Trial period has expired. Please upgrade your subscription."
-msgstr "Testphase ist abgelaufen. Bitte upgraden Sie Ihr Abonnement."
+#~ msgid "Stage with this name already exists in pipeline"
+#~ msgstr ""
 
-msgid "This feature is not available in your current plan."
-msgstr "Diese Funktion ist in Ihrem aktuellen Plan nicht verfügbar."
+#~ msgid "Stage created successfully"
+#~ msgstr ""
 
-msgid "Page number must be positive"
-msgstr "Seitenzahl muss positiv sein"
+#~ msgid "Failed to create stage"
+#~ msgstr ""
 
-msgid "Per page value must be between 1 and 100"
-msgstr "Wert pro Seite muss zwischen 1 und 100 liegen"
+#~ msgid "Stage retrieved successfully"
+#~ msgstr ""
 
-msgid "Invalid pagination parameters"
-msgstr "Ungültige Paginierungsparameter"
+#~ msgid "Failed to retrieve stage"
+#~ msgstr ""
 
-# Generic messages
-msgid "Contact"
-msgstr "Kontakt"
+#~ msgid "Stage updated successfully"
+#~ msgstr ""
 
-msgid "Lead"
-msgstr "Lead"
+#~ msgid "Failed to update stage"
+#~ msgstr ""
 
-msgid "Task"
-msgstr "Aufgabe"
+#~ msgid "Cannot delete stage with associated leads"
+#~ msgstr ""
 
-msgid "Note"
-msgstr "Notiz"
+#~ msgid "Stage deleted successfully"
+#~ msgstr ""
 
-msgid "Pipeline"
-msgstr "Pipeline"
+#~ msgid "Failed to delete stage"
+#~ msgstr ""
 
-msgid "Stage"
-msgstr "Stufe"
+#~ msgid "OpenAPI specification not found"
+#~ msgstr ""
 
-msgid "User"
-msgstr "Benutzer"
+#~ msgid "Failed to read OpenAPI specification"
+#~ msgstr ""
 
-msgid "Organization"
-msgstr "Organisation"
+#~ msgid "Failed to load Swagger UI"
+#~ msgstr ""
 
-msgid "%(resource)s not found"
-msgstr "%(resource)s nicht gefunden"
+#~ msgid "Failed to load ReDoc UI"
+#~ msgstr ""
 
-msgid "The requested resource was not found"
-msgstr "Die angeforderte Ressource wurde nicht gefunden"
+#~ msgid "Failed to generate Postman collection"
+#~ msgstr ""
 
-msgid "Method not allowed for this endpoint"
-msgstr "Methode für diesen Endpunkt nicht erlaubt"
+#~ msgid "API examples retrieved successfully"
+#~ msgstr ""
 
-msgid "An internal server error occurred"
-msgstr "Ein interner Serverfehler ist aufgetreten"
+#~ msgid "Failed to load API examples"
+#~ msgstr ""
 
-msgid "Validation failed"
-msgstr "Validierung fehlgeschlagen"
+#~ msgid "Failed to load API tester"
+#~ msgstr ""
 
-msgid "An error occurred. Please try again."
-msgstr "Ein Fehler ist aufgetreten. Bitte versuchen Sie es erneut."
+#~ msgid "Integration guide retrieved successfully"
+#~ msgstr ""
 
-msgid "Login successful"
-msgstr "Anmeldung erfolgreich"
+#~ msgid "Failed to load integration guide"
+#~ msgstr ""
+
+#~ msgid "A contact with this email address already exists"
+#~ msgstr ""
+
+#~ msgid "Invalid contact type. Valid types are: {types}"
+#~ msgstr ""
+
+#~ msgid "Invalid contact type filter"
+#~ msgstr ""
+
+#~ msgid "contact_type"
+#~ msgstr ""
+
+#~ msgid "This field has an error"
+#~ msgstr ""
+
+#~ msgid "Another validation error"
+#~ msgstr ""
+
+#~ msgid "Multiple errors possible"
+#~ msgstr ""
+
+#~ msgid "item"
+#~ msgstr ""
+
+#~ msgid "Maximum limit exceeded"
+#~ msgstr ""
+
+#~ msgid "perform this action"
+#~ msgstr ""
+
+#~ msgid "System is operational"
+#~ msgstr ""
+
+#~ msgid "healthy"
+#~ msgstr ""
+
+#~ msgid "Available languages"
+#~ msgstr ""
+
+#~ msgid "Language code is required"
+#~ msgstr ""
+
+#~ msgid "Language updated successfully"
+#~ msgstr ""
+
+#~ msgid "Invalid language code. Available: %(languages)s"
+#~ msgstr ""
+
+#~ msgid "Tenant information retrieved successfully"
+#~ msgstr ""
+
+#~ msgid "Failed to retrieve tenant information"
+#~ msgstr ""
+
+#~ msgid "Organization name is required"
+#~ msgstr ""
+
+#~ msgid "Domain is already in use"
+#~ msgstr ""
+
+#~ msgid "Tenant information updated successfully"
+#~ msgstr ""
+
+#~ msgid "Domain or slug already exists"
+#~ msgstr ""
+
+#~ msgid "Failed to update tenant information"
+#~ msgstr ""
+
+#~ msgid "Tenant settings retrieved successfully"
+#~ msgstr ""
+
+#~ msgid "Failed to retrieve tenant settings"
+#~ msgstr ""
+
+#~ msgid "Settings object is required"
+#~ msgstr ""
+
+#~ msgid "Settings must be an object"
+#~ msgstr ""
+
+#~ msgid "Tenant settings updated successfully"
+#~ msgstr ""
+
+#~ msgid "Failed to update tenant settings"
+#~ msgstr ""
+
+#~ msgid "Invalid role. Valid roles: %(roles)s"
+#~ msgstr ""
+
+#~ msgid "Only owners can create other owners"
+#~ msgstr ""
+
+#~ msgid "User with this email already exists"
+#~ msgstr ""
+
+#~ msgid "User created successfully. Invitation email will be sent."
+#~ msgstr ""
+
+#~ msgid "Cannot deactivate your own account"
+#~ msgstr ""
+
+#~ msgid "Only owners can modify other owners"
+#~ msgstr ""
+
+#~ msgid "Only owners can assign owner role"
+#~ msgstr ""
+
+#~ msgid "Only owners can delete other owners"
+#~ msgstr ""
+
+#~ msgid "Invitation sent successfully"
+#~ msgstr ""
+
+#~ msgid "Failed to send invitation"
+#~ msgstr ""
+
+#~ msgid "Authentication required"
+#~ msgstr ""
+
+#~ msgid "Google OAuth is not configured"
+#~ msgstr ""
+
+#~ msgid "OAuth authorization URL generated"
+#~ msgstr ""
+
+#~ msgid "Failed to initiate OAuth flow"
+#~ msgstr ""
+
+#~ msgid "Authorization code not provided"
+#~ msgstr ""
+
+#~ msgid "State parameter not provided"
+#~ msgstr ""
+
+#~ msgid "Google OAuth status retrieved"
+#~ msgstr ""
+
+#~ msgid "Failed to get OAuth status"
+#~ msgstr ""
+
+#~ msgid "Google Calendar is not connected"
+#~ msgstr ""
+
+#~ msgid "Google Calendar disconnected successfully"
+#~ msgstr ""
+
+#~ msgid "Failed to disconnect Google Calendar"
+#~ msgstr ""
+
+#~ msgid "Google OAuth token refreshed successfully"
+#~ msgstr ""
+
+#~ msgid "Failed to refresh Google OAuth token"
+#~ msgstr ""
+
+#~ msgid "Failed to refresh OAuth token"
+#~ msgstr ""
+
+#~ msgid "Password must be at least 8 characters"
+#~ msgstr ""
+
+#~ msgid "Organization name must be at least 2 characters"
+#~ msgstr ""
+
+#~ msgid "Registration successful. Welcome to %(app_name)s!"
+#~ msgstr ""
+
+#~ msgid "Registration failed. Please try again."
+#~ msgstr ""
+
+#~ msgid "Invalid email or password"
+#~ msgstr ""
+
+#~ msgid "message"
+#~ msgid_plural "messages"
+#~ msgstr[0] ""
+#~ msgstr[1] ""
+
+#~ msgid "Login successful. Welcome back!"
+#~ msgstr ""
+
+#~ msgid "Login successful but token generation failed. Please try again."
+#~ msgstr ""
+
+#~ msgid "Login failed. Please try again."
+#~ msgstr ""
+
+#~ msgid "Logged out successfully"
+#~ msgstr ""
+
+#~ msgid "Logout failed"
+#~ msgstr ""
+
+#~ msgid "Profile retrieved successfully"
+#~ msgstr ""
+
+#~ msgid "Failed to retrieve profile"
+#~ msgstr ""
+
+#~ msgid "Invalid language code"
+#~ msgstr ""
+
+#~ msgid "Profile updated successfully"
+#~ msgstr ""
+
+#~ msgid "Failed to update profile"
+#~ msgstr ""
+
+#~ msgid "Token refreshed successfully"
+#~ msgstr ""
+
+#~ msgid "Token refresh failed"
+#~ msgstr ""
+
+#~ msgid "Invalid subscription ID"
+#~ msgstr ""
+
+#~ msgid "Invalid date format. Use ISO 8601 format."
+#~ msgstr ""
+
+#~ msgid "Invoices retrieved successfully"
+#~ msgstr ""
+
+#~ msgid "Failed to retrieve invoices"
+#~ msgstr ""
+
+#~ msgid "Invoice retrieved successfully"
+#~ msgstr ""
+
+#~ msgid "Failed to retrieve invoice"
+#~ msgstr ""
+
+#~ msgid "Customer ID is required"
+#~ msgstr ""
+
+#~ msgid "Amount must be positive"
+#~ msgstr ""
+
+#~ msgid "Invalid amount format"
+#~ msgstr ""
+
+#~ msgid "Subscription not found"
+#~ msgstr ""
+
+#~ msgid "Invoice created successfully"
+#~ msgstr ""
+
+#~ msgid "Failed to create invoice"
+#~ msgstr ""
+
+#~ msgid "Only draft invoices can be finalized"
+#~ msgstr ""
+
+#~ msgid "Invoice finalized successfully"
+#~ msgstr ""
+
+#~ msgid "Failed to finalize invoice"
+#~ msgstr ""
+
+#~ msgid "Only open or draft invoices can be sent"
+#~ msgstr ""
+
+#~ msgid "Invoice sent successfully"
+#~ msgstr ""
+
+#~ msgid "Failed to send invoice"
+#~ msgstr ""
+
+#~ msgid "Paid or voided invoices cannot be voided"
+#~ msgstr ""
+
+#~ msgid "Invoice voided successfully"
+#~ msgstr ""
+
+#~ msgid "Failed to void invoice"
+#~ msgstr ""
+
+#~ msgid "Invoice status retrieved successfully"
+#~ msgstr ""
+
+#~ msgid "Failed to get invoice status"
+#~ msgstr ""
+
+#~ msgid "Payment links cannot be created for paid or voided invoices"
+#~ msgstr ""
+
+#~ msgid "Payment link created successfully"
+#~ msgstr ""
+
+#~ msgid "Failed to create payment link"
+#~ msgstr ""
+
+#~ msgid "Invoice summary retrieved successfully"
+#~ msgstr ""
+
+#~ msgid "Failed to retrieve invoice summary"
+#~ msgstr ""
+
+#~ msgid "Webhook processed successfully"
+#~ msgstr ""
+
+#~ msgid "Failed to process webhook"
+#~ msgstr ""
+
+#~ msgid "Webhook processing failed"
+#~ msgstr ""
+
+#~ msgid "Invalid plan ID"
+#~ msgstr ""
+
+#~ msgid "Subscriptions retrieved successfully"
+#~ msgstr ""
+
+#~ msgid "Failed to retrieve subscriptions"
+#~ msgstr ""
+
+#~ msgid "Subscription retrieved successfully"
+#~ msgstr ""
+
+#~ msgid "Failed to retrieve subscription"
+#~ msgstr ""
+
+#~ msgid "Plan ID and customer email are required"
+#~ msgstr ""
+
+#~ msgid "Invalid or inactive plan"
+#~ msgstr ""
+
+#~ msgid "Subscription created successfully"
+#~ msgstr ""
+
+#~ msgid "Failed to create subscription"
+#~ msgstr ""
+
+#~ msgid "Subscription updated successfully"
+#~ msgstr ""
+
+#~ msgid "Failed to update subscription"
+#~ msgstr ""
+
+#~ msgid "Subscription is already canceled"
+#~ msgstr ""
+
+#~ msgid "Subscription canceled successfully"
+#~ msgstr ""
+
+#~ msgid "Failed to cancel subscription"
+#~ msgstr ""
+
+#~ msgid "Subscription is not scheduled for cancellation"
+#~ msgstr ""
+
+#~ msgid "Subscription reactivated successfully"
+#~ msgstr ""
+
+#~ msgid "Failed to reactivate subscription"
+#~ msgstr ""
+
+#~ msgid "Usage data retrieved successfully"
+#~ msgstr ""
+
+#~ msgid "Failed to retrieve usage data"
+#~ msgstr ""
+
+#~ msgid "Event type is required"
+#~ msgstr ""
+
+#~ msgid "Quantity must be positive"
+#~ msgstr ""
+
+#~ msgid "Invalid quantity format"
+#~ msgstr ""
+
+#~ msgid "Usage recorded successfully"
+#~ msgstr ""
+
+#~ msgid "Failed to record usage"
+#~ msgstr ""
+
+#~ msgid "Plans retrieved successfully"
+#~ msgstr ""
+
+#~ msgid "Failed to retrieve plans"
+#~ msgstr ""
+
+#~ msgid "Plan retrieved successfully"
+#~ msgstr ""
+
+#~ msgid "Failed to retrieve plan"
+#~ msgstr ""
+
+#~ msgid "Name and price are required"
+#~ msgstr ""
+
+#~ msgid "Price must be positive"
+#~ msgstr ""
+
+#~ msgid "Invalid price format"
+#~ msgstr ""
+
+#~ msgid "Billing interval must be \"month\" or \"year\""
+#~ msgstr ""
+
+#~ msgid "Plan created successfully"
+#~ msgstr ""
+
+#~ msgid "Failed to create plan"
+#~ msgstr ""
+
+#~ msgid "Plan updated successfully"
+#~ msgstr ""
+
+#~ msgid "Failed to update plan"
+#~ msgstr ""
+
+#~ msgid "Trial days must be between 1 and 30"
+#~ msgstr ""
+
+#~ msgid "Invalid trial days format"
+#~ msgstr ""
+
+#~ msgid "Trial subscription created successfully"
+#~ msgstr ""
+
+#~ msgid "Failed to create trial subscription"
+#~ msgstr ""
+
+#~ msgid "New plan must be higher tier than current plan"
+#~ msgstr ""
+
+#~ msgid "Subscription upgraded successfully"
+#~ msgstr ""
+
+#~ msgid "Failed to upgrade subscription"
+#~ msgstr ""
+
+#~ msgid "New plan must be lower tier than current plan"
+#~ msgstr ""
+
+#~ msgid "Subscription downgraded successfully"
+#~ msgstr ""
+
+#~ msgid "Failed to downgrade subscription"
+#~ msgstr ""
+
+#~ msgid "Subscription is not in trial"
+#~ msgstr ""
+
+#~ msgid "Trial expired successfully"
+#~ msgstr ""
+
+#~ msgid "Failed to expire trial"
+#~ msgstr ""
+
+#~ msgid "Feature and current usage are required"
+#~ msgstr ""
+
+#~ msgid "Current usage must be non-negative"
+#~ msgstr ""
+
+#~ msgid "Invalid current usage format"
+#~ msgstr ""
+
+#~ msgid "Feature not found in subscription plan"
+#~ msgstr ""
+
+#~ msgid "Feature has unlimited usage"
+#~ msgstr ""
+
+#~ msgid "Usage overage handled successfully"
+#~ msgstr ""
+
+#~ msgid "Failed to handle usage overage"
+#~ msgstr ""
+
+#~ msgid "Quota enforcement completed"
+#~ msgstr ""
+
+#~ msgid "Failed to enforce quotas"
+#~ msgstr ""
+
+#~ msgid "New plan ID is required for upgrade"
+#~ msgstr ""
+
+#~ msgid "Invalid transition type"
+#~ msgstr ""
+
+#~ msgid "Subscription transition completed"
+#~ msgstr ""
+
+#~ msgid "Failed to handle subscription transition"
+#~ msgstr ""
+
+#~ msgid "At least one subscription ID is required"
+#~ msgstr ""
+
+#~ msgid "Some subscription IDs are invalid or not accessible"
+#~ msgstr ""
+
+#~ msgid "Invalid operation type"
+#~ msgstr ""
+
+#~ msgid "Bulk operation completed"
+#~ msgstr ""
+
+#~ msgid "Failed to perform bulk operation"
+#~ msgstr ""
+
+#~ msgid "Webhook event ignored"
+#~ msgstr ""
+
+#~ msgid "Calendar connection status retrieved"
+#~ msgstr ""
+
+#~ msgid "Failed to get calendar connection status"
+#~ msgstr ""
+
+#~ msgid "Calendars retrieved successfully"
+#~ msgstr ""
+
+#~ msgid "Failed to retrieve calendars"
+#~ msgstr ""
+
+#~ msgid "Max results must be between 1 and 250"
+#~ msgstr ""
+
+#~ msgid "Events retrieved successfully"
+#~ msgstr ""
+
+#~ msgid "Failed to retrieve events"
+#~ msgstr ""
+
+#~ msgid "Start date is required"
+#~ msgstr ""
+
+#~ msgid "End date is required"
+#~ msgstr ""
+
+#~ msgid "Duration must be between 15 and 480 minutes"
+#~ msgstr ""
+
+#~ msgid "Availability checked successfully"
+#~ msgstr ""
+
+#~ msgid "Failed to check availability"
+#~ msgstr ""
+
+#~ msgid "Request body is required"
+#~ msgstr ""
+
+#~ msgid "Start time must be before end time"
+#~ msgstr ""
+
+#~ msgid "Attendee email is required"
+#~ msgstr ""
+
+#~ msgid "Event created successfully"
+#~ msgstr ""
+
+#~ msgid "Failed to create event"
+#~ msgstr ""
+
+#~ msgid "Event updated successfully"
+#~ msgstr ""
+
+#~ msgid "Failed to update event"
+#~ msgstr ""
+
+#~ msgid "Event deleted successfully"
+#~ msgstr ""
+
+#~ msgid "Failed to delete event"
+#~ msgstr ""
+
+#~ msgid "Appointment with {email}"
+#~ msgstr ""
+
+#~ msgid "The requested time slot is not available"
+#~ msgstr ""
+
+#~ msgid "Appointment booked successfully"
+#~ msgstr ""
+
+#~ msgid "Failed to book appointment"
+#~ msgstr ""
+
+#~ msgid "Widget initialized successfully"
+#~ msgstr ""
+
+#~ msgid "Failed to initialize widget"
+#~ msgstr ""
+
+#~ msgid "Thread is not a web widget thread"
+#~ msgstr ""
+
+#~ msgid "Messages retrieved successfully"
+#~ msgstr ""
+
+#~ msgid "Failed to retrieve messages"
+#~ msgstr ""
+
+#~ msgid "Message content cannot be empty"
+#~ msgstr ""
+
+#~ msgid "Message sent successfully"
+#~ msgstr ""
+
+#~ msgid "Failed to send message"
+#~ msgstr ""
+
+#~ msgid "Typing indicator updated"
+#~ msgstr ""
+
+#~ msgid "Failed to update typing indicator"
+#~ msgstr ""
+
+#~ msgid "Widget configuration retrieved"
+#~ msgstr ""
+
+#~ msgid "Failed to retrieve widget configuration"
+#~ msgstr ""
+
+#~ msgid "Widget configuration updated successfully"
+#~ msgstr ""
+
+#~ msgid "Failed to update widget configuration"
+#~ msgstr ""
+
+#~ msgid "Widget statistics retrieved"
+#~ msgstr ""
+
+#~ msgid "Failed to retrieve widget statistics"
+#~ msgstr ""
+
+#~ msgid "Message retrieved successfully"
+#~ msgstr ""
+
+#~ msgid "Thread does not belong to the specified channel"
+#~ msgstr ""
+
+#~ msgid "Message marked as read"
+#~ msgstr ""
+
+#~ msgid "Threads retrieved successfully"
+#~ msgstr ""
+
+#~ msgid "Failed to retrieve threads"
+#~ msgstr ""
+
+#~ msgid "Thread retrieved successfully"
+#~ msgstr ""
+
+#~ msgid "Thread assigned successfully"
+#~ msgstr ""
+
+#~ msgid "Failed to assign thread"
+#~ msgstr ""
+
+#~ msgid "Thread unassigned successfully"
+#~ msgstr ""
+
+#~ msgid "Failed to unassign thread"
+#~ msgstr ""
+
+#~ msgid "Invalid status. Valid options: %(statuses)s"
+#~ msgstr ""
+
+#~ msgid "Thread status updated successfully"
+#~ msgstr ""
+
+#~ msgid "Failed to update thread status"
+#~ msgstr ""
+
+#~ msgid "Search query is required"
+#~ msgstr ""
+
+#~ msgid "Search completed successfully"
+#~ msgstr ""
+
+#~ msgid "Search failed"
+#~ msgstr ""
+
+#~ msgid "Inbox statistics retrieved successfully"
+#~ msgstr ""
+
+#~ msgid "Failed to retrieve inbox statistics"
+#~ msgstr ""
+
+#~ msgid "Counterparties retrieved successfully"
+#~ msgstr ""
+
+#~ msgid "Failed to retrieve counterparties"
+#~ msgstr ""
+
+#~ msgid "Counterparty name is required"
+#~ msgstr ""
+
+#~ msgid "Counterparty with this VAT number already exists"
+#~ msgstr ""
+
+#~ msgid "Counterparty with this LEI code already exists"
+#~ msgstr ""
+
+#~ msgid "Counterparty created successfully"
+#~ msgstr ""
+
+#~ msgid "Failed to create counterparty"
+#~ msgstr ""
+
+#~ msgid "Counterparty retrieved successfully"
+#~ msgstr ""
+
+#~ msgid "Failed to retrieve counterparty"
+#~ msgstr ""
+
+#~ msgid "Counterparty updated successfully"
+#~ msgstr ""
+
+#~ msgid "Failed to update counterparty"
+#~ msgstr ""
+
+#~ msgid "Counterparty deleted successfully"
+#~ msgstr ""
+
+#~ msgid "Failed to delete counterparty"
+#~ msgstr ""
+
+#~ msgid "KYB configuration retrieved successfully"
+#~ msgstr ""
+
+#~ msgid "Failed to retrieve KYB configuration"
+#~ msgstr ""
+
+#~ msgid "KYB configuration updated successfully"
+#~ msgstr ""
+
+#~ msgid "Failed to update KYB configuration"
+#~ msgstr ""
+
+#~ msgid "KYB alerts retrieved successfully"
+#~ msgstr ""
+
+#~ msgid "Failed to retrieve KYB alerts"
+#~ msgstr ""
+
+#~ msgid "KYB alert retrieved successfully"
+#~ msgstr ""
+
+#~ msgid "Failed to retrieve KYB alert"
+#~ msgstr ""
+
+#~ msgid "Only open alerts can be acknowledged"
+#~ msgstr ""
+
+#~ msgid "KYB alert acknowledged successfully"
+#~ msgstr ""
+
+#~ msgid "Failed to acknowledge KYB alert"
+#~ msgstr ""
+
+#~ msgid "Alert is already resolved"
+#~ msgstr ""
+
+#~ msgid "KYB alert resolved successfully"
+#~ msgstr ""
+
+#~ msgid "Failed to resolve KYB alert"
+#~ msgstr ""
+
+#~ msgid "KYB alert marked as false positive successfully"
+#~ msgstr ""
+
+#~ msgid "Failed to mark KYB alert as false positive"
+#~ msgstr ""
+
+#~ msgid "LEI code is required"
+#~ msgstr ""
+
+#~ msgid "LEI validation completed"
+#~ msgstr ""
+
+#~ msgid "Failed to validate LEI code"
+#~ msgstr ""
+
+#~ msgid "LEI format validation completed"
+#~ msgstr ""
+
+#~ msgid "Failed to validate LEI format"
+#~ msgstr ""
+
+#~ msgid "LEI codes must be a non-empty list"
+#~ msgstr ""
+
+#~ msgid "Maximum 50 LEI codes allowed per batch"
+#~ msgstr ""
+
+#~ msgid "LEI batch validation completed"
+#~ msgstr ""
+
+#~ msgid "Failed to batch validate LEI codes"
+#~ msgstr ""
+
+#~ msgid "Entity name is required"
+#~ msgstr ""
+
+#~ msgid "LEI search completed"
+#~ msgstr ""
+
+#~ msgid "Failed to search LEI codes"
+#~ msgstr ""
+
+#~ msgid "LEI relationships retrieved"
+#~ msgstr ""
+
+#~ msgid "Failed to retrieve LEI relationships"
+#~ msgstr ""
+
+#~ msgid "Risk assessment retrieved successfully"
+#~ msgstr ""
+
+#~ msgid "Failed to retrieve risk assessment"
+#~ msgstr ""
+
+#~ msgid "Insolvency check completed successfully"
+#~ msgstr ""
+
+#~ msgid "Failed to check counterparty insolvency"
+#~ msgstr ""
+
+#~ msgid "Must provide a list of counterparty IDs"
+#~ msgstr ""
+
+#~ msgid "Batch insolvency check completed successfully"
+#~ msgstr ""
+
+#~ msgid "Failed to batch check insolvency"
+#~ msgstr ""
+
+#~ msgid "Insolvency summary retrieved successfully"
+#~ msgstr ""
+
+#~ msgid "Failed to retrieve insolvency summary"
+#~ msgstr ""
+
+#~ msgid "Proceeding details retrieved successfully"
+#~ msgstr ""
+
+#~ msgid "Failed to retrieve proceeding details"
+#~ msgstr ""
+
+#~ msgid "KYB summary report retrieved successfully"
+#~ msgstr ""
+
+#~ msgid "Failed to retrieve KYB summary report"
+#~ msgstr ""
+
+#~ msgid "Counterparty snapshots retrieved successfully"
+#~ msgstr ""
+
+#~ msgid "Failed to retrieve counterparty snapshots"
+#~ msgstr ""
+
+#~ msgid "Counterparty diffs retrieved successfully"
+#~ msgstr ""
+
+#~ msgid "Failed to retrieve counterparty diffs"
+#~ msgstr ""
+
+#~ msgid "Sanctions check completed"
+#~ msgstr ""
+
+#~ msgid "Failed to perform sanctions check"
+#~ msgstr ""
+
+#~ msgid "Counterparty sanctions check completed"
+#~ msgstr ""
+
+#~ msgid "Failed to check counterparty sanctions"
+#~ msgstr ""
+
+#~ msgid "Batch sanctions check completed"
+#~ msgstr ""
+
+#~ msgid "Failed to perform batch sanctions check"
+#~ msgstr ""
+
+#~ msgid "Sanctions statistics retrieved"
+#~ msgstr ""
+
+#~ msgid "Failed to get sanctions statistics"
+#~ msgstr ""
+
+#~ msgid "Sanctions sources information retrieved"
+#~ msgstr ""
+
+#~ msgid "Failed to get sanctions sources information"
+#~ msgstr ""
+
+#~ msgid "Sanctions data update completed"
+#~ msgstr ""
+
+#~ msgid "Failed to update sanctions data"
+#~ msgstr ""
+
+#~ msgid "Sanctions search completed"
+#~ msgstr ""
+
+#~ msgid "Failed to search sanctions"
+#~ msgstr ""
+
+#~ msgid "Language switched successfully"
+#~ msgstr ""
+
+#~ msgid "Failed to switch language"
+#~ msgstr ""
+
+#~ msgid "Dashboard"
+#~ msgstr ""
+
+#~ msgid "Inbox"
+#~ msgstr ""
+
+#~ msgid "CRM"
+#~ msgstr ""
+
+#~ msgid "Calendar"
+#~ msgstr ""
+
+#~ msgid "More"
+#~ msgstr ""
+
+#~ msgid "AI Secretary"
+#~ msgstr ""
+
+#~ msgid "KYB Monitoring"
+#~ msgstr ""
+
+#~ msgid "API Tester"
+#~ msgstr ""
+
+#~ msgid "Documentation"
+#~ msgstr ""
+
+#~ msgid "Account"
+#~ msgstr ""
+
+#~ msgid "Login"
+#~ msgstr ""
+
+#~ msgid "Register"
+#~ msgstr ""
+
+#~ msgid "Settings"
+#~ msgstr ""
+
+#~ msgid "User Management"
+#~ msgstr ""
+
+#~ msgid "Logout"
+#~ msgstr ""
+
+#~ msgid "AI Secretary. All rights reserved."
+#~ msgstr ""
+
+#~ msgid "Privacy Policy"
+#~ msgstr ""
+
+#~ msgid "Terms of Service"
+#~ msgstr ""
+
+#~ msgid "Support"
+#~ msgstr ""
+
+#~ msgid "Real-time features enabled"
+#~ msgstr ""
+
+#~ msgid "Connection lost - trying to reconnect"
+#~ msgstr ""
+
+#~ msgid "Connection failed - please refresh the page"
+#~ msgstr ""
+
+#~ msgid "I18n Demo"
+#~ msgstr ""
+
+#~ msgid "I18n Integration Test"
+#~ msgstr ""
+
+#~ msgid "This page tests the frontend JavaScript i18n integration."
+#~ msgstr ""
+
+#~ msgid "Language Switcher Test"
+#~ msgstr ""
+
+#~ msgid ""
+#~ "The language switcher should appear in"
+#~ " the navigation bar. Try switching "
+#~ "languages to test the integration."
+#~ msgstr ""
+
+#~ msgid "Waiting for i18n initialization..."
+#~ msgstr ""
+
+#~ msgid "Translation Function Test"
+#~ msgstr ""
+
+#~ msgid "Testing the global translation function _()."
+#~ msgstr ""
+
+#~ msgid "Basic Translation"
+#~ msgstr ""
+
+#~ msgid "Parameterized Translation"
+#~ msgstr ""
+
+#~ msgid "Missing Translation"
+#~ msgstr ""
+
+#~ msgid "Formatting Function Test"
+#~ msgstr ""
+
+#~ msgid "Testing locale-aware formatting functions."
+#~ msgstr ""
+
+#~ msgid "Date Formatting"
+#~ msgstr ""
+
+#~ msgid "Number Formatting"
+#~ msgstr ""
+
+#~ msgid "Currency Formatting"
+#~ msgstr ""
+
+#~ msgid "Relative Time Formatting"
+#~ msgstr ""
+
+#~ msgid "Dynamic Content Test"
+#~ msgstr ""
+
+#~ msgid "Testing dynamic content updates when language changes."
+#~ msgstr ""
+
+#~ msgid "Current Time"
+#~ msgstr ""
+
+#~ msgid "Sample Date"
+#~ msgstr ""
+
+#~ msgid "API Integration Test"
+#~ msgstr ""
+
+#~ msgid "Testing API endpoints for i18n functionality."
+#~ msgstr ""
+
+#~ msgid "Test API Endpoints"
+#~ msgstr ""
+
+#~ msgid "Test Language Switch"
+#~ msgstr ""
+
+#~ msgid "I18n Statistics"
+#~ msgstr ""
+
+#~ msgid "Loading statistics..."
+#~ msgstr ""
+
+#~ msgid "Welcome Back"
+#~ msgstr ""
+
+#~ msgid "Sign in to your account"
+#~ msgstr ""
+
+#~ msgid "Email Address"
+#~ msgstr ""
+
+#~ msgid "Enter your email"
+#~ msgstr ""
+
+#~ msgid "Password"
+#~ msgstr ""
+
+#~ msgid "Enter your password"
+#~ msgstr ""
+
+#~ msgid "Remember me"
+#~ msgstr ""
+
+#~ msgid "Sign In"
+#~ msgstr ""
+
+#~ msgid "Forgot your password? Contact support."
+#~ msgstr ""
+
+#~ msgid "Don't have an account?"
+#~ msgstr ""
+
+#~ msgid "Create Account"
+#~ msgstr ""
+
+#~ msgid "Language"
+#~ msgstr ""
+
+#~ msgid "Login successful"
+#~ msgstr ""
+
+#~ msgid "An error occurred. Please try again."
+#~ msgstr ""
+
+#~ msgid "Create Your Account"
+#~ msgstr ""
+
+#~ msgid "Start your 3-day free trial"
+#~ msgstr ""
+
+#~ msgid "Organization Information"
+#~ msgstr ""
+
+#~ msgid "Organization Name"
+#~ msgstr ""
+
+#~ msgid "Enter organization name"
+#~ msgstr ""
+
+#~ msgid "Domain"
+#~ msgstr ""
+
+#~ msgid "company.com (optional)"
+#~ msgstr ""
+
+#~ msgid "Your Information"
+#~ msgstr ""
+
+#~ msgid "First Name"
+#~ msgstr ""
+
+#~ msgid "Enter your first name"
+#~ msgstr ""
+
+#~ msgid "Last Name"
+#~ msgstr ""
+
+#~ msgid "Enter your last name"
+#~ msgstr ""
+
+#~ msgid "Enter password"
+#~ msgstr ""
+
+#~ msgid "Minimum 8 characters"
+#~ msgstr ""
+
+#~ msgid "Confirm Password"
+#~ msgstr ""
+
+#~ msgid "Confirm password"
+#~ msgstr ""
+
+#~ msgid "I agree to the"
+#~ msgstr ""
+
+#~ msgid "and"
+#~ msgstr ""
+
+#~ msgid "I would like to receive product updates and marketing communications"
+#~ msgstr ""
+
+#~ msgid "Start Free Trial"
+#~ msgstr ""
+
+#~ msgid "Already have an account?"
+#~ msgstr ""
+
+#~ msgid "3-Day Free Trial Includes:"
+#~ msgstr ""
+
+#~ msgid "Full access to all features"
+#~ msgstr ""
+
+#~ msgid "Multi-channel communication"
+#~ msgstr ""
+
+#~ msgid "AI-powered responses"
+#~ msgstr ""
+
+#~ msgid "CRM and calendar integration"
+#~ msgstr ""
+
+#~ msgid "No credit card required"
+#~ msgstr ""
+
+#~ msgid "Passwords do not match"
+#~ msgstr ""
+
+#~ msgid "Registration successful! Welcome to AI Secretary."
+#~ msgstr ""
+
+#~ msgid "Status"
+#~ msgstr ""
+
+#~ msgid "Phone"
+#~ msgstr ""
+
+#~ msgid "Verification Code"
+#~ msgstr ""
+
+#~ msgid "Create"
+#~ msgstr ""
+
+#~ msgid "Name"
+#~ msgstr ""
+
+#~ msgid "Created"
+#~ msgstr ""
+
+#~ msgid "Failed"
+#~ msgstr ""
+
+#~ msgid "Update"
+#~ msgstr ""
+
+#~ msgid "Completed"
+#~ msgstr ""
+
+#~ msgid "Type"
+#~ msgstr ""
+
+#~ msgid "Active"
+#~ msgstr ""
+
+#~ msgid "Inactive"
+#~ msgstr ""
+
+#~ msgid "Date"
+#~ msgstr ""
+
+#~ msgid "Edit"
+#~ msgstr ""
+
+#~ msgid "Error"
+#~ msgstr ""
+
+#~ msgid "Clear"
+#~ msgstr ""
+
+#~ msgid "Add"
+#~ msgstr ""
+
+#~ msgid "Message Count Examples"
+#~ msgstr ""
+
+#~ msgid "Time Examples"
+#~ msgstr ""
+
+#~ msgid "%(num)d minute ago"
+#~ msgid_plural "%(num)d minutes ago"
+#~ msgstr[0] ""
+#~ msgstr[1] ""
+
+#~ msgid "%(num)d hour ago"
+#~ msgid_plural "%(num)d hours ago"
+#~ msgstr[0] ""
+#~ msgstr[1] ""
+
+#~ msgid "Complex Examples"
+#~ msgstr ""
+
+#~ msgid "You have %(count)d unread message from %(sender)s"
+#~ msgid_plural "You have %(count)d unread messages from %(sender)s"
+#~ msgstr[0] ""
+#~ msgstr[1] ""
+
+#~ msgid "Business Examples"
+#~ msgstr ""
+
+#~ msgid "%(num)d active lead"
+#~ msgid_plural "%(num)d active leads"
+#~ msgstr[0] ""
+#~ msgstr[1] ""
+
+#~ msgid "%(num)d appointment scheduled"
+#~ msgid_plural "%(num)d appointments scheduled"
+#~ msgstr[0] ""
+#~ msgstr[1] ""
+
+#~ msgid "Invoice"
+#~ msgstr ""
+
+#~ msgid "Dear"
+#~ msgstr ""
+
+#~ msgid "team"
+#~ msgstr ""
+
+#~ msgid "Your invoice has been"
+#~ msgstr ""
+
+#~ msgid "Invoice Number"
+#~ msgstr ""
+
+#~ msgid "Amount"
+#~ msgstr ""
+
+#~ msgid "Due Date"
+#~ msgstr ""
+
+#~ msgid "Payment Date"
+#~ msgstr ""
+
+#~ msgid "Thank you for your payment!"
+#~ msgstr ""
+
+#~ msgid ""
+#~ "Your payment has been processed "
+#~ "successfully. You can continue using all"
+#~ " features of AI Secretary."
+#~ msgstr ""
+
+#~ msgid ""
+#~ "This invoice is now overdue. Please "
+#~ "process payment as soon as possible."
+#~ msgstr ""
+
+#~ msgid ""
+#~ "To avoid service interruption, please "
+#~ "settle this invoice at your earliest "
+#~ "convenience."
+#~ msgstr ""
+
+#~ msgid ""
+#~ "This invoice is pending payment. Please"
+#~ " process payment by the due date "
+#~ "to avoid service interruption."
+#~ msgstr ""
+
+#~ msgid "Pay Now"
+#~ msgstr ""
+
+#~ msgid ""
+#~ "If you have any questions about "
+#~ "this invoice, please contact our billing"
+#~ " support."
+#~ msgstr ""
+
+#~ msgid "Best regards"
+#~ msgstr ""
+
+#~ msgid "AI Secretary Billing Team"
+#~ msgstr ""
+
+#~ msgid "This notification was sent to"
+#~ msgstr ""
+
+#~ msgid "AI Secretary Platform"
+#~ msgstr ""
+
+#~ msgid "KYB Alert"
+#~ msgstr ""
+
+#~ msgid "A KYB alert has been triggered for counterparty"
+#~ msgstr ""
+
+#~ msgid "Alert Type"
+#~ msgstr ""
+
+#~ msgid "Severity"
+#~ msgstr ""
+
+#~ msgid "Details"
+#~ msgstr ""
+
+#~ msgid "Detected At"
+#~ msgstr ""
+
+#~ msgid "Recommended Actions"
+#~ msgstr ""
+
+#~ msgid "Please review this alert and take appropriate action."
+#~ msgstr ""
+
+#~ msgid "AI Secretary KYB System"
+#~ msgstr ""
+
+#~ msgid "This alert was sent to"
+#~ msgstr ""
+
+#~ msgid "Password Reset Request"
+#~ msgstr ""
+
+#~ msgid "User"
+#~ msgstr ""
+
+#~ msgid ""
+#~ "We received a request to reset "
+#~ "your password for your AI Secretary "
+#~ "account."
+#~ msgstr ""
+
+#~ msgid "To reset your password, click the button below:"
+#~ msgstr ""
+
+#~ msgid "Reset Password"
+#~ msgstr ""
+
+#~ msgid "Security Notice"
+#~ msgstr ""
+
+#~ msgid "This link will expire in 1 hour for security reasons"
+#~ msgstr ""
+
+#~ msgid "If you did not request this password reset, please ignore this email"
+#~ msgstr ""
+
+#~ msgid "Your password will not be changed unless you click the link above"
+#~ msgstr ""
+
+#~ msgid ""
+#~ "If the button above doesn't work, "
+#~ "you can copy and paste this link"
+#~ " into your browser:"
+#~ msgstr ""
+
+#~ msgid "If you have any questions or concerns, please contact our support team."
+#~ msgstr ""
+
+#~ msgid "The AI Secretary Team"
+#~ msgstr ""
+
+#~ msgid "This email was sent to"
+#~ msgstr ""
+
+#~ msgid "System Notification"
+#~ msgstr ""
+
+#~ msgid "Action Required"
+#~ msgstr ""
+
+#~ msgid "Deadline"
+#~ msgstr ""
+
+#~ msgid "Additional Information"
+#~ msgstr ""
+
+#~ msgid "If you have any questions, please contact our support team."
+#~ msgstr ""
+
+#~ msgid "AI Secretary System"
+#~ msgstr ""
+
+#~ msgid "Welcome to AI Secretary!"
+#~ msgstr ""
+
+#~ msgid "Welcome to AI Secretary! We're excited to have you on board."
+#~ msgstr ""
+
+#~ msgid ""
+#~ "Your account has been successfully "
+#~ "created and you can now start "
+#~ "using all the features of our "
+#~ "platform:"
+#~ msgstr ""
+
+#~ msgid "Intelligent message management"
+#~ msgstr ""
+
+#~ msgid "CRM and lead tracking"
+#~ msgstr ""
+
+#~ msgid "Calendar integration"
+#~ msgstr ""
+
+#~ msgid "KYB monitoring"
+#~ msgstr ""
+
+#~ msgid "To get started, please complete your setup:"
+#~ msgstr ""
+
+#~ msgid "Complete Setup"
+#~ msgstr ""
+
+#~ msgid ""
+#~ "If you have any questions or need"
+#~ " assistance, don't hesitate to contact "
+#~ "our support team."
+#~ msgstr ""
+
+#~ msgid "Best regards,"
+#~ msgstr ""
+
+#~ msgid "API Tester - AI Secretary"
+#~ msgstr ""
+
+#~ msgid "API Endpoint Tester"
+#~ msgstr ""
+
+#~ msgid "Test and explore the available API endpoints."
+#~ msgstr ""
+
+#~ msgid "Welcome Endpoint"
+#~ msgstr ""
+
+#~ msgid "Returns API information and available endpoints."
+#~ msgstr ""
+
+#~ msgid "Test"
+#~ msgstr ""
+
+#~ msgid "Health Check"
+#~ msgstr ""
+
+#~ msgid "Returns system health status including database and Redis connectivity."
+#~ msgstr ""
+
+#~ msgid "Version Information"
+#~ msgstr ""
+
+#~ msgid "Returns API version, environment, and build information."
+#~ msgstr ""
+
+#~ msgid "System Status"
+#~ msgstr ""
+
+#~ msgid "Returns detailed system status with component information."
+#~ msgstr ""
+
+#~ msgid "Available Languages"
+#~ msgstr ""
+
+#~ msgid "Returns list of available languages for internationalization."
+#~ msgstr ""
+
+#~ msgid "API Documentation"
+#~ msgstr ""
+
+#~ msgid "For complete API documentation, visit"
+#~ msgstr ""
+
+#~ msgid "Calendar - AI Secretary"
+#~ msgstr ""
+
+#~ msgid "Manage appointments and availability"
+#~ msgstr ""
+
+#~ msgid "Refresh"
+#~ msgstr ""
+
+#~ msgid "Connect Google Calendar"
+#~ msgstr ""
+
+#~ msgid "Book Appointment"
+#~ msgstr ""
+
+#~ msgid "Today"
+#~ msgstr ""
+
+#~ msgid "Loading..."
+#~ msgstr ""
+
+#~ msgid "Month"
+#~ msgstr ""
+
+#~ msgid "Week"
+#~ msgstr ""
+
+#~ msgid "Day"
+#~ msgstr ""
+
+#~ msgid "Sun"
+#~ msgstr ""
+
+#~ msgid "Mon"
+#~ msgstr ""
+
+#~ msgid "Tue"
+#~ msgstr ""
+
+#~ msgid "Wed"
+#~ msgstr ""
+
+#~ msgid "Thu"
+#~ msgstr ""
+
+#~ msgid "Fri"
+#~ msgstr ""
+
+#~ msgid "Sat"
+#~ msgstr ""
+
+#~ msgid "Upcoming Appointments"
+#~ msgstr ""
+
+#~ msgid "Availability Settings"
+#~ msgstr ""
+
+#~ msgid "Working Hours"
+#~ msgstr ""
+
+#~ msgid "Working Days"
+#~ msgstr ""
+
+#~ msgid "Monday"
+#~ msgstr ""
+
+#~ msgid "Tuesday"
+#~ msgstr ""
+
+#~ msgid "Wednesday"
+#~ msgstr ""
+
+#~ msgid "Thursday"
+#~ msgstr ""
+
+#~ msgid "Friday"
+#~ msgstr ""
+
+#~ msgid "Save Settings"
+#~ msgstr ""
+
+#~ msgid "Title"
+#~ msgstr ""
+
+#~ msgid "Start Time"
+#~ msgstr ""
+
+#~ msgid "Duration (minutes)"
+#~ msgstr ""
+
+#~ msgid "minutes"
+#~ msgstr ""
+
+#~ msgid "hour"
+#~ msgstr ""
+
+#~ msgid "hours"
+#~ msgstr ""
+
+#~ msgid "Attendee Name"
+#~ msgstr ""
+
+#~ msgid "Attendee Email"
+#~ msgstr ""
+
+#~ msgid "Description"
+#~ msgstr ""
+
+#~ msgid "Send calendar invitation to attendee"
+#~ msgstr ""
+
+#~ msgid "Cancel"
+#~ msgstr ""
+
+#~ msgid "Appointment Details"
+#~ msgstr ""
+
+#~ msgid "Close"
+#~ msgstr ""
+
+#~ msgid "January"
+#~ msgstr ""
+
+#~ msgid "February"
+#~ msgstr ""
+
+#~ msgid "March"
+#~ msgstr ""
+
+#~ msgid "April"
+#~ msgstr ""
+
+#~ msgid "May"
+#~ msgstr ""
+
+#~ msgid "June"
+#~ msgstr ""
+
+#~ msgid "July"
+#~ msgstr ""
+
+#~ msgid "August"
+#~ msgstr ""
+
+#~ msgid "September"
+#~ msgstr ""
+
+#~ msgid "October"
+#~ msgstr ""
+
+#~ msgid "November"
+#~ msgstr ""
+
+#~ msgid "December"
+#~ msgstr ""
+
+#~ msgid "Week view coming soon"
+#~ msgstr ""
+
+#~ msgid "Day view coming soon"
+#~ msgstr ""
+
+#~ msgid "Unable to load upcoming appointments"
+#~ msgstr ""
+
+#~ msgid "No upcoming appointments"
+#~ msgstr ""
+
+#~ msgid "Connected"
+#~ msgstr ""
+
+#~ msgid "Please complete the authorization in the new window"
+#~ msgstr ""
+
+#~ msgid "Failed to connect Google Calendar"
+#~ msgstr ""
+
+#~ msgid "Failed to load appointment details"
+#~ msgstr ""
+
+#~ msgid "Date & Time"
+#~ msgstr ""
+
+#~ msgid "Attendee"
+#~ msgstr ""
+
+#~ msgid "Availability settings saved"
+#~ msgstr ""
+
+#~ msgid "Edit appointment functionality coming soon"
+#~ msgstr ""
+
+#~ msgid "Cancel appointment functionality coming soon"
+#~ msgstr ""
+
+#~ msgid "CRM - AI Secretary"
+#~ msgstr ""
+
+#~ msgid "Manage leads, contacts, and sales pipeline"
+#~ msgstr ""
+
+#~ msgid "Add Lead"
+#~ msgstr ""
+
+#~ msgid "Pipeline Overview"
+#~ msgstr ""
+
+#~ msgid "Search leads..."
+#~ msgstr ""
+
+#~ msgid "All Stages"
+#~ msgstr ""
+
+#~ msgid "New"
+#~ msgstr ""
+
+#~ msgid "Contacted"
+#~ msgstr ""
+
+#~ msgid "Qualified"
+#~ msgstr ""
+
+#~ msgid "Proposal"
+#~ msgstr ""
+
+#~ msgid "Closed"
+#~ msgstr ""
+
+#~ msgid "All Sources"
+#~ msgstr ""
+
+#~ msgid "Manual"
+#~ msgstr ""
+
+#~ msgid "All Assignees"
+#~ msgstr ""
+
+#~ msgid "Unassigned"
+#~ msgstr ""
+
+#~ msgid "Filter"
+#~ msgstr ""
+
+#~ msgid "Table View"
+#~ msgstr ""
+
+#~ msgid "Kanban View"
+#~ msgstr ""
+
+#~ msgid "Contact"
+#~ msgstr ""
+
+#~ msgid "Company"
+#~ msgstr ""
+
+#~ msgid "Stage"
+#~ msgstr ""
+
+#~ msgid "Value"
+#~ msgstr ""
+
+#~ msgid "Source"
+#~ msgstr ""
+
+#~ msgid "Assigned To"
+#~ msgstr ""
+
+#~ msgid "Last Activity"
+#~ msgstr ""
+
+#~ msgid "Actions"
+#~ msgstr ""
+
+#~ msgid "Add New Lead"
+#~ msgstr ""
+
+#~ msgid "Contact Name"
+#~ msgstr ""
+
+#~ msgid "Email"
+#~ msgstr ""
+
+#~ msgid "Estimated Value"
+#~ msgstr ""
+
+#~ msgid "Notes"
+#~ msgstr ""
+
+#~ msgid "Save Lead"
+#~ msgstr ""
+
+#~ msgid "Lead Details"
+#~ msgstr ""
+
+#~ msgid "Error loading leads"
+#~ msgstr ""
+
+#~ msgid "Unable to load pipeline overview"
+#~ msgstr ""
+
+#~ msgid "Total Leads"
+#~ msgstr ""
+
+#~ msgid "Pipeline Value"
+#~ msgstr ""
+
+#~ msgid "Qualified Leads"
+#~ msgstr ""
+
+#~ msgid "Conversion Rate"
+#~ msgstr ""
+
+#~ msgid "No leads found"
+#~ msgstr ""
+
+#~ msgid "Lead added successfully"
+#~ msgstr ""
+
+#~ msgid "Failed to save lead"
+#~ msgstr ""
+
+#~ msgid "Failed to load lead details"
+#~ msgstr ""
+
+#~ msgid "Lead Information"
+#~ msgstr ""
+
+#~ msgid "Quick Actions"
+#~ msgstr ""
+
+#~ msgid "Edit Lead"
+#~ msgstr ""
+
+#~ msgid "Add Task"
+#~ msgstr ""
+
+#~ msgid "Add Note"
+#~ msgstr ""
+
+#~ msgid "Move Stage"
+#~ msgstr ""
+
+#~ msgid "Yesterday"
+#~ msgstr ""
+
+#~ msgid "Edit lead functionality coming soon"
+#~ msgstr ""
+
+#~ msgid "Add task functionality coming soon"
+#~ msgstr ""
+
+#~ msgid "Add note functionality coming soon"
+#~ msgstr ""
+
+#~ msgid "Move stage functionality coming soon"
+#~ msgstr ""
+
+#~ msgid "Dashboard - AI Secretary"
+#~ msgstr ""
+
+#~ msgid "Welcome back!"
+#~ msgstr ""
+
+#~ msgid "Here's what's happening with your AI Secretary today."
+#~ msgstr ""
+
+#~ msgid "View Inbox"
+#~ msgstr ""
+
+#~ msgid "Manage Leads"
+#~ msgstr ""
+
+#~ msgid "Messages Today"
+#~ msgstr ""
+
+#~ msgid "Active Leads"
+#~ msgstr ""
+
+#~ msgid "Appointments"
+#~ msgstr ""
+
+#~ msgid "Response Rate"
+#~ msgstr ""
+
+#~ msgid "Recent Messages"
+#~ msgstr ""
+
+#~ msgid "View All"
+#~ msgstr ""
+
+#~ msgid "Recent Leads"
+#~ msgstr ""
+
+#~ msgid "View Calendar"
+#~ msgstr ""
+
+#~ msgid "Quick Stats"
+#~ msgstr ""
+
+#~ msgid "No recent messages"
+#~ msgstr ""
+
+#~ msgid "Unable to load recent messages"
+#~ msgstr ""
+
+#~ msgid "No recent leads"
+#~ msgstr ""
+
+#~ msgid "Unable to load recent leads"
+#~ msgstr ""
+
+#~ msgid "Unable to load appointments"
+#~ msgstr ""
+
+#~ msgid "Overall Status"
+#~ msgstr ""
+
+#~ msgid "Database"
+#~ msgstr ""
+
+#~ msgid "Redis"
+#~ msgstr ""
+
+#~ msgid "Error loading system status"
+#~ msgstr ""
+
+#~ msgid "Total User"
+#~ msgstr ""
+
+#~ msgid "Total Users"
+#~ msgstr ""
+
+#~ msgid "Active Channel"
+#~ msgstr ""
+
+#~ msgid "Active Channels"
+#~ msgstr ""
+
+#~ msgid "Knowledge Source"
+#~ msgstr ""
+
+#~ msgid "Knowledge Sources"
+#~ msgstr ""
+
+#~ msgid "KYB Counterparty"
+#~ msgstr ""
+
+#~ msgid "KYB Counterparties"
+#~ msgstr ""
+
+#~ msgid "Unable to load statistics"
+#~ msgstr ""
+
+#~ msgid "Inbox - AI Secretary"
+#~ msgstr ""
+
+#~ msgid "Manage all customer communications in one place"
+#~ msgstr ""
+
+#~ msgid "Compose"
+#~ msgstr ""
+
+#~ msgid "Search messages..."
+#~ msgstr ""
+
+#~ msgid "All Channels"
+#~ msgstr ""
+
+#~ msgid "All Status"
+#~ msgstr ""
+
+#~ msgid "Unread"
+#~ msgstr ""
+
+#~ msgid "Read"
+#~ msgstr ""
+
+#~ msgid "Replied"
+#~ msgstr ""
+
+#~ msgid "All Agents"
+#~ msgstr ""
+
+#~ msgid "AI Response"
+#~ msgstr ""
+
+#~ msgid "Human Response"
+#~ msgstr ""
+
+#~ msgid "Conversations"
+#~ msgstr ""
+
+#~ msgid "Select a conversation"
+#~ msgstr ""
+
+#~ msgid "Mark as Read"
+#~ msgstr ""
+
+#~ msgid "Human Handoff"
+#~ msgstr ""
+
+#~ msgid "Archive"
+#~ msgstr ""
+
+#~ msgid "Select a conversation to view messages"
+#~ msgstr ""
+
+#~ msgid "Type your message..."
+#~ msgstr ""
+
+#~ msgid "Use AI assistance"
+#~ msgstr ""
+
+#~ msgid "Compose Message"
+#~ msgstr ""
+
+#~ msgid "Channel"
+#~ msgstr ""
+
+#~ msgid "Select channel"
+#~ msgstr ""
+
+#~ msgid "Recipient"
+#~ msgstr ""
+
+#~ msgid "Enter recipient ID or phone number"
+#~ msgstr ""
+
+#~ msgid "Message"
+#~ msgstr ""
+
+#~ msgid "Enter your message..."
+#~ msgstr ""
+
+#~ msgid "Send Message"
+#~ msgstr ""
+
+#~ msgid "Error loading conversations"
+#~ msgstr ""
+
+#~ msgid "No conversations yet"
+#~ msgstr ""
+
+#~ msgid "Error loading messages"
+#~ msgstr ""
+
+#~ msgid "No messages in this conversation"
+#~ msgstr ""
+
+#~ msgid "Just now"
+#~ msgstr ""
+
+#~ msgid "Marked as read"
+#~ msgstr ""
+
+#~ msgid "Handed off to human agent"
+#~ msgstr ""
+
+#~ msgid "Conversation archived"
+#~ msgstr ""
+
+#~ msgid "AI Secretary - Home"
+#~ msgstr ""
+
+#~ msgid "Welcome to AI Secretary"
+#~ msgstr ""
+
+#~ msgid "Your intelligent assistant for managing communications, CRM, and more."
+#~ msgstr ""
+
+#~ msgid "View your overview and key metrics."
+#~ msgstr ""
+
+#~ msgid "Go to Dashboard"
+#~ msgstr ""
+
+#~ msgid "Test and explore the API endpoints."
+#~ msgstr ""
+
+#~ msgid "Test API"
+#~ msgstr ""
+
+#~ msgid "Secretary Setup"
+#~ msgstr ""
+
+#~ msgid "Configure your AI secretary, communication channels, and KYB settings."
+#~ msgstr ""
+
+#~ msgid "Setup Secretary"
+#~ msgstr ""
+
+#~ msgid "KYB Dashboard"
+#~ msgstr ""
+
+#~ msgid "Monitor counterparty verification and compliance status."
+#~ msgstr ""
+
+#~ msgid "View Dashboard"
+#~ msgstr ""
+
+#~ msgid "Complete API and user documentation."
+#~ msgstr ""
+
+#~ msgid "View Docs"
+#~ msgstr ""
+
+#~ msgid "Languages"
+#~ msgstr ""
+
+#~ msgid "Switch between English, German, and Ukrainian."
+#~ msgstr ""
+
+#~ msgid "EN"
+#~ msgstr ""
+
+#~ msgid "DE"
+#~ msgstr ""
+
+#~ msgid "UK"
+#~ msgstr ""
+
+#~ msgid "Quick Start"
+#~ msgstr ""
+
+#~ msgid "Ready to see the KYB system in action?"
+#~ msgstr ""
+
+#~ msgid ""
+#~ "Run our interactive demo to see "
+#~ "VAT verification, sanctions screening, and "
+#~ "counterparty monitoring."
+#~ msgstr ""
+
+#~ msgid "Run KYB Demo"
+#~ msgstr ""
+
+#~ msgid "Demo Instructions:"
+#~ msgstr ""
+
+#~ msgid "Open terminal/command prompt"
+#~ msgstr ""
+
+#~ msgid "Navigate to your project directory"
+#~ msgstr ""
+
+#~ msgid "Run:"
+#~ msgstr ""
+
+#~ msgid "Watch the complete KYB system demonstration!"
+#~ msgstr ""
+
+#~ msgid "Failed to load system status:"
+#~ msgstr ""
+
+#~ msgid "Verified"
+#~ msgstr ""
+
+#~ msgid "Pending"
+#~ msgstr ""
+
+#~ msgid "High Risk"
+#~ msgstr ""
+
+#~ msgid "Risk Level"
+#~ msgstr ""
+
+#~ msgid "Address"
+#~ msgstr ""
+
+#~ msgid "Upload"
+#~ msgstr ""
+
+#~ msgid "Save"
+#~ msgstr ""
+
+#~ msgid "Time"
+#~ msgstr ""
+
+#~ msgid "Settings - AI Secretary"
+#~ msgstr ""
+
+#~ msgid "Manage your organization and system settings"
+#~ msgstr ""
+
+#~ msgid "Organization"
+#~ msgstr ""
+
+#~ msgid "Channels"
+#~ msgstr ""
+
+#~ msgid "AI Settings"
+#~ msgstr ""
+
+#~ msgid "Notifications"
+#~ msgstr ""
+
+#~ msgid "Billing"
+#~ msgstr ""
+
+#~ msgid "Security"
+#~ msgstr ""
+
+#~ msgid "Integrations"
+#~ msgstr ""
+
+#~ msgid "Organization Settings"
+#~ msgstr ""
+
+#~ msgid "Timezone"
+#~ msgstr ""
+
+#~ msgid "Default Language"
+#~ msgstr ""
+
+#~ msgid "Save Changes"
+#~ msgstr ""
+
+#~ msgid "Channel Configuration"
+#~ msgstr ""
+
+#~ msgid "Telegram Bot"
+#~ msgstr ""
+
+#~ msgid "Bot Token"
+#~ msgstr ""
+
+#~ msgid "Not configured"
+#~ msgstr ""
+
+#~ msgid "Test Connection"
+#~ msgstr ""
+
+#~ msgid "Signal Integration"
+#~ msgstr ""
+
+#~ msgid "Phone Number"
+#~ msgstr ""
+
+#~ msgid "Web Widget"
+#~ msgstr ""
+
+#~ msgid "Primary Color"
+#~ msgstr ""
+
+#~ msgid "Position"
+#~ msgstr ""
+
+#~ msgid "Bottom Right"
+#~ msgstr ""
+
+#~ msgid "Bottom Left"
+#~ msgstr ""
+
+#~ msgid "Welcome Message"
+#~ msgstr ""
+
+#~ msgid "Preview Widget"
+#~ msgstr ""
+
+#~ msgid "Save Channel Settings"
+#~ msgstr ""
+
+#~ msgid "AI Configuration"
+#~ msgstr ""
+
+#~ msgid "AI Model"
+#~ msgstr ""
+
+#~ msgid "Response Creativity"
+#~ msgstr ""
+
+#~ msgid "Conservative"
+#~ msgstr ""
+
+#~ msgid "Creative"
+#~ msgstr ""
+
+#~ msgid "AI Personality"
+#~ msgstr ""
+
+#~ msgid "System Instructions"
+#~ msgstr ""
+
+#~ msgid "Enable automatic AI responses"
+#~ msgstr ""
+
+#~ msgid "Enable content filtering"
+#~ msgstr ""
+
+#~ msgid "Save AI Settings"
+#~ msgstr ""
+
+#~ msgid "Notification Preferences"
+#~ msgstr ""
+
+#~ msgid "Email Notifications"
+#~ msgstr ""
+
+#~ msgid "New messages"
+#~ msgstr ""
+
+#~ msgid "New leads"
+#~ msgstr ""
+
+#~ msgid "Appointment reminders"
+#~ msgstr ""
+
+#~ msgid "KYB monitoring alerts"
+#~ msgstr ""
+
+#~ msgid "Push Notifications"
+#~ msgstr ""
+
+#~ msgid "Urgent alerts"
+#~ msgstr ""
+
+#~ msgid "Save Notification Settings"
+#~ msgstr ""
+
+#~ msgid "Billing & Subscription"
+#~ msgstr ""
+
+#~ msgid "Security Settings"
+#~ msgstr ""
+
+#~ msgid "Password Policy"
+#~ msgstr ""
+
+#~ msgid "Require strong passwords"
+#~ msgstr ""
+
+#~ msgid "Require password change every 90 days"
+#~ msgstr ""
+
+#~ msgid "Session Management"
+#~ msgstr ""
+
+#~ msgid "Session Timeout (hours)"
+#~ msgstr ""
+
+#~ msgid "Data Retention"
+#~ msgstr ""
+
+#~ msgid "Message Retention (days)"
+#~ msgstr ""
+
+#~ msgid "Log Retention (days)"
+#~ msgstr ""
+
+#~ msgid "Save Security Settings"
+#~ msgstr ""
+
+#~ msgid "Third-party Integrations"
+#~ msgstr ""
+
+#~ msgid "Google Calendar"
+#~ msgstr ""
+
+#~ msgid "Sync appointments and availability"
+#~ msgstr ""
+
+#~ msgid "Not connected"
+#~ msgstr ""
+
+#~ msgid "Connect"
+#~ msgstr ""
+
+#~ msgid "Stripe"
+#~ msgstr ""
+
+#~ msgid "Payment processing and invoicing"
+#~ msgstr ""
+
+#~ msgid "Configure"
+#~ msgstr ""
+
+#~ msgid "Webhooks"
+#~ msgstr ""
+
+#~ msgid "Webhook URL"
+#~ msgstr ""
+
+#~ msgid "Events"
+#~ msgstr ""
+
+#~ msgid "New message received"
+#~ msgstr ""
+
+#~ msgid "New lead created"
+#~ msgstr ""
+
+#~ msgid "Appointment booked"
+#~ msgstr ""
+
+#~ msgid "Test Webhook"
+#~ msgstr ""
+
+#~ msgid "Save Integration Settings"
+#~ msgstr ""
+
+#~ msgid "Organization settings saved successfully"
+#~ msgstr ""
+
+#~ msgid "Failed to save organization settings"
+#~ msgstr ""
+
+#~ msgid "Current Plan"
+#~ msgstr ""
+
+#~ msgid "Next Billing Date"
+#~ msgstr ""
+
+#~ msgid "Manage Billing"
+#~ msgstr ""
+
+#~ msgid "View Usage"
+#~ msgstr ""
+
+#~ msgid "Unable to load billing information"
+#~ msgstr ""
+
+#~ msgid "Channel settings saved"
+#~ msgstr ""
+
+#~ msgid "AI settings saved"
+#~ msgstr ""
+
+#~ msgid "Notification settings saved"
+#~ msgstr ""
+
+#~ msgid "Security settings saved"
+#~ msgstr ""
+
+#~ msgid "Integration settings saved"
+#~ msgstr ""
+
+#~ msgid "Testing Telegram connection..."
+#~ msgstr ""
+
+#~ msgid "Testing Signal connection..."
+#~ msgstr ""
+
+#~ msgid "Widget preview coming soon"
+#~ msgstr ""
+
+#~ msgid "Testing webhook..."
+#~ msgstr ""
+
+#~ msgid "Google Calendar connection coming soon"
+#~ msgstr ""
+
+#~ msgid "Stripe configuration coming soon"
+#~ msgstr ""
+
+#~ msgid "Billing management coming soon"
+#~ msgstr ""
+
+#~ msgid "Usage view coming soon"
+#~ msgstr ""
+
+#~ msgid "User Management - AI Secretary"
+#~ msgstr ""
+
+#~ msgid "Manage users, roles, and permissions"
+#~ msgstr ""
+
+#~ msgid "Invite User"
+#~ msgstr ""
+
+#~ msgid "Active Users"
+#~ msgstr ""
+
+#~ msgid "Pending Invites"
+#~ msgstr ""
+
+#~ msgid "Admins"
+#~ msgstr ""
+
+#~ msgid "Search users..."
+#~ msgstr ""
+
+#~ msgid "All Roles"
+#~ msgstr ""
+
+#~ msgid "Owner"
+#~ msgstr ""
+
+#~ msgid "Manager"
+#~ msgstr ""
+
+#~ msgid "Accounting"
+#~ msgstr ""
+
+#~ msgid "Read-only"
+#~ msgstr ""
+
+#~ msgid "Sort by Name"
+#~ msgstr ""
+
+#~ msgid "Sort by Email"
+#~ msgstr ""
+
+#~ msgid "Sort by Role"
+#~ msgstr ""
+
+#~ msgid "Sort by Created"
+#~ msgstr ""
+
+#~ msgid "Sort by Last Login"
+#~ msgstr ""
+
+#~ msgid "Users"
+#~ msgstr ""
+
+#~ msgid "Role"
+#~ msgstr ""
+
+#~ msgid "Last Login"
+#~ msgstr ""
+
+#~ msgid "Enter email address"
+#~ msgstr ""
+
+#~ msgid "Select role"
+#~ msgstr ""
+
+#~ msgid "Personal Message (Optional)"
+#~ msgstr ""
+
+#~ msgid "Add a personal message to the invitation..."
+#~ msgstr ""
+
+#~ msgid "Send welcome email with setup instructions"
+#~ msgstr ""
+
+#~ msgid "Send Invitation"
+#~ msgstr ""
+
+#~ msgid "Edit User"
+#~ msgstr ""
+
+#~ msgid "Full Name"
+#~ msgstr ""
+
+#~ msgid "Role Permissions"
+#~ msgstr ""
+
+#~ msgid "Error loading users"
+#~ msgstr ""
+
+#~ msgid "No users found"
+#~ msgstr ""
+
+#~ msgid "Permissions"
+#~ msgstr ""
+
+#~ msgid "Deactivate"
+#~ msgstr ""
+
+#~ msgid "Are you sure you want to reset this user's password?"
+#~ msgstr ""
+
+#~ msgid "Password reset email sent"
+#~ msgstr ""
+
+#~ msgid "Failed to reset password"
+#~ msgstr ""
+
+#~ msgid "Are you sure you want to deactivate this user?"
+#~ msgstr ""
+
+#~ msgid "User deactivated successfully"
+#~ msgstr ""
+
+#~ msgid "Failed to deactivate user"
+#~ msgstr ""
+
+#~ msgid "Administration"
+#~ msgstr ""
+
+#~ msgid "Manage all users"
+#~ msgstr ""
+
+#~ msgid "Manage billing"
+#~ msgstr ""
+
+#~ msgid "Manage integrations"
+#~ msgstr ""
+
+#~ msgid "View all data"
+#~ msgstr ""
+
+#~ msgid "Operations"
+#~ msgstr ""
+
+#~ msgid "Manage inbox"
+#~ msgstr ""
+
+#~ msgid "Manage CRM"
+#~ msgstr ""
+
+#~ msgid "Manage calendar"
+#~ msgstr ""
+
+#~ msgid "Manage knowledge base"
+#~ msgstr ""
+
+#~ msgid "Management"
+#~ msgstr ""
+
+#~ msgid "Manage team users"
+#~ msgstr ""
+
+#~ msgid "View reports"
+#~ msgstr ""
+
+#~ msgid "Manage settings"
+#~ msgstr ""
+
+#~ msgid "View inbox"
+#~ msgstr ""
+
+#~ msgid "Respond to messages"
+#~ msgstr ""
+
+#~ msgid "View CRM"
+#~ msgstr ""
+
+#~ msgid "Create leads"
+#~ msgstr ""
+
+#~ msgid "View billing"
+#~ msgstr ""
+
+#~ msgid "Manage invoices"
+#~ msgstr ""
+
+#~ msgid "View calendar"
+#~ msgstr ""
+
+#~ msgid "Never"
+#~ msgstr ""
+
+#~ msgid "days ago"
+#~ msgstr ""
+
+#~ msgid "This field is required."
+#~ msgstr ""
+
+#~ msgid "This field cannot be empty."
+#~ msgstr ""
+
+#~ msgid "Please enter a valid email address."
+#~ msgstr ""
+
+#~ msgid "Please enter a valid URL."
+#~ msgstr ""
+
+#~ msgid "Please enter a valid number."
+#~ msgstr ""
+
+#~ msgid "Please enter true or false."
+#~ msgstr ""
+
+#~ msgid "Please enter a valid date."
+#~ msgstr ""
+
+#~ msgid "Please enter a valid date and time."
+#~ msgstr ""
+
+#~ msgid "Length must be between {min} and {max} characters."
+#~ msgstr ""
+
+#~ msgid "Must be at least {min} characters long."
+#~ msgstr ""
+
+#~ msgid "Must be no more than {max} characters long."
+#~ msgstr ""
+
+#~ msgid "Must be at least {min}."
+#~ msgstr ""
+
+#~ msgid "Must be no more than {max}."
+#~ msgstr ""
+
+#~ msgid "Validation failed"
+#~ msgstr ""
+
+#~ msgid "Permission required: %(permission)s"
+#~ msgstr ""
+
+#~ msgid "Insufficient permissions. Required roles: %(roles)s"
+#~ msgstr ""
+
+#~ msgid "Tenant context required"
+#~ msgstr ""
+
+#~ msgid "Trial period has expired. Please upgrade your subscription."
+#~ msgstr ""
+
+#~ msgid "Active subscription required"
+#~ msgstr ""
+
+#~ msgid "Administrator access required"
+#~ msgstr ""
+
+#~ msgid "Request must be JSON"
+#~ msgstr ""
+
+#~ msgid "Invalid JSON data"
+#~ msgstr ""
+
+#~ msgid "Missing required permissions: %(permissions)s"
+#~ msgstr ""
+
+#~ msgid "One of the following permissions is required: %(permissions)s"
+#~ msgstr ""
+
+#~ msgid "Owner role or permission required: %(permission)s"
+#~ msgstr ""
+
+#~ msgid "Permission required to access other users: %(permission)s"
+#~ msgstr ""
+
+#~ msgid "Trial period has expired. Please upgrade to access this feature."
+#~ msgstr ""
+
+#~ msgid "This feature is not available in your current plan."
+#~ msgstr ""
+
+#~ msgid "Page number must be positive"
+#~ msgstr ""
+
+#~ msgid "Per page value must be between 1 and 100"
+#~ msgstr ""
+
+#~ msgid "Invalid pagination parameters"
+#~ msgstr ""
+
+#~ msgid ""
+#~ "We are experiencing technical difficulties."
+#~ " Please try again in a few "
+#~ "moments."
+#~ msgstr ""
+
+#~ msgid ""
+#~ "Database connection failed. Check database "
+#~ "service status and connection settings."
+#~ msgstr ""
+
+#~ msgid "Check database service status"
+#~ msgstr ""
+
+#~ msgid "Verify connection settings"
+#~ msgstr ""
+
+#~ msgid "Review database logs"
+#~ msgstr ""
+
+#~ msgid "Contact system administrator if issue persists"
+#~ msgstr ""
+
+#~ msgid "Unable to process your request. Please try again."
+#~ msgstr ""
+
+#~ msgid "Database query failed. Check query syntax and database schema."
+#~ msgstr ""
+
+#~ msgid "Review query syntax"
+#~ msgstr ""
+
+#~ msgid "Check database schema"
+#~ msgstr ""
+
+#~ msgid "Verify data integrity"
+#~ msgstr ""
+
+#~ msgid "Check database logs for details"
+#~ msgstr ""
+
+#~ msgid "Invalid credentials. Please check your email and password."
+#~ msgstr ""
+
+#~ msgid "User authentication failed. Check user credentials and account status."
+#~ msgstr ""
+
+#~ msgid "Verify email and password"
+#~ msgstr ""
+
+#~ msgid "Check account status"
+#~ msgstr ""
+
+#~ msgid "Reset password if necessary"
+#~ msgstr ""
+
+#~ msgid "Contact support if issue persists"
+#~ msgstr ""
+
+#~ msgid "Your session has expired. Please log in again."
+#~ msgstr ""
+
+#~ msgid "JWT token has expired. User needs to re-authenticate."
+#~ msgstr ""
+
+#~ msgid "Log in again"
+#~ msgstr ""
+
+#~ msgid "Check token expiration settings"
+#~ msgstr ""
+
+#~ msgid "Clear browser cache if necessary"
+#~ msgstr ""
+
+#~ msgid "You do not have permission to perform this action."
+#~ msgstr ""
+
+#~ msgid "User lacks required permissions for this operation."
+#~ msgstr ""
+
+#~ msgid "Contact administrator for access"
+#~ msgstr ""
+
+#~ msgid "Review user permissions"
+#~ msgstr ""
+
+#~ msgid "Check role assignments"
+#~ msgstr ""
+
+#~ msgid "This feature is temporarily unavailable. Please try again later."
+#~ msgstr ""
+
+#~ msgid ""
+#~ "External service is unavailable. Check "
+#~ "service status and configuration."
+#~ msgstr ""
+
+#~ msgid "Check external service status"
+#~ msgstr ""
+
+#~ msgid "Verify API credentials"
+#~ msgstr ""
+
+#~ msgid "Review network connectivity"
+#~ msgstr ""
+
+#~ msgid "Check service documentation for updates"
+#~ msgstr ""
+
+#~ msgid "Too many requests. Please wait a moment before trying again."
+#~ msgstr ""
+
+#~ msgid "API rate limit exceeded. Consider implementing request throttling."
+#~ msgstr ""
+
+#~ msgid "Wait before making more requests"
+#~ msgstr ""
+
+#~ msgid "Implement request throttling"
+#~ msgstr ""
+
+#~ msgid "Review API usage patterns"
+#~ msgstr ""
+
+#~ msgid "Consider upgrading service plan"
+#~ msgstr ""
+
+#~ msgid "This feature is not available due to system configuration."
+#~ msgstr ""
+
+#~ msgid "Required configuration is missing. Check environment variables."
+#~ msgstr ""
+
+#~ msgid "Set required environment variables"
+#~ msgstr ""
+
+#~ msgid "Review configuration documentation"
+#~ msgstr ""
+
+#~ msgid "Restart application after configuration changes"
+#~ msgstr ""
+
+#~ msgid "Validate configuration settings"
+#~ msgstr ""
+
+#~ msgid "System configuration error. Please contact support."
+#~ msgstr ""
+
+#~ msgid "Invalid configuration detected. Review and correct settings."
+#~ msgstr ""
+
+#~ msgid "Review configuration values"
+#~ msgstr ""
+
+#~ msgid "Check configuration format"
+#~ msgstr ""
+
+#~ msgid "Validate against documentation"
+#~ msgstr ""
+
+#~ msgid "Test configuration changes"
+#~ msgstr ""
+
+#~ msgid "The requested file could not be found."
+#~ msgstr ""
+
+#~ msgid "File not found. Check file path and permissions."
+#~ msgstr ""
+
+#~ msgid "Verify file path"
+#~ msgstr ""
+
+#~ msgid "Check file permissions"
+#~ msgstr ""
+
+#~ msgid "Ensure file exists"
+#~ msgstr ""
+
+#~ msgid "Review file system logs"
+#~ msgstr ""
+
+#~ msgid "Unable to access the requested file."
+#~ msgstr ""
+
+#~ msgid "File permission denied. Check file and directory permissions."
+#~ msgstr ""
+
+#~ msgid "Verify directory permissions"
+#~ msgstr ""
+
+#~ msgid "Ensure application has required access"
+#~ msgstr ""
+
+#~ msgid "Review file ownership"
+#~ msgstr ""
+
+#~ msgid "Unable to save your changes. Please try again later."
+#~ msgstr ""
+
+#~ msgid "Insufficient disk space. Free up space or expand storage."
+#~ msgstr ""
+
+#~ msgid "Free up disk space"
+#~ msgstr ""
+
+#~ msgid "Remove unnecessary files"
+#~ msgstr ""
+
+#~ msgid "Expand storage capacity"
+#~ msgstr ""
+
+#~ msgid "Monitor disk usage"
+#~ msgstr ""
+
+#~ msgid "Please check your input and try again."
+#~ msgstr ""
+
+#~ msgid "Input validation failed. Check validation rules and data format."
+#~ msgstr ""
+
+#~ msgid "Review input data"
+#~ msgstr ""
+
+#~ msgid "Check validation rules"
+#~ msgstr ""
+
+#~ msgid "Verify data format"
+#~ msgstr ""
+
+#~ msgid "Provide clear validation messages"
+#~ msgstr ""
+
+#~ msgid "Please fill in all required fields."
+#~ msgstr ""
+
+#~ msgid "Required field validation failed. Check form requirements."
+#~ msgstr ""
+
+#~ msgid "Fill in all required fields"
+#~ msgstr ""
+
+#~ msgid "Review form validation"
+#~ msgstr ""
+
+#~ msgid "Check field requirements"
+#~ msgstr ""
+
+#~ msgid "Update form documentation"
+#~ msgstr ""
+
+#~ msgid "Request timed out. Please check your connection and try again."
+#~ msgstr ""
+
+#~ msgid "Network timeout occurred. Check network connectivity and timeouts."
+#~ msgstr ""
+
+#~ msgid "Check network connectivity"
+#~ msgstr ""
+
+#~ msgid "Review timeout settings"
+#~ msgstr ""
+
+#~ msgid "Test network performance"
+#~ msgstr ""
+
+#~ msgid "Consider increasing timeout values"
+#~ msgstr ""
+
+#~ msgid "Unable to connect to the service. Please try again later."
+#~ msgstr ""
+
+#~ msgid ""
+#~ "Connection refused. Check service availability"
+#~ " and network configuration."
+#~ msgstr ""
+
+#~ msgid "Check service status"
+#~ msgstr ""
+
+#~ msgid "Verify network configuration"
+#~ msgstr ""
+
+#~ msgid "Review firewall settings"
+#~ msgstr ""
+
+#~ msgid "Test connectivity"
+#~ msgstr ""
+
+#~ msgid "An error occurred. Check logs for details."
+#~ msgstr ""
+
+#~ msgid "Check application logs"
+#~ msgstr ""
+
+#~ msgid "Review error details"
+#~ msgstr ""
+
+#~ msgid "Identify root cause"
+#~ msgstr ""
+
+#~ msgid "Apply appropriate fix"
+#~ msgstr ""
+
+#~ msgid "An error occurred. Please try again or contact support."
+#~ msgstr ""
+
+#~ msgid "Try again"
+#~ msgstr ""
+
+#~ msgid "Refresh the page"
+#~ msgstr ""
+
+#~ msgid "Account is disabled"
+#~ msgstr ""
+
+#~ msgid "Token has expired"
+#~ msgstr ""
+
+#~ msgid "This field is required"
+#~ msgstr ""
+
+#~ msgid "Invalid phone number"
+#~ msgstr ""
+
+#~ msgid "Access denied"
+#~ msgstr ""
+
+#~ msgid "Insufficient permissions"
+#~ msgstr ""
+
+#~ msgid "Created successfully"
+#~ msgstr ""
+
+#~ msgid "Updated successfully"
+#~ msgstr ""
+
+#~ msgid "Deleted successfully"
+#~ msgstr ""
+
+#~ msgid "Operation failed"
+#~ msgstr ""
+
+#~ msgid "Resource not found"
+#~ msgstr ""
+
+#~ msgid "Resource already exists"
+#~ msgstr ""
+
+#~ msgid "Internal server error"
+#~ msgstr ""
+
+#~ msgid "Trial period has expired"
+#~ msgstr ""
+
+#~ msgid "Payment failed"
+#~ msgstr ""
+
+#~ msgid "Counterparty added successfully"
+#~ msgstr ""
+
+#~ msgid "Sanctions match found"
+#~ msgstr ""
+
+#~ msgid "VAT number validation failed"
+#~ msgstr ""
+
+#~ msgid "AI processing failed"
+#~ msgstr ""
+
+#~ msgid "Message is too long"
+#~ msgstr ""
+
+#~ msgid "File is too large"
+#~ msgstr ""
+
+#~ msgid "Invalid file type"
+#~ msgstr ""
+
+#~ msgid "File upload failed"
+#~ msgstr ""
+
+#~ msgid "Lead marked as won"
+#~ msgstr ""
+
+#~ msgid "Lead marked as lost"
+#~ msgstr ""
+
+#~ msgid "Task assigned successfully"
+#~ msgstr ""
+
+#~ msgid "Task completed"
+#~ msgstr ""
+
+#~ msgid "Task is overdue"
+#~ msgstr ""
+
+#~ msgid "Contact added successfully"
+#~ msgstr ""
+
+#~ msgid "Channel connected successfully"
+#~ msgstr ""
+
+#~ msgid "Channel disconnected"
+#~ msgstr ""
+
+#~ msgid "Channel connection error"
+#~ msgstr ""
+
+#~ msgid "Auto-reply sent"
+#~ msgstr ""
+
+#~ msgid "Booking confirmed"
+#~ msgstr ""
+
+#~ msgid "Booking cancelled"
+#~ msgstr ""
+
+#~ msgid "Document uploaded successfully"
+#~ msgstr ""
+
+#~ msgid "Document processed successfully"
+#~ msgstr ""
+
+#~ msgid "Knowledge base updated"
+#~ msgstr ""
+
+#~ msgid "Rate limit exceeded"
+#~ msgstr ""
+
+#~ msgid "External service unavailable"
+#~ msgstr ""
+
+#~ msgid "Database error occurred"
+#~ msgstr ""
+
+#~ msgid "Unknown error"
+#~ msgstr ""
+
+#~ msgid "Request body cannot be empty"
+#~ msgstr ""
+
+#~ msgid "Page and per_page must be valid numbers"
+#~ msgstr ""
+
+#~ msgid "Per page value must be positive"
+#~ msgstr ""
+
+#~ msgid "Per page value cannot exceed 100"
+#~ msgstr ""
+
+#~ msgid "Please enter a valid email address"
+#~ msgstr ""
+
+#~ msgid "Must be a text value"
+#~ msgstr ""
+
+#~ msgid "Length must be between {min} and {max} characters"
+#~ msgstr ""
+
+#~ msgid "Must be at least {min} characters long"
+#~ msgstr ""
+
+#~ msgid "Must be no more than {max} characters long"
+#~ msgstr ""
+
+#~ msgid "Value must be at least {min}"
+#~ msgstr ""
+
+#~ msgid "Value must be no more than {max}"
+#~ msgstr ""
+
+#~ msgid "Must be a valid number"
+#~ msgstr ""
+
+#~ msgid "Invalid choice. Valid options are: {choices}"
+#~ msgstr ""
+
+#~ msgid "Form validation failed"
+#~ msgstr ""
+
+#~ msgid "Your account has been disabled"
+#~ msgstr ""
+
+#~ msgid "Your organization account has been disabled"
+#~ msgstr ""
+
+#~ msgid "The requested resource was not found"
+#~ msgstr ""
+
+#~ msgid "Method not allowed for this endpoint"
+#~ msgstr ""
+
+#~ msgid "An internal server error occurred"
+#~ msgstr ""
+
+#~ msgid "Value is too short"
+#~ msgstr ""
+
+#~ msgid "Value is too long"
+#~ msgstr ""
+
+#~ msgid "Invalid choice"
+#~ msgstr ""
+
+#~ msgid "Invalid date format"
+#~ msgstr ""
+
+#~ msgid "Invalid number"
+#~ msgstr ""
+
+#~ msgid "Invalid value"
+#~ msgstr ""
+
+#~ msgid "%(field)s is required"
+#~ msgstr ""
+
+#~ msgid "%(field)s: %(message)s"
+#~ msgstr ""
+
+#~ msgid "%(field)s must be an object with language keys"
+#~ msgstr ""
+
+#~ msgid "%(field)s is required in %(language)s"
+#~ msgstr ""
+
+#~ msgid "Unsupported language: %(language)s"
+#~ msgstr ""
+
+#~ msgid "Rate limit exceeded. Please try again later."
+#~ msgstr ""
+
+#~ msgid "%(resource)s not found"
+#~ msgstr ""
+
+#~ msgid "%(service)s is unavailable"
+#~ msgstr ""
+
+#~ msgid "Operation failed for {resource}"
+#~ msgstr ""
+
+#~ msgid "Missing required fields: %(fields)s"
+#~ msgstr ""
+
+#~ msgid "Per page value cannot exceed %(max)d"
+#~ msgstr ""
+
+# Pluralization examples for German
+#~ msgid "%(num)d user"
+#~ msgid_plural "%(num)d users"
+#~ msgstr[0] "%(num)d Benutzer"
+#~ msgstr[1] "%(num)d Benutzer"
+
+#~ msgid "%(num)d contact"
+#~ msgid_plural "%(num)d contacts"
+#~ msgstr[0] "%(num)d Kontakt"
+#~ msgstr[1] "%(num)d Kontakte"
+
+#~ msgid "%(num)d role"
+#~ msgid_plural "%(num)d roles"
+#~ msgstr[0] "%(num)d Rolle"
+#~ msgstr[1] "%(num)d Rollen"
+
+#~ msgid "%(num)d item"
+#~ msgid_plural "%(num)d items"
+#~ msgstr[0] "%(num)d Element"
+#~ msgstr[1] "%(num)d Elemente"
+
