@@ -71,11 +71,12 @@ def register_jwt_handlers(jwt_manager):
     
     @jwt_manager.user_lookup_loader
     def user_lookup_callback(_jwt_header, jwt_data):
-        """Load user from JWT using authentication adapter."""
+        """Load user from JWT using fixed authentication adapter."""
         try:
-            from app.utils.auth_adapter import auth_adapter
+            from app.utils.auth_adapter_fixed import get_fixed_auth_adapter
             from app.models.user import User
             
+            auth_adapter = get_fixed_auth_adapter()
             identity = jwt_data["sub"]
             
             # Validate identity format
@@ -85,8 +86,15 @@ def register_jwt_handlers(jwt_manager):
                 logger.warning("Invalid JWT subject type", subject=identity, type=type(identity))
                 return None
             
-            # Use database-agnostic user lookup
-            user = User.find_by_id(identity)
+            # Use database-agnostic user lookup with fallback
+            try:
+                user = User.query.get(identity)
+            except Exception as db_error:
+                logger.warning("Database lookup failed, trying session fallback", error=str(db_error))
+                user = auth_adapter.get_user_from_session()
+                if user and user.id == identity:
+                    return user
+                return None
             
             if user:
                 # Validate user and tenant status
@@ -102,12 +110,22 @@ def register_jwt_handlers(jwt_manager):
                     )
                     return None
             else:
-                logger.warning("User not found or inactive", user_id=identity)
+                logger.warning("User not found", user_id=identity)
+                # Try session fallback
+                session_user = auth_adapter.get_user_from_session()
+                if session_user and session_user.id == identity:
+                    return session_user
                 return None
                 
         except Exception as e:
             logger.warning("Failed to load user from JWT", error=str(e), jwt_data=jwt_data)
-            return None
+            # Try session fallback as last resort
+            try:
+                from app.utils.auth_adapter_fixed import get_fixed_auth_adapter
+                auth_adapter = get_fixed_auth_adapter()
+                return auth_adapter.get_user_from_session()
+            except Exception:
+                return None
     
     @jwt_manager.additional_claims_loader
     def add_claims_to_jwt(user):

@@ -7,6 +7,12 @@ from flask_jwt_extended import JWTManager
 from flask_cors import CORS
 from flask_socketio import SocketIO
 from flask_caching import Cache
+import sys
+import os
+# Add root directory to path to import root config.py
+root_dir = os.path.dirname(os.path.dirname(__file__))
+if root_dir not in sys.path:
+    sys.path.insert(0, root_dir)
 from config import config
 from app.utils.adaptive_config import get_adaptive_config, validate_current_services
 from app.utils.database_manager import get_database_manager, initialize_database_with_fallback
@@ -19,14 +25,8 @@ db = SQLAlchemy()
 migrate = Migrate()
 jwt = JWTManager()
 cors = CORS()
-socketio = SocketIO(
-    async_mode='threading',
-    cors_allowed_origins=[],
-    logger=False,
-    engineio_logger=False,
-    ping_timeout=10,
-    ping_interval=5
-)
+# SocketIO will be initialized by WebSocket manager
+socketio = None
 cache = Cache()
 
 
@@ -330,42 +330,56 @@ def _handle_database_initialization_failure(app):
     app.logger.warning("🔧 Graceful degradation implemented - application will continue with limited functionality")
 
 
+def _initialize_redis_fallback(app):
+    """Initialize Redis fallback manager."""
+    try:
+        from app.utils.redis_fallback import init_redis_fallback
+        redis_manager = init_redis_fallback(app)
+        
+        app.logger.info("✅ Redis fallback manager initialized")
+        
+        # Log Redis status
+        status = redis_manager.get_status()
+        app.logger.info(f"🔗 Redis available: {status['redis_available']}")
+        app.logger.info(f"💾 Cache type: {status['cache_type']}")
+        app.logger.info(f"🔄 Celery enabled: {status['celery_enabled']}")
+        
+        return redis_manager
+        
+    except Exception as e:
+        app.logger.error(f"❌ Redis fallback manager initialization failed: {e}")
+        # Set fallback configuration manually
+        app.config['CACHE_TYPE'] = 'simple'
+        app.config['CELERY_ENABLED'] = False
+        app.config['RATE_LIMITING_ENABLED'] = False
+        return None
+
+
 def _initialize_services_with_graceful_degradation(app):
     """Initialize services with graceful degradation for unavailable services."""
-    service_status = app.config.get('SERVICE_STATUS', {})
-    features = app.config.get('FEATURES', {})
-    
-    # Initialize services based on availability
     services_initialized = []
     services_skipped = []
     
-    # Cache initialization
-    if features.get('cache_redis', False):
-        try:
-            cache.init_app(app)
-            services_initialized.append('Redis Cache')
-        except Exception as e:
-            app.logger.warning(f"⚠️  Redis cache initialization failed: {e}")
-            app.logger.info("🔄 Falling back to simple cache")
-            app.config['CACHE_TYPE'] = 'simple'
-            cache.init_app(app)
-            services_skipped.append('Redis Cache (using simple cache)')
-    else:
-        app.config['CACHE_TYPE'] = 'simple'
+    # Cache initialization (already configured by Redis fallback manager)
+    try:
         cache.init_app(app)
-        services_skipped.append('Redis Cache (using simple cache)')
+        cache_type = app.config.get('CACHE_TYPE', 'unknown')
+        services_initialized.append(f'Cache ({cache_type})')
+    except Exception as e:
+        app.logger.warning(f"⚠️  Cache initialization failed: {e}")
+        services_skipped.append('Cache (failed)')
     
     # External service initialization
     external_services = [
-        ('openai', 'OpenAI API'),
-        ('stripe', 'Stripe API'),
-        ('google_oauth', 'Google OAuth'),
-        ('telegram', 'Telegram Bot'),
-        ('signal', 'Signal CLI')
+        ('OPENAI_API_KEY', 'OpenAI API'),
+        ('STRIPE_SECRET_KEY', 'Stripe API'),
+        ('GOOGLE_CLIENT_ID', 'Google OAuth'),
+        ('TELEGRAM_BOT_TOKEN', 'Telegram Bot'),
+        ('SIGNAL_PHONE_NUMBER', 'Signal CLI')
     ]
     
-    for service_key, service_name in external_services:
-        if features.get(service_key, False):
+    for config_key, service_name in external_services:
+        if app.config.get(config_key):
             services_initialized.append(service_name)
         else:
             services_skipped.append(service_name)
@@ -485,6 +499,69 @@ def _initialize_service_health_monitoring(app):
         return False
 
 
+def _initialize_complete_health_system(app):
+    """Initialize the complete health monitoring system."""
+    try:
+        from app.utils.health_system_init import init_complete_health_system
+        
+        app.logger.info("🏥 Initializing complete health monitoring system...")
+        
+        # Initialize the complete health system
+        result = init_complete_health_system(app)
+        
+        if result['success']:
+            app.logger.info("✅ Complete health monitoring system initialized successfully")
+            
+            # Log initialized components
+            components = result.get('components', {})
+            for component_name, component in components.items():
+                if component:
+                    app.logger.info(f"   ✓ {component_name.title()} service initialized")
+                else:
+                    app.logger.warning(f"   ⚠️  {component_name.title()} service failed to initialize")
+            
+            # Store health system status in app config
+            app.config['HEALTH_SYSTEM_STATUS'] = {
+                'initialized': True,
+                'components': list(components.keys()),
+                'initialization_time': result.get('initialization_time'),
+                'message': result.get('message')
+            }
+            
+            return True
+            
+        else:
+            app.logger.error(f"❌ Complete health monitoring system initialization failed: {result.get('message')}")
+            app.logger.error(f"   Error: {result.get('error')}")
+            
+            # Store failure status
+            app.config['HEALTH_SYSTEM_STATUS'] = {
+                'initialized': False,
+                'error': result.get('error'),
+                'message': result.get('message')
+            }
+            
+            return False
+            
+    except ImportError as e:
+        app.logger.warning(f"⚠️  Health system initialization module not available: {e}")
+        app.config['HEALTH_SYSTEM_STATUS'] = {
+            'initialized': False,
+            'error': 'Module not available',
+            'message': 'Health system initialization skipped'
+        }
+        return False
+        
+    except Exception as e:
+        app.logger.error(f"❌ Unexpected error during health system initialization: {e}")
+        app.config['HEALTH_SYSTEM_STATUS'] = {
+            'initialized': False,
+            'error': str(e),
+            'message': 'Health system initialization failed with exception'
+        }
+        return False
+
+
 def _initialize_additional_services(app):
     """Initialize additional services with graceful error handling."""
     additional_services = [
@@ -540,27 +617,44 @@ def create_app(config_name=None):
     
     app = Flask(__name__)
     
-    # Initialize adaptive configuration
+    # Initialize configuration with proper fallback
     try:
-        adaptive_config_class = get_adaptive_config(config_name)
-        app.config.from_object(adaptive_config_class)
+        # Import config utilities
+        from config import get_config_class
         
-        # Log service detection results
-        from app.utils.adaptive_config import AdaptiveConfigManager
-        config_manager = AdaptiveConfigManager(config_name)
-        service_status = config_manager.get_service_status()
-        _log_service_availability(app, service_status)
+        # Get appropriate config class
+        config_class = get_config_class(config_name)
+        app.config.from_object(config_class)
         
-        # Initialize database connection with fallback
-        _initialize_database_with_fallback(app)
+        # Initialize config-specific settings
+        if hasattr(config_class, 'init_app'):
+            config_class.init_app(app)
+        
+        # Set engine options based on database type
+        if hasattr(config_class, 'get_sqlalchemy_engine_options'):
+            app.config['SQLALCHEMY_ENGINE_OPTIONS'] = config_class.get_sqlalchemy_engine_options()
+        elif hasattr(config_class, 'get_sqlalchemy_engine_options'):
+            app.config['SQLALCHEMY_ENGINE_OPTIONS'] = config_class.get_sqlalchemy_engine_options()
+        
+        # Set cache configuration
+        if hasattr(config_class, 'get_cache_config'):
+            cache_config = config_class.get_cache_config()
+            app.config.update(cache_config)
+        
+        app.logger.info(f"✅ Configuration initialized: {config_class.__name__}")
+        app.logger.info(f"📍 Database: {app.config['SQLALCHEMY_DATABASE_URI']}")
+        app.logger.info(f"💾 Cache: {app.config.get('CACHE_TYPE', 'unknown')}")
         
     except Exception as e:
-        # Fallback to traditional configuration if adaptive config fails
-        app.logger.error(f"❌ Adaptive configuration failed, falling back to traditional config: {e}")
-        app.config.from_object(config[config_name])
+        # Fallback to basic configuration
+        app.logger.error(f"❌ Configuration initialization failed: {e}")
+        # config is already imported at module level
+        fallback_config = config.get(config_name, config['default'])
+        app.config.from_object(fallback_config)
+        app.logger.warning("⚠️  Using fallback configuration")
     
-    # Initialize enhanced error handling and user feedback systems
-    _initialize_error_handling_systems(app)
+    # Initialize comprehensive error handling system
+    _initialize_comprehensive_error_handling(app)
     
     # Ensure upload directory exists
     upload_folder = app.config.get('UPLOAD_FOLDER', 'uploads')
@@ -572,19 +666,49 @@ def create_app(config_name=None):
     jwt.init_app(app)
     cors.init_app(app, origins=app.config.get('CORS_ORIGINS', ['*']))
     
-    # Initialize SocketIO with graceful error handling
+    # Initialize WebSocket manager with graceful error handling
     try:
-        socketio.init_app(
-            app, 
-            cors_allowed_origins=app.config.get('SOCKETIO_CORS_ALLOWED_ORIGINS', ['*']),
-            async_mode=app.config.get('SOCKETIO_ASYNC_MODE', 'threading')
-        )
-        app.logger.info("✅ SocketIO initialized successfully")
+        from app.utils.websocket_manager import init_websocket_manager
+        websocket_manager = init_websocket_manager(app)
+        app.logger.info("✅ WebSocket manager initialized")
+        
+        # Register WebSocket handlers if available
+        try:
+            from app.main.websocket_handlers import register_websocket_handlers
+            register_websocket_handlers()
+        except Exception as handler_error:
+            app.logger.warning(f"⚠️  WebSocket handlers registration failed: {handler_error}")
+            
     except Exception as e:
-        app.logger.warning(f"⚠️  SocketIO initialization failed: {e}")
+        app.logger.warning(f"⚠️  WebSocket manager initialization failed: {e}")
+        # Ensure WebSocket features are disabled
+        app.config['WEBSOCKET_ENABLED'] = False
+        app.config['REAL_TIME_NOTIFICATIONS'] = False
+    
+    # Initialize Redis fallback manager
+    _initialize_redis_fallback(app)
+    
+    # Initialize Application Context Manager for background services
+    try:
+        from app.utils.application_context_manager import init_context_manager
+        context_manager = init_context_manager(app)
+        app.logger.info("✅ Application Context Manager initialized")
+    except Exception as e:
+        app.logger.warning(f"⚠️  Application Context Manager initialization failed: {e}")
     
     # Initialize services with graceful degradation
     services_initialized, services_skipped = _initialize_services_with_graceful_degradation(app)
+    
+    # Initialize performance optimizations
+    try:
+        from app.utils.performance_init import init_all_performance_optimizations
+        performance_success = init_all_performance_optimizations(app)
+        if performance_success:
+            app.logger.info("✅ Performance optimizations initialized successfully")
+        else:
+            app.logger.warning("⚠️  Some performance optimizations failed to initialize")
+    except Exception as e:
+        app.logger.error(f"❌ Performance optimization initialization failed: {e}")
     
     # Initialize additional services with graceful error handling
     _initialize_additional_services(app)
@@ -594,6 +718,9 @@ def create_app(config_name=None):
     
     # Initialize service health monitoring
     _initialize_service_health_monitoring(app)
+    
+    # Initialize complete health monitoring system
+    _initialize_complete_health_system(app)
     
     # Configure structured logging
     configure_logging(app)
@@ -637,23 +764,46 @@ def create_app(config_name=None):
     return app
 
 
-def _initialize_error_handling_systems(app):
-    """Initialize enhanced error handling and user feedback systems."""
+def _initialize_comprehensive_error_handling(app):
+    """Initialize comprehensive error handling system."""
     try:
-        # Initialize enhanced logging
-        from app.utils.enhanced_logging import init_enhanced_logging
-        logging_manager = init_enhanced_logging(app)
-        app.logger.info("✅ Enhanced logging system initialized")
+        from app.utils.error_handling_init import init_comprehensive_error_handling
         
-        # Initialize graceful degradation
-        from app.utils.graceful_degradation import init_graceful_degradation
-        degradation_manager = init_graceful_degradation(app)
-        app.logger.info("✅ Graceful degradation system initialized")
+        # Initialize all error handling components
+        error_handling_result = init_comprehensive_error_handling(app)
         
-        # Initialize user notifications
-        from app.utils.user_notifications import init_user_notifications
-        notification_manager = init_user_notifications(app)
-        app.logger.info("✅ User notification system initialized")
+        # Log initialization results
+        successful_components = error_handling_result['successful_components']
+        failed_components = error_handling_result['failed_components']
+        
+        if failed_components == 0:
+            app.logger.info(f"🛡️ Comprehensive error handling initialized successfully ({successful_components} components)")
+        else:
+            app.logger.warning(f"⚠️ Error handling initialized with issues: {successful_components} successful, {failed_components} failed")
+            
+            # Log specific failures
+            for error in error_handling_result['initialization_errors']:
+                app.logger.warning(f"   - {error}")
+        
+        return error_handling_result
+        
+    except Exception as e:
+        app.logger.error(f"❌ Critical error during comprehensive error handling initialization: {e}")
+        
+        # Fallback to basic error handling
+        try:
+            from app.utils.errors import register_error_handlers
+            register_error_handlers(app)
+            app.logger.warning("⚠️ Using fallback basic error handling")
+        except Exception as fallback_error:
+            app.logger.critical(f"🚨 Even fallback error handling failed: {fallback_error}")
+        
+        return {
+            'error_handlers': {},
+            'initialization_errors': [str(e)],
+            'successful_components': 0,
+            'failed_components': 1
+        }
         
         # Initialize comprehensive error handler
         from app.utils.comprehensive_error_handler import init_comprehensive_error_handler
@@ -826,7 +976,7 @@ def register_blueprints(app):
     from app.channels import channels_bp
     from app.inbox import inbox_bp
     from app.crm import crm_bp
-    from app.calendar import calendar_bp
+    from app.calendar_module import calendar_bp
     from app.knowledge import knowledge_bp
     from app.billing import billing_bp
     from app.kyb import kyb_bp

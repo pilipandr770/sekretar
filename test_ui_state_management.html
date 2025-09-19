@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UI State Management System Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .test-result {
+            padding: 10px;
+            margin: 5px 0;
+            border-radius: 3px;
+        }
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .info {
+            background-color: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .state-display {
+            background-color: #f8f9fa;
+            padding: 10px;
+            border-radius: 5px;
+            font-family: monospace;
+            white-space: pre-wrap;
+        }
+    </style>
+</head>
+<body>
+    <h1>UI State Management System Test</h1>
+    
+    <div class="test-section">
+        <h2>Current State</h2>
+        <div id="current-state" class="state-display">Loading...</div>
+        <button onclick="refreshState()">Refresh State</button>
+    </div>
+
+    <div class="test-section">
+        <h2>Authentication State</h2>
+        <button onclick="testLogin()">Test Login</button>
+        <button onclick="testLogout()">Test Logout</button>
+        <div id="auth-results"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Language State</h2>
+        <button onclick="testLanguageChange('en')">English</button>
+        <button onclick="testLanguageChange('de')">Deutsch</button>
+        <button onclick="testLanguageChange('uk')">Українська</button>
+        <div id="language-results"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>WebSocket State</h2>
+        <button onclick="testWebSocketConnect()">Connect WebSocket</button>
+        <button onclick="testWebSocketDisconnect()">Disconnect WebSocket</button>
+        <div id="websocket-results"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Notifications</h2>
+        <button onclick="testAddNotification()">Add Notification</button>
+        <button onclick="testClearNotifications()">Clear Notifications</button>
+        <div id="notification-results"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>State Subscriptions</h2>
+        <button onclick="testSubscriptions()">Test Subscriptions</button>
+        <div id="subscription-results"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Test Results</h2>
+        <div id="test-results"></div>
+    </div>
+
+    <!-- Load the UI State Manager -->
+    <script src="app/static/js/ui-state-manager.js"></script>
+    
+    <script>
+        // Initialize UI State Manager
+        let uiStateManager;
+        let testResults = [];
+
+        function init() {
+            try {
+                uiStateManager = new UIStateManager();
+                uiStateManager.init();
+                
+                // Subscribe to all state changes
+                uiStateManager.subscribe((newState, oldState) => {
+                    console.log('State changed:', { newState, oldState });
+                    refreshState();
+                });
+                
+                addResult('Initialization', 'UI State Manager initialized successfully', 'success');
+                refreshState();
+            } catch (error) {
+                addResult('Initialization', `Failed to initialize: ${error.message}`, 'error');
+            }
+        }
+
+        function refreshState() {
+            if (!uiStateManager) return;
+            
+            const state = uiStateManager.getState();
+            const stateDisplay = document.getElementById('current-state');
+            stateDisplay.textContent = JSON.stringify(state, null, 2);
+        }
+
+        function testLogin() {
+            try {
+                const testUser = {
+                    id: 1,
+                    email: 'test@example.com',
+                    first_name: 'Test',
+                    last_name: 'User',
+                    role: 'user'
+                };
+                
+                uiStateManager.updateAuthState(true, testUser);
+                
+                const isAuth = uiStateManager.isAuthenticated();
+                const currentUser = uiStateManager.getCurrentUser();
+                
+                if (isAuth && currentUser.email === testUser.email) {
+                    addResult('Authentication', 'Login test passed', 'success', 'auth-results');
+                } else {
+                    addResult('Authentication', 'Login test failed', 'error', 'auth-results');
+                }
+            } catch (error) {
+                addResult('Authentication', `Login test error: ${error.message}`, 'error', 'auth-results');
+            }
+        }
+
+        function testLogout() {
+            try {
+                uiStateManager.updateAuthState(false, null);
+                
+                const isAuth = uiStateManager.isAuthenticated();
+                const currentUser = uiStateManager.getCurrentUser();
+                
+                if (!isAuth && !currentUser) {
+                    addResult('Authentication', 'Logout test passed', 'success', 'auth-results');
+                } else {
+                    addResult('Authentication', 'Logout test failed', 'error', 'auth-results');
+                }
+            } catch (error) {
+                addResult('Authentication', `Logout test error: ${error.message}`, 'error', 'auth-results');
+            }
+        }
+
+        function testLanguageChange(language) {
+            try {
+                uiStateManager.updateLanguage(language);
+                
+                const currentLang = uiStateManager.getCurrentLanguage();
+                
+                if (currentLang === language) {
+                    addResult('Language', `Language change to ${language} passed`, 'success', 'language-results');
+                } else {
+                    addResult('Language', `Language change to ${language} failed`, 'error', 'language-results');
+                }
+            } catch (error) {
+                addResult('Language', `Language test error: ${error.message}`, 'error', 'language-results');
+            }
+        }
+
+        function testWebSocketConnect() {
+            try {
+                uiStateManager.updateWebSocketState(true);
+                
+                const isConnected = uiStateManager.isWebSocketConnected();
+                
+                if (isConnected) {
+                    addResult('WebSocket', 'WebSocket connect test passed', 'success', 'websocket-results');
+                } else {
+                    addResult('WebSocket', 'WebSocket connect test failed', 'error', 'websocket-results');
+                }
+            } catch (error) {
+                addResult('WebSocket', `WebSocket connect error: ${error.message}`, 'error', 'websocket-results');
+            }
+        }
+
+        function testWebSocketDisconnect() {
+            try {
+                uiStateManager.updateWebSocketState(false);
+                
+                const isConnected = uiStateManager.isWebSocketConnected();
+                
+                if (!isConnected) {
+                    addResult('WebSocket', 'WebSocket disconnect test passed', 'success', 'websocket-results');
+                } else {
+                    addResult('WebSocket', 'WebSocket disconnect test failed', 'error', 'websocket-results');
+                }
+            } catch (error) {
+                addResult('WebSocket', `WebSocket disconnect error: ${error.message}`, 'error', 'websocket-results');
+            }
+        }
+
+        function testAddNotification() {
+            try {
+                const notification = {
+                    type: 'info',
+                    title: 'Test Notification',
+                    message: 'This is a test notification'
+                };
+                
+                uiStateManager.addNotification(notification);
+                
+                const notifications = uiStateManager.getNotifications();
+                
+                if (notifications.length > 0 && notifications[notifications.length - 1].title === 'Test Notification') {
+                    addResult('Notifications', 'Add notification test passed', 'success', 'notification-results');
+                } else {
+                    addResult('Notifications', 'Add notification test failed', 'error', 'notification-results');
+                }
+            } catch (error) {
+                addResult('Notifications', `Add notification error: ${error.message}`, 'error', 'notification-results');
+            }
+        }
+
+        function testClearNotifications() {
+            try {
+                uiStateManager.clearNotifications();
+                
+                const notifications = uiStateManager.getNotifications();
+                
+                if (notifications.length === 0) {
+                    addResult('Notifications', 'Clear notifications test passed', 'success', 'notification-results');
+                } else {
+                    addResult('Notifications', 'Clear notifications test failed', 'error', 'notification-results');
+                }
+            } catch (error) {
+                addResult('Notifications', `Clear notifications error: ${error.message}`, 'error', 'notification-results');
+            }
+        }
+
+        function testSubscriptions() {
+            try {
+                let callbackCalled = false;
+                let receivedNewState = null;
+                
+                const testCallback = (newState, oldState) => {
+                    callbackCalled = true;
+                    receivedNewState = newState;
+                };
+                
+                uiStateManager.subscribe(testCallback);
+                
+                // Trigger a state change
+                uiStateManager.setLoading(true);
+                
+                setTimeout(() => {
+                    if (callbackCalled && receivedNewState && receivedNewState.isLoading === true) {
+                        addResult('Subscriptions', 'Subscription test passed', 'success', 'subscription-results');
+                    } else {
+                        addResult('Subscriptions', 'Subscription test failed', 'error', 'subscription-results');
+                    }
+                    
+                    // Clean up
+                    uiStateManager.unsubscribe(testCallback);
+                    uiStateManager.setLoading(false);
+                }, 100);
+                
+            } catch (error) {
+                addResult('Subscriptions', `Subscription test error: ${error.message}`, 'error', 'subscription-results');
+            }
+        }
+
+        function addResult(category, message, type, containerId = 'test-results') {
+            const container = document.getElementById(containerId);
+            const resultDiv = document.createElement('div');
+            resultDiv.className = `test-result ${type}`;
+            resultDiv.innerHTML = `<strong>${category}:</strong> ${message}`;
+            container.appendChild(resultDiv);
+            
+            // Keep only last 5 results per container
+            const results = container.querySelectorAll('.test-result');
+            if (results.length > 5) {
+                results[0].remove();
+            }
+        }
+
+        // Initialize when page loads
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>

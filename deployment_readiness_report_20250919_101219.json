@@ -1,0 +1,79 @@
+{
+  "timestamp": "2025-09-19T10:12:19.430280",
+  "overall_ready": false,
+  "checks": {
+    "render_requirements": {
+      "success": true,
+      "issues": [],
+      "warnings": []
+    },
+    "environment_variables": {
+      "success": true,
+      "issues": [],
+      "warnings": [
+        "Found placeholder value pattern 'your-' in .env",
+        "Found placeholder value pattern 'dev-secret' in .env",
+        "Ensure FLASK_ENV=production is set in production environment",
+        "Ensure FLASK_DEBUG=false is set in production environment",
+        "Ensure FORCE_HTTPS=true is set in production environment"
+      ]
+    },
+    "database_readiness": {
+      "success": true,
+      "issues": [],
+      "warnings": []
+    },
+    "security_settings": {
+      "success": false,
+      "issues": [
+        "Missing *.key in .gitignore - security risk",
+        "Missing *.pem in .gitignore - security risk",
+        "Debug mode enabled in .env - security risk for production"
+      ],
+      "warnings": [
+        "Sensitive file found: .env - ensure it's in .gitignore"
+      ]
+    },
+    "performance_readiness": {
+      "success": true,
+      "issues": [],
+      "warnings": [
+        "No static file handler found - may impact performance"
+      ]
+    },
+    "monitoring_readiness": {
+      "success": true,
+      "issues": [],
+      "warnings": [
+        "No error handlers found"
+      ]
+    }
+  },
+  "summary": {
+    "total_checks": 6,
+    "passed_checks": 5,
+    "failed_checks": 1,
+    "total_issues": 3,
+    "total_warnings": 8
+  },
+  "all_issues": [
+    "Missing *.key in .gitignore - security risk",
+    "Missing *.pem in .gitignore - security risk",
+    "Debug mode enabled in .env - security risk for production"
+  ],
+  "all_warnings": [
+    "Found placeholder value pattern 'your-' in .env",
+    "Found placeholder value pattern 'dev-secret' in .env",
+    "Ensure FLASK_ENV=production is set in production environment",
+    "Ensure FLASK_DEBUG=false is set in production environment",
+    "Ensure FORCE_HTTPS=true is set in production environment",
+    "Sensitive file found: .env - ensure it's in .gitignore",
+    "No static file handler found - may impact performance",
+    "No error handlers found"
+  ],
+  "recommendations": [
+    "Fix all critical issues before deployment",
+    "Review and address warnings for optimal deployment",
+    "Project is NOT ready for deployment - fix issues first"
+  ]
+}

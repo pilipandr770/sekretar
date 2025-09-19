@@ -12,6 +12,14 @@ from app.utils.response import (
 from app.utils.i18n import get_available_languages, set_user_language, get_user_language
 from app.services.health_service import HealthService
 
+# Register performance monitoring blueprint
+from app.api.performance import performance_bp
+api_bp.register_blueprint(performance_bp, url_prefix='/performance')
+
+# Register service dashboard blueprint
+from app.api.service_dashboard import service_dashboard_bp
+api_bp.register_blueprint(service_dashboard_bp, url_prefix='/services')
+
 
 @api_bp.route('/health')
 def health_check():

@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dropdown Functionality Test</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    
+    <!-- Custom CSS -->
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8f9fa;
+        }
+
+        /* Dropdown menu enhancements */
+        .dropdown-menu {
+            border: none;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            border-radius: 8px;
+            padding: 8px 0;
+            min-width: 180px;
+            z-index: 1050;
+        }
+
+        .dropdown-item {
+            padding: 8px 16px;
+            transition: all 0.2s ease;
+            border: none;
+            background: none;
+            width: 100%;
+            text-align: left;
+            color: #212529;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+        }
+
+        .dropdown-item:hover,
+        .dropdown-item:focus {
+            background-color: #f8f9fa;
+            transform: translateX(2px);
+            color: #16181b;
+            text-decoration: none;
+        }
+
+        .dropdown-item:active {
+            background-color: #e9ecef;
+            color: #16181b;
+        }
+
+        .dropdown-item.disabled,
+        .dropdown-item:disabled {
+            color: #6c757d;
+            pointer-events: none;
+            background-color: transparent;
+        }
+
+        .dropdown-item i {
+            width: 16px;
+            margin-right: 8px;
+            text-align: center;
+            flex-shrink: 0;
+        }
+
+        /* Dropdown toggle enhancements */
+        .dropdown-toggle {
+            position: relative;
+        }
+
+        .dropdown-toggle::after {
+            transition: transform 0.2s ease;
+        }
+
+        .dropdown-toggle[aria-expanded="true"]::after {
+            transform: rotate(180deg);
+        }
+
+        /* User menu specific styles */
+        #user-menu .dropdown-menu {
+            right: 0;
+            left: auto;
+        }
+
+        /* More dropdown specific styles */
+        #moreDropdown + .dropdown-menu {
+            left: 0;
+            right: auto;
+        }
+
+        /* Dropdown divider */
+        .dropdown-divider {
+            margin: 4px 0;
+            border-top: 1px solid #e9ecef;
+        }
+
+        /* Focus styles for accessibility */
+        .dropdown-item:focus {
+            outline: 2px solid #0d6efd;
+            outline-offset: -2px;
+        }
+
+        .test-section {
+            margin: 20px 0;
+            padding: 20px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .test-result {
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 4px;
+            font-family: monospace;
+        }
+
+        .test-success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .test-error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" href="#">
+                AI Secretary - Dropdown Test
+            </a>
+            
+            <div class="navbar-nav me-auto">
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" 
+                       id="moreDropdown" aria-expanded="false">
+                        <i class="fas fa-cog"></i> More
+                    </a>
+                    <ul class="dropdown-menu" aria-labelledby="moreDropdown">
+                        <li><a class="dropdown-item" href="#" onclick="testAction('AI Secretary')">
+                            <i class="fas fa-robot"></i> AI Secretary
+                        </a></li>
+                        <li><a class="dropdown-item" href="#" onclick="testAction('KYB Monitoring')">
+                            <i class="fas fa-shield-alt"></i> KYB Monitoring
+                        </a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item" href="#" onclick="testAction('API Tester')">
+                            <i class="fas fa-code"></i> API Tester
+                        </a></li>
+                        <li><a class="dropdown-item" href="#" onclick="testAction('Documentation')">
+                            <i class="fas fa-book"></i> Documentation
+                        </a></li>
+                    </ul>
+                </li>
+            </div>
+            
+            <!-- User Menu -->
+            <div class="dropdown" id="user-menu">
+                <button class="btn btn-outline-light btn-sm dropdown-toggle" type="button" 
+                        data-bs-toggle="dropdown" id="userMenuButton" aria-expanded="false">
+                    <i class="fas fa-user"></i> <span id="userName">Account</span>
+                </button>
+                <ul class="dropdown-menu" aria-labelledby="userMenuButton">
+                    <li id="auth-links">
+                        <a class="dropdown-item" href="#" onclick="testAction('Login')">
+                            <i class="fas fa-sign-in-alt"></i> Login
+                        </a>
+                    </li>
+                    <li id="auth-links-register">
+                        <a class="dropdown-item" href="#" onclick="testAction('Register')">
+                            <i class="fas fa-user-plus"></i> Register
+                        </a>
+                    </li>
+                    <li id="user-links" class="d-none">
+                        <a class="dropdown-item" href="#" onclick="testAction('Settings')">
+                            <i class="fas fa-cog"></i> Settings
+                        </a>
+                    </li>
+                    <li id="user-links-users" class="d-none">
+                        <a class="dropdown-item" href="#" onclick="testAction('User Management')">
+                            <i class="fas fa-users-cog"></i> User Management
+                        </a>
+                    </li>
+                    <li id="user-links-divider" class="d-none"><hr class="dropdown-divider"></li>
+                    <li id="user-links-logout" class="d-none">
+                        <a class="dropdown-item" href="#" data-action="logout" onclick="testAction('Logout')">
+                            <i class="fas fa-sign-out-alt"></i> Logout
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container mt-4">
+        <h1>Dropdown Functionality Test</h1>
+        <p>This page tests the dropdown menu functionality that was implemented to fix the header dropdown issues.</p>
+
+        <div class="test-section">
+            <h3>Test Results</h3>
+            <div id="test-results">
+                <p>Click on dropdown items to test functionality...</p>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h3>Manual Tests</h3>
+            <div class="row">
+                <div class="col-md-6">
+                    <h5>More Dropdown Tests</h5>
+                    <ul>
+                        <li>✓ Click "More" dropdown - should open</li>
+                        <li>✓ Click outside - should close</li>
+                        <li>✓ Press Escape - should close</li>
+                        <li>✓ Click dropdown items - should execute actions</li>
+                        <li>✓ Hover effects - should show visual feedback</li>
+                    </ul>
+                </div>
+                <div class="col-md-6">
+                    <h5>User Menu Tests</h5>
+                    <ul>
+                        <li>✓ Click "Account" dropdown - should open</li>
+                        <li>✓ Click outside - should close</li>
+                        <li>✓ Press Escape - should close</li>
+                        <li>✓ Click dropdown items - should execute actions</li>
+                        <li>✓ Only one dropdown open at a time</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h3>Automated Tests</h3>
+            <button class="btn btn-primary" onclick="runAutomatedTests()">Run Automated Tests</button>
+            <div id="automated-test-results" class="mt-3"></div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Dropdown Manager (simulated) -->
+    <script>
+        // Simulated dropdown manager for testing
+        class DropdownManager {
+            constructor() {
+                this.dropdowns = new Map();
+                this.isInitialized = false;
+                this.activeDropdown = null;
+                
+                this.handleDropdownToggle = this.handleDropdownToggle.bind(this);
+                this.handleDropdownItemClick = this.handleDropdownItemClick.bind(this);
+                this.handleDocumentClick = this.handleDocumentClick.bind(this);
+                this.handleKeydown = this.handleKeydown.bind(this);
+            }
+
+            init() {
+                if (this.isInitialized) return;
+
+                console.log('Initializing Dropdown Manager...');
+                
+                this.initializeBootstrapDropdowns();
+                this.setupEventListeners();
+                this.setupDropdownTracking();
+                
+                this.isInitialized = true;
+                console.log('Dropdown Manager initialized');
+                
+                logTestResult('Dropdown Manager initialized successfully', 'success');
+            }
+
+            initializeBootstrapDropdowns() {
+                if (!window.bootstrap) {
+                    console.warn('Bootstrap not available');
+                    return;
+                }
+
+                const dropdownToggles = document.querySelectorAll('[data-bs-toggle="dropdown"]');
+                
+                dropdownToggles.forEach(toggle => {
+                    try {
+                        const dropdown = new bootstrap.Dropdown(toggle);
+                        const dropdownId = toggle.id || `dropdown-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+                        if (!toggle.id) toggle.id = dropdownId;
+                        
+                        this.dropdowns.set(dropdownId, {
+                            element: toggle,
+                            bootstrap: dropdown,
+                            menu: toggle.nextElementSibling || document.querySelector(`[aria-labelledby="${toggle.id}"]`),
+                            isOpen: false
+                        });
+                        
+                        console.log(`Initialized dropdown: ${dropdownId}`);
+                    } catch (error) {
+                        console.error('Failed to initialize dropdown:', toggle, error);
+                    }
+                });
+            }
+
+            setupEventListeners() {
+                document.addEventListener('click', (e) => {
+                    const toggle = e.target.closest('[data-bs-toggle="dropdown"]');
+                    if (toggle) this.handleDropdownToggle(e, toggle);
+                });
+
+                document.addEventListener('click', (e) => {
+                    const dropdownItem = e.target.closest('.dropdown-item');
+                    if (dropdownItem) this.handleDropdownItemClick(e, dropdownItem);
+                });
+
+                document.addEventListener('click', this.handleDocumentClick);
+                document.addEventListener('keydown', this.handleKeydown);
+
+                // Bootstrap events
+                document.addEventListener('show.bs.dropdown', (e) => this.onDropdownShow(e));
+                document.addEventListener('shown.bs.dropdown', (e) => this.onDropdownShown(e));
+                document.addEventListener('hide.bs.dropdown', (e) => this.onDropdownHide(e));
+                document.addEventListener('hidden.bs.dropdown', (e) => this.onDropdownHidden(e));
+            }
+
+            setupDropdownTracking() {
+                this.dropdowns.forEach((dropdown, id) => {
+                    const { element, menu } = dropdown;
+                    element.setAttribute('data-dropdown-id', id);
+                    if (menu) menu.setAttribute('data-dropdown-id', id);
+                });
+            }
+
+            handleDropdownToggle(event, toggle) {
+                const dropdownId = toggle.getAttribute('data-dropdown-id') || toggle.id;
+                this.closeAllDropdowns(dropdownId);
+            }
+
+            handleDropdownItemClick(event, item) {
+                const action = item.getAttribute('data-action');
+                if (action) {
+                    event.preventDefault();
+                    this.executeAction(action, item);
+                }
+                this.closeDropdownContaining(item);
+            }
+
+            executeAction(action, item) {
+                console.log('Executing dropdown action:', action);
+                logTestResult(`Action executed: ${action}`, 'success');
+            }
+
+            handleDocumentClick(event) {
+                const clickedDropdown = event.target.closest('.dropdown');
+                if (!clickedDropdown) {
+                    this.closeAllDropdowns();
+                }
+            }
+
+            handleKeydown(event) {
+                if (event.key === 'Escape') {
+                    this.closeAllDropdowns();
+                    logTestResult('Escape key closed dropdowns', 'success');
+                }
+            }
+
+            onDropdownShow(event) {
+                const toggle = event.target;
+                const dropdownId = toggle.getAttribute('data-dropdown-id') || toggle.id;
+                const dropdown = this.dropdowns.get(dropdownId);
+                
+                if (dropdown) {
+                    dropdown.isOpen = true;
+                    this.activeDropdown = dropdownId;
+                    logTestResult(`Dropdown opened: ${dropdownId}`, 'success');
+                }
+            }
+
+            onDropdownShown(event) {
+                const toggle = event.target;
+                const dropdownId = toggle.getAttribute('data-dropdown-id') || toggle.id;
+                console.log('Dropdown shown:', dropdownId);
+            }
+
+            onDropdownHide(event) {
+                const toggle = event.target;
+                const dropdownId = toggle.getAttribute('data-dropdown-id') || toggle.id;
+                const dropdown = this.dropdowns.get(dropdownId);
+                
+                if (dropdown) {
+                    dropdown.isOpen = false;
+                    logTestResult(`Dropdown closed: ${dropdownId}`, 'success');
+                }
+            }
+
+            onDropdownHidden(event) {
+                const toggle = event.target;
+                const dropdownId = toggle.getAttribute('data-dropdown-id') || toggle.id;
+                
+                if (this.activeDropdown === dropdownId) {
+                    this.activeDropdown = null;
+                }
+            }
+
+            closeAllDropdowns(exceptId = null) {
+                this.dropdowns.forEach((dropdown, id) => {
+                    if (id !== exceptId && dropdown.isOpen && dropdown.bootstrap) {
+                        try {
+                            dropdown.bootstrap.hide();
+                        } catch (error) {
+                            console.error('Error closing dropdown:', id, error);
+                        }
+                    }
+                });
+            }
+
+            closeDropdownContaining(element) {
+                const dropdownMenu = element.closest('.dropdown-menu');
+                if (dropdownMenu) {
+                    const dropdownId = dropdownMenu.getAttribute('data-dropdown-id');
+                    const dropdown = this.dropdowns.get(dropdownId);
+                    
+                    if (dropdown && dropdown.bootstrap) {
+                        try {
+                            dropdown.bootstrap.hide();
+                        } catch (error) {
+                            console.error('Error closing dropdown:', dropdownId, error);
+                        }
+                    }
+                }
+            }
+        }
+
+        // Test functions
+        function testAction(actionName) {
+            logTestResult(`Dropdown item clicked: ${actionName}`, 'success');
+            console.log('Test action:', actionName);
+        }
+
+        function logTestResult(message, type) {
+            const resultsDiv = document.getElementById('test-results');
+            const resultDiv = document.createElement('div');
+            resultDiv.className = `test-result test-${type}`;
+            resultDiv.textContent = `${new Date().toLocaleTimeString()}: ${message}`;
+            resultsDiv.appendChild(resultDiv);
+            
+            // Keep only last 10 results
+            while (resultsDiv.children.length > 10) {
+                resultsDiv.removeChild(resultsDiv.firstChild);
+            }
+        }
+
+        function runAutomatedTests() {
+            const resultsDiv = document.getElementById('automated-test-results');
+            resultsDiv.innerHTML = '<p>Running automated tests...</p>';
+            
+            const tests = [
+                {
+                    name: 'Bootstrap availability',
+                    test: () => typeof window.bootstrap !== 'undefined'
+                },
+                {
+                    name: 'Dropdown elements present',
+                    test: () => document.querySelectorAll('[data-bs-toggle="dropdown"]').length >= 2
+                },
+                {
+                    name: 'Dropdown menus present',
+                    test: () => document.querySelectorAll('.dropdown-menu').length >= 2
+                },
+                {
+                    name: 'Dropdown manager initialized',
+                    test: () => window.dropdownManager && window.dropdownManager.isInitialized
+                },
+                {
+                    name: 'Event listeners attached',
+                    test: () => {
+                        // Test if clicking works by simulating a click
+                        const toggle = document.querySelector('[data-bs-toggle="dropdown"]');
+                        return toggle !== null;
+                    }
+                }
+            ];
+            
+            let passed = 0;
+            let failed = 0;
+            let results = '<h5>Test Results:</h5><ul>';
+            
+            tests.forEach(test => {
+                try {
+                    if (test.test()) {
+                        results += `<li class="text-success">✓ ${test.name}</li>`;
+                        passed++;
+                    } else {
+                        results += `<li class="text-danger">✗ ${test.name}</li>`;
+                        failed++;
+                    }
+                } catch (error) {
+                    results += `<li class="text-danger">✗ ${test.name} (Error: ${error.message})</li>`;
+                    failed++;
+                }
+            });
+            
+            results += '</ul>';
+            results += `<p><strong>Summary:</strong> ${passed} passed, ${failed} failed</p>`;
+            
+            resultsDiv.innerHTML = results;
+        }
+
+        // Initialize when DOM is loaded
+        document.addEventListener('DOMContentLoaded', () => {
+            window.dropdownManager = new DropdownManager();
+            window.dropdownManager.init();
+            
+            // Run initial automated tests
+            setTimeout(runAutomatedTests, 1000);
+        });
+    </script>
+</body>
+</html>

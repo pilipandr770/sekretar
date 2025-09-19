@@ -370,8 +370,8 @@ def handle_widget_typing(thread_id):
         
         # Broadcast typing indicator via WebSocket
         try:
-            from app import socketio
-            socketio.emit('user_typing', {
+            from app.utils.websocket_manager import emit_with_fallback
+            emit_with_fallback('user_typing', {
                 'user_id': thread.customer_id,
                 'user_name': thread.customer_name or 'Customer',
                 'thread_id': thread_id,

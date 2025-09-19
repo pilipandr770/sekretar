@@ -4,6 +4,7 @@ from typing import Any, Dict, Optional
 from celery import Task
 from celery.exceptions import Retry, MaxRetriesExceededError
 from app import db
+from app.utils.application_context_manager import get_context_manager, with_app_context, safe_context
 
 logger = logging.getLogger(__name__)
 
@@ -71,15 +72,23 @@ class BaseWorker(Task):
             self.logger.error(f"Failed to send task to dead letter queue: {e}")
     
     def _safe_db_operation(self, operation_func, *args, **kwargs):
-        """Safely execute database operations with rollback on error."""
-        try:
-            result = operation_func(*args, **kwargs)
-            db.session.commit()
-            return result
-        except Exception as e:
-            db.session.rollback()
-            self.logger.error(f"Database operation failed: {e}")
-            raise
+        """Safely execute database operations with rollback on error and proper context."""
+        context_manager = get_context_manager()
+        
+        def db_operation():
+            try:
+                result = operation_func(*args, **kwargs)
+                db.session.commit()
+                return result
+            except Exception as e:
+                db.session.rollback()
+                self.logger.error(f"Database operation failed: {e}")
+                raise
+        
+        if context_manager:
+            return context_manager.run_with_context(db_operation)
+        else:
+            return db_operation()
 
 
 class MonitoredWorker(BaseWorker):

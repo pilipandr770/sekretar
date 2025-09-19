@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Frontend UI Tests Runner</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f8f9fa;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            margin: 0;
+            font-size: 2.5em;
+            font-weight: 300;
+        }
+        
+        .header p {
+            margin: 10px 0 0 0;
+            opacity: 0.9;
+        }
+        
+        .controls {
+            padding: 20px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s;
+            text-decoration: none;
+            display: inline-block;
+        }
+        
+        .btn-primary {
+            background: #007bff;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #0056b3;
+        }
+        
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            background: #545b62;
+        }
+        
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+        
+        .btn-success:hover {
+            background: #1e7e34;
+        }
+        
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        
+        .status {
+            padding: 15px 20px;
+            border-bottom: 1px solid #eee;
+            background: #f8f9fa;
+            font-family: monospace;
+            font-size: 14px;
+        }
+        
+        .output {
+            padding: 20px;
+            min-height: 400px;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 13px;
+            line-height: 1.5;
+            background: #1e1e1e;
+            color: #d4d4d4;
+            overflow-x: auto;
+        }
+        
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 40px;
+        }
+        
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #007bff;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .test-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+        
+        .test-card {
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 15px;
+            background: white;
+        }
+        
+        .test-card h4 {
+            margin: 0 0 10px 0;
+            color: #333;
+        }
+        
+        .test-card p {
+            margin: 0 0 15px 0;
+            color: #666;
+            font-size: 13px;
+        }
+        
+        .requirements-list {
+            background: #f8f9fa;
+            border-left: 4px solid #007bff;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        
+        .requirements-list h3 {
+            margin: 0 0 15px 0;
+            color: #333;
+        }
+        
+        .requirements-list ul {
+            margin: 0;
+            padding-left: 20px;
+        }
+        
+        .requirements-list li {
+            margin-bottom: 8px;
+            color: #555;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🧪 Frontend UI Tests</h1>
+            <p>Comprehensive testing for frontend UI fixes</p>
+        </div>
+        
+        <div class="controls">
+            <button id="runAllTests" class="btn btn-primary">🚀 Run All Tests</button>
+            <button id="runUnitTests" class="btn btn-secondary">🧪 Unit Tests Only</button>
+            <button id="runIntegrationTests" class="btn btn-secondary">🔗 Integration Tests Only</button>
+            <button id="clearOutput" class="btn btn-secondary">🗑️ Clear Output</button>
+            <button id="exportReport" class="btn btn-success">📊 Export Report</button>
+            
+            <div style="margin-left: auto;">
+                <label>
+                    <input type="checkbox" id="autoScroll" checked> Auto-scroll output
+                </label>
+            </div>
+        </div>
+        
+        <div class="status" id="status">
+            Ready to run tests. Click "Run All Tests" to begin.
+        </div>
+        
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>Running tests, please wait...</p>
+        </div>
+        
+        <div class="output" id="output">
+            <div style="color: #569cd6;">// Frontend UI Test Runner</div>
+            <div style="color: #6a9955;">// This page runs comprehensive tests for the frontend UI fixes</div>
+            <div style="color: #6a9955;">// including authentication, navigation, language switching, and WebSocket functionality</div>
+            <br>
+            <div style="color: #dcdcaa;">console.log</div><span style="color: #d4d4d4;">(</span><span style="color: #ce9178;">'Welcome to the Frontend UI Test Runner!'</span><span style="color: #d4d4d4;">);</span>
+            <br><br>
+            <div style="color: #c586c0;">// Available test suites:</div>
+            <div style="color: #9cdcfe;">- AuthenticationManagerTest</div>
+            <div style="color: #9cdcfe;">- NavigationControllerTest</div>
+            <div style="color: #9cdcfe;">- EnhancedLanguageSwitcherTest</div>
+            <div style="color: #9cdcfe;">- WebSocketClientTest</div>
+            <div style="color: #9cdcfe;">- AuthenticationFlowIntegrationTest</div>
+            <div style="color: #9cdcfe;">- LanguageSwitchingIntegrationTest</div>
+            <br>
+            <div style="color: #4ec9b0;">Ready to test!</div>
+        </div>
+        
+        <div style="padding: 20px; border-top: 1px solid #eee; background: #f8f9fa;">
+            <div class="requirements-list">
+                <h3>📋 Requirements Being Tested</h3>
+                <ul>
+                    <li><strong>Requirement 1:</strong> Language switcher properly changes interface language</li>
+                    <li><strong>Requirement 2:</strong> Header navigation buttons (CRM, Inbox, Calendar) work properly</li>
+                    <li><strong>Requirement 3:</strong> Login form hides after successful authentication</li>
+                    <li><strong>Requirement 4:</strong> WebSocket connection works properly for real-time updates</li>
+                    <li><strong>Requirement 5:</strong> Dropdown menu in header works consistently</li>
+                    <li><strong>Requirement 6:</strong> Proper error handling for frontend JavaScript errors</li>
+                </ul>
+            </div>
+            
+            <div class="test-grid">
+                <div class="test-card">
+                    <h4>🔐 Authentication Tests</h4>
+                    <p>Tests login/logout functionality, token management, and UI state synchronization</p>
+                    <button onclick="runSpecificTest('AuthenticationManagerTest')" class="btn btn-secondary">Run Tests</button>
+                </div>
+                
+                <div class="test-card">
+                    <h4>🧭 Navigation Tests</h4>
+                    <p>Tests navigation functionality, route protection, and active item highlighting</p>
+                    <button onclick="runSpecificTest('NavigationControllerTest')" class="btn btn-secondary">Run Tests</button>
+                </div>
+                
+                <div class="test-card">
+                    <h4>🌐 Language Tests</h4>
+                    <p>Tests language switching, translation updates, and persistence</p>
+                    <button onclick="runSpecificTest('EnhancedLanguageSwitcherTest')" class="btn btn-secondary">Run Tests</button>
+                </div>
+                
+                <div class="test-card">
+                    <h4>🔌 WebSocket Tests</h4>
+                    <p>Tests WebSocket connection management, reconnection logic, and real-time features</p>
+                    <button onclick="runSpecificTest('WebSocketClientTest')" class="btn btn-secondary">Run Tests</button>
+                </div>
+                
+                <div class="test-card">
+                    <h4>🔗 Integration Tests</h4>
+                    <p>Tests complete user flows and component interactions</p>
+                    <button onclick="runIntegrationTests()" class="btn btn-secondary">Run Tests</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Load the frontend components (these would normally be loaded from your app) -->
+    <script>
+        // Mock the frontend components for testing
+        // In a real scenario, these would be loaded from your application
+        
+        // Mock console methods to capture output
+        const originalConsole = {
+            log: console.log,
+            error: console.error,
+            warn: console.warn
+        };
+        
+        function captureConsoleOutput() {
+            const output = document.getElementById('output');
+            const autoScroll = document.getElementById('autoScroll');
+            
+            ['log', 'error', 'warn'].forEach(method => {
+                console[method] = function(...args) {
+                    originalConsole[method].apply(console, args);
+                    
+                    const message = args.map(arg => 
+                        typeof arg === 'object' ? JSON.stringify(arg, null, 2) : String(arg)
+                    ).join(' ');
+                    
+                    const div = document.createElement('div');
+                    div.style.marginBottom = '2px';
+                    
+                    if (method === 'error') {
+                        div.style.color = '#f48771';
+                    } else if (method === 'warn') {
+                        div.style.color = '#dcdcaa';
+                    } else {
+                        div.style.color = '#d4d4d4';
+                    }
+                    
+                    // Format special messages
+                    if (message.includes('✅')) {
+                        div.style.color = '#4ec9b0';
+                    } else if (message.includes('❌')) {
+                        div.style.color = '#f48771';
+                    } else if (message.includes('🧪') || message.includes('Running')) {
+                        div.style.color = '#569cd6';
+                        div.style.fontWeight = 'bold';
+                    }
+                    
+                    div.textContent = message;
+                    output.appendChild(div);
+                    
+                    if (autoScroll.checked) {
+                        output.scrollTop = output.scrollHeight;
+                    }
+                };
+            });
+        }
+        
+        function updateStatus(message) {
+            document.getElementById('status').textContent = message;
+        }
+        
+        function showLoading(show) {
+            document.getElementById('loading').style.display = show ? 'block' : 'none';
+            document.getElementById('output').style.display = show ? 'none' : 'block';
+        }
+        
+        async function runAllTests() {
+            updateStatus('Running all frontend tests...');
+            showLoading(true);
+            
+            try {
+                // Check if test runner is available
+                if (typeof ComprehensiveFrontendTestRunner === 'undefined') {
+                    throw new Error('Test runner not loaded. Please ensure all test files are included.');
+                }
+                
+                const runner = new ComprehensiveFrontendTestRunner();
+                await runner.runAllTests();
+                
+                updateStatus('All tests completed. Check output for results.');
+            } catch (error) {
+                console.error('Test execution failed:', error);
+                updateStatus('Test execution failed. Check console for details.');
+            } finally {
+                showLoading(false);
+            }
+        }
+        
+        async function runUnitTests() {
+            updateStatus('Running unit tests...');
+            showLoading(true);
+            
+            try {
+                const runner = new ComprehensiveFrontendTestRunner();
+                await runner.runUnitTests();
+                updateStatus('Unit tests completed.');
+            } catch (error) {
+                console.error('Unit test execution failed:', error);
+                updateStatus('Unit test execution failed.');
+            } finally {
+                showLoading(false);
+            }
+        }
+        
+        async function runIntegrationTests() {
+            updateStatus('Running integration tests...');
+            showLoading(true);
+            
+            try {
+                const runner = new ComprehensiveFrontendTestRunner();
+                await runner.runIntegrationTests();
+                updateStatus('Integration tests completed.');
+            } catch (error) {
+                console.error('Integration test execution failed:', error);
+                updateStatus('Integration test execution failed.');
+            } finally {
+                showLoading(false);
+            }
+        }
+        
+        async function runSpecificTest(testClassName) {
+            updateStatus(`Running ${testClassName}...`);
+            showLoading(true);
+            
+            try {
+                const runner = new ComprehensiveFrontendTestRunner();
+                await runner.runSpecificTestSuite(testClassName);
+                updateStatus(`${testClassName} completed.`);
+            } catch (error) {
+                console.error(`${testClassName} execution failed:`, error);
+                updateStatus(`${testClassName} execution failed.`);
+            } finally {
+                showLoading(false);
+            }
+        }
+        
+        function clearOutput() {
+            document.getElementById('output').innerHTML = '';
+            updateStatus('Output cleared. Ready to run tests.');
+        }
+        
+        function exportReport() {
+            if (typeof ComprehensiveFrontendTestRunner === 'undefined') {
+                alert('No test results to export. Run tests first.');
+                return;
+            }
+            
+            try {
+                const runner = new ComprehensiveFrontendTestRunner();
+                const html = runner.generateHTMLReport();
+                
+                const blob = new Blob([html], { type: 'text/html' });
+                const url = URL.createObjectURL(blob);
+                
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `frontend-test-report-${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.html`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                
+                URL.revokeObjectURL(url);
+                updateStatus('Test report exported successfully.');
+            } catch (error) {
+                console.error('Export failed:', error);
+                updateStatus('Export failed. Run tests first.');
+            }
+        }
+        
+        // Set up event listeners
+        document.addEventListener('DOMContentLoaded', function() {
+            captureConsoleOutput();
+            
+            document.getElementById('runAllTests').addEventListener('click', runAllTests);
+            document.getElementById('runUnitTests').addEventListener('click', runUnitTests);
+            document.getElementById('runIntegrationTests').addEventListener('click', runIntegrationTests);
+            document.getElementById('clearOutput').addEventListener('click', clearOutput);
+            document.getElementById('exportReport').addEventListener('click', exportReport);
+            
+            // Check if tests should auto-run
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('autorun') === 'true') {
+                setTimeout(runAllTests, 1000);
+            }
+        });
+        
+        // Display instructions
+        console.log('🎯 Frontend UI Test Runner loaded successfully!');
+        console.log('📋 This test runner validates all the frontend UI fixes:');
+        console.log('   • Authentication state management');
+        console.log('   • Navigation functionality and route protection');
+        console.log('   • Language switching with translation updates');
+        console.log('   • WebSocket connection management');
+        console.log('   • UI state synchronization');
+        console.log('   • Error handling and recovery');
+        console.log('');
+        console.log('🚀 Click "Run All Tests" to begin comprehensive testing!');
+        console.log('');
+        console.log('💡 Note: In a real environment, make sure to load the actual');
+        console.log('   frontend JavaScript files before running these tests.');
+    </script>
+    
+    <!-- 
+    In a real implementation, you would load the actual frontend files here:
+    <script src="../app/static/js/auth-manager.js"></script>
+    <script src="../app/static/js/navigation-controller.js"></script>
+    <script src="../app/static/js/enhanced-language-switcher.js"></script>
+    <script src="../app/static/js/ui-state-manager.js"></script>
+    <script src="../app/static/js/websocket-client.js"></script>
+    
+    And then load the test files:
+    <script src="test_frontend_authentication_manager.js"></script>
+    <script src="test_frontend_navigation_controller.js"></script>
+    <script src="test_frontend_language_switcher.js"></script>
+    <script src="test_frontend_websocket_client.js"></script>
+    <script src="test_frontend_integration_authentication_flow.js"></script>
+    <script src="test_frontend_integration_language_switching.js"></script>
+    <script src="test_frontend_comprehensive_runner.js"></script>
+    -->
+</body>
+</html>

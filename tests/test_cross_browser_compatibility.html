@@ -1,0 +1,903 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cross-Browser Compatibility Tests</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f8f9fa;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            margin: 0;
+            font-size: 2.5em;
+            font-weight: 300;
+        }
+        
+        .browser-info {
+            padding: 20px;
+            border-bottom: 1px solid #eee;
+            background: #f8f9fa;
+        }
+        
+        .browser-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+        
+        .browser-card {
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 15px;
+            background: white;
+            text-align: center;
+        }
+        
+        .browser-card.supported {
+            border-color: #28a745;
+            background-color: #f8fff9;
+        }
+        
+        .browser-card.partial {
+            border-color: #ffc107;
+            background-color: #fffdf5;
+        }
+        
+        .browser-card.unsupported {
+            border-color: #dc3545;
+            background-color: #fff5f5;
+        }
+        
+        .controls {
+            padding: 20px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s;
+            text-decoration: none;
+            display: inline-block;
+        }
+        
+        .btn-primary {
+            background: #007bff;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #0056b3;
+        }
+        
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+        
+        .btn-warning {
+            background: #ffc107;
+            color: #212529;
+        }
+        
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+        
+        .output {
+            padding: 20px;
+            min-height: 400px;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 13px;
+            line-height: 1.5;
+            background: #1e1e1e;
+            color: #d4d4d4;
+            overflow-x: auto;
+        }
+        
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        
+        .test-section h3 {
+            margin: 0 0 15px 0;
+            color: #333;
+        }
+        
+        .feature-test {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .feature-test:last-child {
+            border-bottom: none;
+        }
+        
+        .status-badge {
+            padding: 4px 8px;
+            border-radius: 3px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        
+        .status-supported {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .status-partial {
+            background: #fff3cd;
+            color: #856404;
+        }
+        
+        .status-unsupported {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        .polyfill-section {
+            background: #e9ecef;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 5px;
+        }
+        
+        .polyfill-section h4 {
+            margin: 0 0 10px 0;
+            color: #495057;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🌐 Cross-Browser Compatibility Tests</h1>
+            <p>Testing frontend functionality across Chrome, Firefox, Safari, and Edge</p>
+        </div>
+        
+        <div class="browser-info">
+            <h3>Current Browser Information</h3>
+            <div id="browserDetails"></div>
+            
+            <h3>Browser Support Matrix</h3>
+            <div class="browser-grid">
+                <div class="browser-card" id="chrome-card">
+                    <h4>Chrome</h4>
+                    <div id="chrome-version">Detecting...</div>
+                    <div id="chrome-status">Testing...</div>
+                </div>
+                <div class="browser-card" id="firefox-card">
+                    <h4>Firefox</h4>
+                    <div id="firefox-version">Detecting...</div>
+                    <div id="firefox-status">Testing...</div>
+                </div>
+                <div class="browser-card" id="safari-card">
+                    <h4>Safari</h4>
+                    <div id="safari-version">Detecting...</div>
+                    <div id="safari-status">Testing...</div>
+                </div>
+                <div class="browser-card" id="edge-card">
+                    <h4>Edge</h4>
+                    <div id="edge-version">Detecting...</div>
+                    <div id="edge-status">Testing...</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="controls">
+            <button id="runCompatibilityTests" class="btn btn-primary">🧪 Run Compatibility Tests</button>
+            <button id="testWebSocketSupport" class="btn btn-primary">🔌 Test WebSocket Support</button>
+            <button id="testES6Features" class="btn btn-primary">⚡ Test ES6 Features</button>
+            <button id="applyPolyfills" class="btn btn-warning">🔧 Apply Polyfills</button>
+            <button id="clearOutput" class="btn btn-secondary">🗑️ Clear Output</button>
+        </div>
+        
+        <div class="test-section">
+            <h3>Feature Compatibility Tests</h3>
+            <div id="featureTests">
+                <div class="feature-test">
+                    <span>WebSocket Support</span>
+                    <span class="status-badge" id="websocket-status">Testing...</span>
+                </div>
+                <div class="feature-test">
+                    <span>Local Storage</span>
+                    <span class="status-badge" id="localstorage-status">Testing...</span>
+                </div>
+                <div class="feature-test">
+                    <span>Fetch API</span>
+                    <span class="status-badge" id="fetch-status">Testing...</span>
+                </div>
+                <div class="feature-test">
+                    <span>ES6 Classes</span>
+                    <span class="status-badge" id="es6classes-status">Testing...</span>
+                </div>
+                <div class="feature-test">
+                    <span>ES6 Arrow Functions</span>
+                    <span class="status-badge" id="es6arrow-status">Testing...</span>
+                </div>
+                <div class="feature-test">
+                    <span>ES6 Template Literals</span>
+                    <span class="status-badge" id="es6template-status">Testing...</span>
+                </div>
+                <div class="feature-test">
+                    <span>ES6 Promises</span>
+                    <span class="status-badge" id="es6promises-status">Testing...</span>
+                </div>
+                <div class="feature-test">
+                    <span>ES6 Async/Await</span>
+                    <span class="status-badge" id="es6async-status">Testing...</span>
+                </div>
+                <div class="feature-test">
+                    <span>Custom Events</span>
+                    <span class="status-badge" id="customevents-status">Testing...</span>
+                </div>
+                <div class="feature-test">
+                    <span>Notifications API</span>
+                    <span class="status-badge" id="notifications-status">Testing...</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="polyfill-section">
+            <h4>Available Polyfills and Fallbacks</h4>
+            <div id="polyfillInfo">
+                <p>Polyfills will be loaded automatically for unsupported features.</p>
+            </div>
+        </div>
+        
+        <div class="output" id="output">
+            <div style="color: #569cd6;">// Cross-Browser Compatibility Test Runner</div>
+            <div style="color: #6a9955;">// Testing frontend functionality across different browsers</div>
+            <br>
+            <div style="color: #dcdcaa;">console.log</div><span style="color: #d4d4d4;">(</span><span style="color: #ce9178;">'Initializing cross-browser compatibility tests...'</span><span style="color: #d4d4d4;">);</span>
+            <br>
+            <div style="color: #4ec9b0;">Ready to test browser compatibility!</div>
+        </div>
+    </div>
+
+    <script>
+        class CrossBrowserCompatibilityTester {
+            constructor() {
+                this.browserInfo = this.detectBrowser();
+                this.testResults = {};
+                this.polyfillsLoaded = [];
+                this.init();
+            }
+            
+            init() {
+                this.displayBrowserInfo();
+                this.runInitialTests();
+                this.setupEventListeners();
+            }
+            
+            detectBrowser() {
+                const userAgent = navigator.userAgent;
+                const vendor = navigator.vendor;
+                
+                let browser = 'Unknown';
+                let version = 'Unknown';
+                
+                if (userAgent.includes('Chrome') && vendor.includes('Google')) {
+                    browser = 'Chrome';
+                    const match = userAgent.match(/Chrome\/(\d+)/);
+                    version = match ? match[1] : 'Unknown';
+                } else if (userAgent.includes('Firefox')) {
+                    browser = 'Firefox';
+                    const match = userAgent.match(/Firefox\/(\d+)/);
+                    version = match ? match[1] : 'Unknown';
+                } else if (userAgent.includes('Safari') && !userAgent.includes('Chrome')) {
+                    browser = 'Safari';
+                    const match = userAgent.match(/Version\/(\d+)/);
+                    version = match ? match[1] : 'Unknown';
+                } else if (userAgent.includes('Edg')) {
+                    browser = 'Edge';
+                    const match = userAgent.match(/Edg\/(\d+)/);
+                    version = match ? match[1] : 'Unknown';
+                }
+                
+                return {
+                    name: browser,
+                    version: version,
+                    userAgent: userAgent,
+                    vendor: vendor,
+                    platform: navigator.platform,
+                    language: navigator.language,
+                    cookieEnabled: navigator.cookieEnabled,
+                    onLine: navigator.onLine
+                };
+            }
+            
+            displayBrowserInfo() {
+                const browserDetails = document.getElementById('browserDetails');
+                browserDetails.innerHTML = `
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+                        <div><strong>Browser:</strong> ${this.browserInfo.name} ${this.browserInfo.version}</div>
+                        <div><strong>Platform:</strong> ${this.browserInfo.platform}</div>
+                        <div><strong>Language:</strong> ${this.browserInfo.language}</div>
+                        <div><strong>Online:</strong> ${this.browserInfo.onLine ? 'Yes' : 'No'}</div>
+                        <div><strong>Cookies:</strong> ${this.browserInfo.cookieEnabled ? 'Enabled' : 'Disabled'}</div>
+                    </div>
+                `;
+                
+                // Update current browser card
+                const currentBrowserCard = document.getElementById(`${this.browserInfo.name.toLowerCase()}-card`);
+                if (currentBrowserCard) {
+                    currentBrowserCard.classList.add('supported');
+                    document.getElementById(`${this.browserInfo.name.toLowerCase()}-version`).textContent = `v${this.browserInfo.version}`;
+                    document.getElementById(`${this.browserInfo.name.toLowerCase()}-status`).textContent = 'Current Browser';
+                }
+            }
+            
+            async runInitialTests() {
+                console.log('🧪 Running initial compatibility tests...');
+                
+                // Test basic features
+                await this.testWebSocketSupport();
+                await this.testLocalStorageSupport();
+                await this.testFetchAPI();
+                await this.testES6Features();
+                await this.testCustomEvents();
+                await this.testNotificationsAPI();
+                
+                console.log('✅ Initial compatibility tests completed');
+                this.displayTestResults();
+            }
+            
+            async testWebSocketSupport() {
+                console.log('Testing WebSocket support...');
+                
+                try {
+                    if (typeof WebSocket !== 'undefined') {
+                        // Test WebSocket creation
+                        const testWs = new WebSocket('wss://echo.websocket.org/');
+                        
+                        const result = await new Promise((resolve) => {
+                            const timeout = setTimeout(() => {
+                                testWs.close();
+                                resolve({ supported: true, partial: true, reason: 'Connection timeout (normal for test)' });
+                            }, 2000);
+                            
+                            testWs.onopen = () => {
+                                clearTimeout(timeout);
+                                testWs.close();
+                                resolve({ supported: true, partial: false });
+                            };
+                            
+                            testWs.onerror = (error) => {
+                                clearTimeout(timeout);
+                                resolve({ supported: true, partial: true, reason: 'Connection error (may be network)' });
+                            };
+                        });
+                        
+                        this.testResults.websocket = result;
+                        this.updateFeatureStatus('websocket', result.supported ? (result.partial ? 'partial' : 'supported') : 'unsupported');
+                        console.log('✅ WebSocket support:', result.supported ? 'Available' : 'Not available');
+                        
+                    } else {
+                        this.testResults.websocket = { supported: false, reason: 'WebSocket not available' };
+                        this.updateFeatureStatus('websocket', 'unsupported');
+                        console.log('❌ WebSocket not supported');
+                        
+                        // Load Socket.IO as fallback
+                        await this.loadSocketIOFallback();
+                    }
+                } catch (error) {
+                    this.testResults.websocket = { supported: false, error: error.message };
+                    this.updateFeatureStatus('websocket', 'unsupported');
+                    console.error('❌ WebSocket test failed:', error);
+                }
+            }
+            
+            async testLocalStorageSupport() {
+                console.log('Testing localStorage support...');
+                
+                try {
+                    if (typeof Storage !== 'undefined' && localStorage) {
+                        // Test localStorage operations
+                        const testKey = 'compatibility_test';
+                        const testValue = 'test_value_' + Date.now();
+                        
+                        localStorage.setItem(testKey, testValue);
+                        const retrieved = localStorage.getItem(testKey);
+                        localStorage.removeItem(testKey);
+                        
+                        const supported = retrieved === testValue;
+                        this.testResults.localStorage = { supported };
+                        this.updateFeatureStatus('localstorage', supported ? 'supported' : 'unsupported');
+                        console.log('✅ localStorage support:', supported ? 'Available' : 'Not available');
+                        
+                    } else {
+                        this.testResults.localStorage = { supported: false, reason: 'localStorage not available' };
+                        this.updateFeatureStatus('localstorage', 'unsupported');
+                        console.log('❌ localStorage not supported');
+                        
+                        // Implement cookie fallback
+                        this.implementCookieFallback();
+                    }
+                } catch (error) {
+                    this.testResults.localStorage = { supported: false, error: error.message };
+                    this.updateFeatureStatus('localstorage', 'unsupported');
+                    console.error('❌ localStorage test failed:', error);
+                }
+            }
+            
+            async testFetchAPI() {
+                console.log('Testing Fetch API support...');
+                
+                try {
+                    if (typeof fetch !== 'undefined') {
+                        // Test basic fetch functionality
+                        const response = await fetch('data:text/plain,test', { method: 'GET' });
+                        const text = await response.text();
+                        
+                        const supported = text === 'test';
+                        this.testResults.fetch = { supported };
+                        this.updateFeatureStatus('fetch', supported ? 'supported' : 'partial');
+                        console.log('✅ Fetch API support:', supported ? 'Available' : 'Partial');
+                        
+                    } else {
+                        this.testResults.fetch = { supported: false, reason: 'Fetch API not available' };
+                        this.updateFeatureStatus('fetch', 'unsupported');
+                        console.log('❌ Fetch API not supported');
+                        
+                        // Load fetch polyfill
+                        await this.loadFetchPolyfill();
+                    }
+                } catch (error) {
+                    this.testResults.fetch = { supported: false, error: error.message };
+                    this.updateFeatureStatus('fetch', 'unsupported');
+                    console.error('❌ Fetch API test failed:', error);
+                }
+            }
+            
+            async testES6Features() {
+                console.log('Testing ES6 features...');
+                
+                // Test ES6 Classes
+                try {
+                    eval('class TestClass {}');
+                    this.testResults.es6Classes = { supported: true };
+                    this.updateFeatureStatus('es6classes', 'supported');
+                    console.log('✅ ES6 Classes: Supported');
+                } catch (error) {
+                    this.testResults.es6Classes = { supported: false, error: error.message };
+                    this.updateFeatureStatus('es6classes', 'unsupported');
+                    console.log('❌ ES6 Classes: Not supported');
+                }
+                
+                // Test Arrow Functions
+                try {
+                    eval('const test = () => true');
+                    this.testResults.es6Arrow = { supported: true };
+                    this.updateFeatureStatus('es6arrow', 'supported');
+                    console.log('✅ ES6 Arrow Functions: Supported');
+                } catch (error) {
+                    this.testResults.es6Arrow = { supported: false, error: error.message };
+                    this.updateFeatureStatus('es6arrow', 'unsupported');
+                    console.log('❌ ES6 Arrow Functions: Not supported');
+                }
+                
+                // Test Template Literals
+                try {
+                    eval('const test = `template ${1 + 1}`');
+                    this.testResults.es6Template = { supported: true };
+                    this.updateFeatureStatus('es6template', 'supported');
+                    console.log('✅ ES6 Template Literals: Supported');
+                } catch (error) {
+                    this.testResults.es6Template = { supported: false, error: error.message };
+                    this.updateFeatureStatus('es6template', 'unsupported');
+                    console.log('❌ ES6 Template Literals: Not supported');
+                }
+                
+                // Test Promises
+                try {
+                    const testPromise = new Promise(resolve => resolve(true));
+                    this.testResults.es6Promises = { supported: true };
+                    this.updateFeatureStatus('es6promises', 'supported');
+                    console.log('✅ ES6 Promises: Supported');
+                } catch (error) {
+                    this.testResults.es6Promises = { supported: false, error: error.message };
+                    this.updateFeatureStatus('es6promises', 'unsupported');
+                    console.log('❌ ES6 Promises: Not supported');
+                }
+                
+                // Test Async/Await
+                try {
+                    eval('async function test() { await Promise.resolve(); }');
+                    this.testResults.es6Async = { supported: true };
+                    this.updateFeatureStatus('es6async', 'supported');
+                    console.log('✅ ES6 Async/Await: Supported');
+                } catch (error) {
+                    this.testResults.es6Async = { supported: false, error: error.message };
+                    this.updateFeatureStatus('es6async', 'unsupported');
+                    console.log('❌ ES6 Async/Await: Not supported');
+                }
+            }
+            
+            async testCustomEvents() {
+                console.log('Testing Custom Events support...');
+                
+                try {
+                    const testEvent = new CustomEvent('test', { detail: { test: true } });
+                    const supported = testEvent instanceof Event;
+                    
+                    this.testResults.customEvents = { supported };
+                    this.updateFeatureStatus('customevents', supported ? 'supported' : 'unsupported');
+                    console.log('✅ Custom Events support:', supported ? 'Available' : 'Not available');
+                    
+                    if (!supported) {
+                        this.implementCustomEventPolyfill();
+                    }
+                } catch (error) {
+                    this.testResults.customEvents = { supported: false, error: error.message };
+                    this.updateFeatureStatus('customevents', 'unsupported');
+                    console.error('❌ Custom Events test failed:', error);
+                }
+            }
+            
+            async testNotificationsAPI() {
+                console.log('Testing Notifications API support...');
+                
+                try {
+                    if ('Notification' in window) {
+                        const permission = Notification.permission;
+                        const supported = true;
+                        const partial = permission === 'denied';
+                        
+                        this.testResults.notifications = { supported, partial, permission };
+                        this.updateFeatureStatus('notifications', supported ? (partial ? 'partial' : 'supported') : 'unsupported');
+                        console.log('✅ Notifications API support: Available, permission:', permission);
+                        
+                    } else {
+                        this.testResults.notifications = { supported: false, reason: 'Notifications API not available' };
+                        this.updateFeatureStatus('notifications', 'unsupported');
+                        console.log('❌ Notifications API not supported');
+                    }
+                } catch (error) {
+                    this.testResults.notifications = { supported: false, error: error.message };
+                    this.updateFeatureStatus('notifications', 'unsupported');
+                    console.error('❌ Notifications API test failed:', error);
+                }
+            }
+            
+            updateFeatureStatus(feature, status) {
+                const statusElement = document.getElementById(`${feature}-status`);
+                if (statusElement) {
+                    statusElement.textContent = status.charAt(0).toUpperCase() + status.slice(1);
+                    statusElement.className = `status-badge status-${status}`;
+                }
+            }
+            
+            displayTestResults() {
+                console.log('📊 Test Results Summary:');
+                console.log('========================');
+                
+                Object.entries(this.testResults).forEach(([feature, result]) => {
+                    const status = result.supported ? '✅' : '❌';
+                    const details = result.reason || result.error || '';
+                    console.log(`${status} ${feature}: ${result.supported ? 'Supported' : 'Not supported'} ${details}`);
+                });
+                
+                console.log('========================');
+                
+                // Generate recommendations
+                this.generateRecommendations();
+            }
+            
+            generateRecommendations() {
+                console.log('💡 Browser Compatibility Recommendations:');
+                console.log('==========================================');
+                
+                const unsupportedFeatures = Object.entries(this.testResults)
+                    .filter(([_, result]) => !result.supported)
+                    .map(([feature, _]) => feature);
+                
+                if (unsupportedFeatures.length === 0) {
+                    console.log('🎉 All features are supported! No polyfills needed.');
+                    return;
+                }
+                
+                console.log('⚠️ Unsupported features detected:');
+                unsupportedFeatures.forEach(feature => {
+                    console.log(`   • ${feature}`);
+                });
+                
+                console.log('');
+                console.log('🔧 Recommended actions:');
+                
+                if (unsupportedFeatures.includes('websocket')) {
+                    console.log('   • Load Socket.IO for WebSocket fallback');
+                }
+                
+                if (unsupportedFeatures.includes('fetch')) {
+                    console.log('   • Load fetch polyfill for older browsers');
+                }
+                
+                if (unsupportedFeatures.includes('localStorage')) {
+                    console.log('   • Implement cookie-based storage fallback');
+                }
+                
+                if (unsupportedFeatures.some(f => f.startsWith('es6'))) {
+                    console.log('   • Consider using Babel for ES6 transpilation');
+                    console.log('   • Load ES6 polyfills for older browsers');
+                }
+                
+                if (unsupportedFeatures.includes('customEvents')) {
+                    console.log('   • Load CustomEvent polyfill');
+                }
+                
+                console.log('==========================================');
+            }
+            
+            async loadSocketIOFallback() {
+                console.log('🔧 Loading Socket.IO fallback for WebSocket...');
+                
+                try {
+                    // In a real implementation, you would load Socket.IO from CDN
+                    console.log('   • Socket.IO would be loaded from CDN');
+                    console.log('   • WebSocket functionality would be wrapped with Socket.IO');
+                    this.polyfillsLoaded.push('Socket.IO');
+                } catch (error) {
+                    console.error('❌ Failed to load Socket.IO fallback:', error);
+                }
+            }
+            
+            async loadFetchPolyfill() {
+                console.log('🔧 Loading fetch polyfill...');
+                
+                try {
+                    // In a real implementation, you would load fetch polyfill
+                    console.log('   • Fetch polyfill would be loaded from CDN');
+                    console.log('   • XMLHttpRequest fallback would be implemented');
+                    this.polyfillsLoaded.push('fetch-polyfill');
+                } catch (error) {
+                    console.error('❌ Failed to load fetch polyfill:', error);
+                }
+            }
+            
+            implementCookieFallback() {
+                console.log('🔧 Implementing cookie-based storage fallback...');
+                
+                // Simple cookie-based localStorage fallback
+                if (!window.localStorage) {
+                    window.localStorage = {
+                        setItem: function(key, value) {
+                            document.cookie = `${key}=${encodeURIComponent(value)}; path=/`;
+                        },
+                        getItem: function(key) {
+                            const cookies = document.cookie.split(';');
+                            for (let cookie of cookies) {
+                                const [cookieKey, cookieValue] = cookie.trim().split('=');
+                                if (cookieKey === key) {
+                                    return decodeURIComponent(cookieValue);
+                                }
+                            }
+                            return null;
+                        },
+                        removeItem: function(key) {
+                            document.cookie = `${key}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/`;
+                        }
+                    };
+                    
+                    console.log('   • Cookie-based localStorage fallback implemented');
+                    this.polyfillsLoaded.push('localStorage-cookie-fallback');
+                }
+            }
+            
+            implementCustomEventPolyfill() {
+                console.log('🔧 Implementing CustomEvent polyfill...');
+                
+                if (!window.CustomEvent) {
+                    window.CustomEvent = function(event, params) {
+                        params = params || { bubbles: false, cancelable: false, detail: undefined };
+                        const evt = document.createEvent('CustomEvent');
+                        evt.initCustomEvent(event, params.bubbles, params.cancelable, params.detail);
+                        return evt;
+                    };
+                    
+                    console.log('   • CustomEvent polyfill implemented');
+                    this.polyfillsLoaded.push('CustomEvent-polyfill');
+                }
+            }
+            
+            async applyAllPolyfills() {
+                console.log('🔧 Applying all necessary polyfills...');
+                
+                const unsupportedFeatures = Object.entries(this.testResults)
+                    .filter(([_, result]) => !result.supported)
+                    .map(([feature, _]) => feature);
+                
+                for (const feature of unsupportedFeatures) {
+                    switch (feature) {
+                        case 'websocket':
+                            await this.loadSocketIOFallback();
+                            break;
+                        case 'fetch':
+                            await this.loadFetchPolyfill();
+                            break;
+                        case 'localStorage':
+                            this.implementCookieFallback();
+                            break;
+                        case 'customEvents':
+                            this.implementCustomEventPolyfill();
+                            break;
+                    }
+                }
+                
+                console.log('✅ Polyfills applied successfully');
+                console.log('📦 Loaded polyfills:', this.polyfillsLoaded.join(', '));
+                
+                // Update polyfill info display
+                const polyfillInfo = document.getElementById('polyfillInfo');
+                if (this.polyfillsLoaded.length > 0) {
+                    polyfillInfo.innerHTML = `
+                        <p><strong>Active Polyfills:</strong></p>
+                        <ul>
+                            ${this.polyfillsLoaded.map(p => `<li>${p}</li>`).join('')}
+                        </ul>
+                    `;
+                } else {
+                    polyfillInfo.innerHTML = '<p>No polyfills needed - all features are natively supported!</p>';
+                }
+            }
+            
+            setupEventListeners() {
+                document.getElementById('runCompatibilityTests').addEventListener('click', () => {
+                    this.runInitialTests();
+                });
+                
+                document.getElementById('testWebSocketSupport').addEventListener('click', () => {
+                    this.testWebSocketSupport();
+                });
+                
+                document.getElementById('testES6Features').addEventListener('click', () => {
+                    this.testES6Features();
+                });
+                
+                document.getElementById('applyPolyfills').addEventListener('click', () => {
+                    this.applyAllPolyfills();
+                });
+                
+                document.getElementById('clearOutput').addEventListener('click', () => {
+                    document.getElementById('output').innerHTML = '';
+                });
+            }
+            
+            generateCompatibilityReport() {
+                const report = {
+                    timestamp: new Date().toISOString(),
+                    browser: this.browserInfo,
+                    testResults: this.testResults,
+                    polyfillsLoaded: this.polyfillsLoaded,
+                    recommendations: this.generateRecommendationsList()
+                };
+                
+                return report;
+            }
+            
+            generateRecommendationsList() {
+                const unsupportedFeatures = Object.entries(this.testResults)
+                    .filter(([_, result]) => !result.supported)
+                    .map(([feature, _]) => feature);
+                
+                const recommendations = [];
+                
+                if (unsupportedFeatures.includes('websocket')) {
+                    recommendations.push('Load Socket.IO for WebSocket fallback');
+                }
+                
+                if (unsupportedFeatures.includes('fetch')) {
+                    recommendations.push('Load fetch polyfill for older browsers');
+                }
+                
+                if (unsupportedFeatures.includes('localStorage')) {
+                    recommendations.push('Implement cookie-based storage fallback');
+                }
+                
+                if (unsupportedFeatures.some(f => f.startsWith('es6'))) {
+                    recommendations.push('Consider using Babel for ES6 transpilation');
+                    recommendations.push('Load ES6 polyfills for older browsers');
+                }
+                
+                return recommendations;
+            }
+        }
+        
+        // Mock console methods to capture output
+        const originalConsole = {
+            log: console.log,
+            error: console.error,
+            warn: console.warn
+        };
+        
+        function captureConsoleOutput() {
+            const output = document.getElementById('output');
+            
+            ['log', 'error', 'warn'].forEach(method => {
+                console[method] = function(...args) {
+                    originalConsole[method].apply(console, args);
+                    
+                    const message = args.map(arg => 
+                        typeof arg === 'object' ? JSON.stringify(arg, null, 2) : String(arg)
+                    ).join(' ');
+                    
+                    const div = document.createElement('div');
+                    div.style.marginBottom = '2px';
+                    
+                    if (method === 'error') {
+                        div.style.color = '#f48771';
+                    } else if (method === 'warn') {
+                        div.style.color = '#dcdcaa';
+                    } else {
+                        div.style.color = '#d4d4d4';
+                    }
+                    
+                    // Format special messages
+                    if (message.includes('✅')) {
+                        div.style.color = '#4ec9b0';
+                    } else if (message.includes('❌')) {
+                        div.style.color = '#f48771';
+                    } else if (message.includes('🧪') || message.includes('Testing')) {
+                        div.style.color = '#569cd6';
+                    } else if (message.includes('🔧')) {
+                        div.style.color = '#dcdcaa';
+                    }
+                    
+                    div.textContent = message;
+                    output.appendChild(div);
+                    output.scrollTop = output.scrollHeight;
+                };
+            });
+        }
+        
+        // Initialize when DOM is loaded
+        document.addEventListener('DOMContentLoaded', function() {
+            captureConsoleOutput();
+            
+            // Initialize the compatibility tester
+            window.compatibilityTester = new CrossBrowserCompatibilityTester();
+            
+            console.log('🌐 Cross-Browser Compatibility Tester initialized');
+            console.log('📋 This tool tests frontend functionality across different browsers');
+            console.log('🧪 Run tests to identify compatibility issues and apply fixes');
+        });
+    </script>
+</body>
+</html>

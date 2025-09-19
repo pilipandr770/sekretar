@@ -1,0 +1,55 @@
+{
+  "timestamp": "2025-09-19T09:13:03.258780",
+  "overall_success": false,
+  "validations": {
+    "config_validation": {
+      "success": false,
+      "data": {
+        "error": "cannot import name 'Blueprint' from partially initialized module 'flask' (most likely due to a circular import) (C:\\Users\\\u041f\u041a\\sekretar\\.venv\\Lib\\site-packages\\flask\\__init__.py)"
+      }
+    },
+    "health_validation": {
+      "success": false,
+      "data": {
+        "error": "cannot import name 'Blueprint' from partially initialized module 'flask' (most likely due to a circular import) (C:\\Users\\\u041f\u041a\\sekretar\\.venv\\Lib\\site-packages\\flask\\__init__.py)"
+      }
+    },
+    "route_validation": {
+      "success": false,
+      "data": {
+        "error": "cannot import name 'Blueprint' from partially initialized module 'flask' (most likely due to a circular import) (C:\\Users\\\u041f\u041a\\sekretar\\.venv\\Lib\\site-packages\\flask\\__init__.py)"
+      }
+    },
+    "gitignore_validation": {
+      "success": false,
+      "data": {
+        "error": "'GitignoreValidator' object has no attribute 'validate_gitignore'"
+      }
+    },
+    "startup_test": {
+      "success": false,
+      "data": {
+        "success": false,
+        "error": "cannot import name 'Blueprint' from partially initialized module 'flask' (most likely due to a circular import) (C:\\Users\\\u041f\u041a\\sekretar\\.venv\\Lib\\site-packages\\flask\\__init__.py)"
+      }
+    },
+    "api_endpoints_test": {
+      "success": false,
+      "data": {
+        "skipped": true,
+        "reason": "startup_failed"
+      }
+    }
+  },
+  "summary": {
+    "total_validations": 6,
+    "passed_validations": 0,
+    "failed_validations": 6,
+    "warnings": 0
+  },
+  "recommendations": [
+    "Fix configuration issues before deployment",
+    "Address health validation issues",
+    "Fix application startup issues"
+  ]
+}

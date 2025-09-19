@@ -324,6 +324,8 @@ class I18nClient {
             return true;
         }
 
+        const previousLocale = this.locale;
+
         try {
             // Load translations for new locale
             const success = await this.loadTranslations(locale);
@@ -336,12 +338,16 @@ class I18nClient {
                 // Update HTML lang attribute
                 document.documentElement.lang = locale;
                 
+                // Store in localStorage for persistence
+                localStorage.setItem('preferred_language', locale);
+                
                 // Trigger locale change event
-                this.dispatchLocaleChangeEvent(locale);
+                this.dispatchLocaleChangeEvent(locale, previousLocale);
                 
                 // Update server-side locale preference
                 await this.updateServerLocale(locale);
                 
+                console.log(`Locale changed from ${previousLocale} to ${locale}`);
                 return true;
             }
             
@@ -421,10 +427,11 @@ class I18nClient {
     /**
      * Dispatch locale change event
      * @param {string} locale - New locale
+     * @param {string} previousLocale - Previous locale
      */
-    dispatchLocaleChangeEvent(locale) {
+    dispatchLocaleChangeEvent(locale, previousLocale) {
         const event = new CustomEvent('localechange', {
-            detail: { locale, previousLocale: this.locale }
+            detail: { locale, previousLocale }
         });
         window.dispatchEvent(event);
     }

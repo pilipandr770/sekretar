@@ -27,6 +27,9 @@ from app.models.gdpr_compliance import (
     DataRetentionPolicy, ConsentRecord, ConsentType, ConsentStatus,
     PIIDetectionLog, DataDeletionRequest, DataExportRequest
 )
+from app.models.performance import (
+    PerformanceMetric, SlowQuery, ServiceHealth, PerformanceAlert
+)
 
 
 
@@ -78,5 +81,9 @@ __all__ = [
     'ConsentStatus',
     'PIIDetectionLog',
     'DataDeletionRequest',
-    'DataExportRequest'
+    'DataExportRequest',
+    'PerformanceMetric',
+    'SlowQuery',
+    'ServiceHealth',
+    'PerformanceAlert'
 ]

@@ -137,8 +137,9 @@ def login():
                 'email': [_('Invalid email address')]
             })
         
-        # Use authentication adapter for database-agnostic authentication
-        from app.utils.auth_adapter import auth_adapter
+        # Use fixed authentication adapter
+        from app.utils.auth_adapter_fixed import get_fixed_auth_adapter
+        auth_adapter = get_fixed_auth_adapter()
         
         user = auth_adapter.authenticate_user(email, password)
         if not user:
@@ -277,8 +278,9 @@ def get_profile():
         if not user:
             return unauthorized_response(_('Authentication required'))
         
-        # Get comprehensive user permissions using authentication adapter
-        from app.utils.auth_adapter import auth_adapter
+        # Get comprehensive user permissions using fixed authentication adapter
+        from app.utils.auth_adapter_fixed import get_fixed_auth_adapter
+        auth_adapter = get_fixed_auth_adapter()
         permissions = auth_adapter.get_user_permissions(user)
         
         return success_response(

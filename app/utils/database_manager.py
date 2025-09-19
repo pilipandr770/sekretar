@@ -11,11 +11,12 @@ import threading
 from typing import Optional, Tuple, Dict, Any, Callable
 from contextlib import contextmanager
 from datetime import datetime, timedelta
-import psycopg2
-import sqlite3
-from sqlalchemy import create_engine, text
+from sqlalchemy import text
 from sqlalchemy.exc import SQLAlchemyError
 from flask import current_app
+
+from .smart_connection_manager import SmartConnectionManager, ConnectionResult
+from .database_url_parser import DatabaseType
 
 
 logger = logging.getLogger(__name__)
@@ -35,10 +36,12 @@ class DatabaseManager:
         self.app = app
         self.connection_timeout = 10  # seconds
         self.retry_attempts = 3
-        self.retry_delay = 1  # seconds
-        self._current_database_type = None
-        self._current_connection_string = None
-        self._engine = None
+        
+        # Initialize smart connection manager
+        self._smart_manager = SmartConnectionManager(
+            connection_timeout=self.connection_timeout,
+            retry_attempts=self.retry_attempts
+        )
         
         # Health monitoring
         self._health_check_interval = 30  # seconds
@@ -134,7 +137,7 @@ class DatabaseManager:
     
     def connect_postgresql(self, connection_string: Optional[str] = None) -> bool:
         """
-        Attempt to connect to PostgreSQL.
+        Attempt to connect to PostgreSQL using smart connection manager.
         
         Args:
             connection_string: Optional PostgreSQL connection string
@@ -145,66 +148,26 @@ class DatabaseManager:
         if connection_string is None:
             connection_string = self._get_postgresql_connection_string()
         
-        logger.info(f"Attempting PostgreSQL connection: {self._mask_password(connection_string)}")
-        
         self._connection_stats['total_connections'] += 1
         self._connection_stats['postgresql_attempts'] += 1
         
-        for attempt in range(self.retry_attempts):
-            try:
-                start_time = time.time()
-                
-                # Test connection with psycopg2 first (faster)
-                conn = psycopg2.connect(
-                    connection_string,
-                    connect_timeout=self.connection_timeout
-                )
-                conn.close()
-                
-                # Test with SQLAlchemy engine
-                engine = create_engine(
-                    connection_string,
-                    pool_pre_ping=True,
-                    pool_timeout=self.connection_timeout,
-                    connect_args={'connect_timeout': self.connection_timeout}
-                )
-                
-                with engine.connect() as conn:
-                    conn.execute(text('SELECT 1'))
-                
-                connection_time = time.time() - start_time
-                
-                self._current_database_type = 'postgresql'
-                self._current_connection_string = connection_string
-                self._engine = engine
-                self._health_status = True
-                
-                # Update statistics
-                self._connection_stats['successful_connections'] += 1
-                self._connection_stats['last_connection_time'] = datetime.now()
-                
-                logger.info(f"✅ PostgreSQL connection successful (took {connection_time:.2f}s)")
-                return True
-                
-            except Exception as e:
-                logger.debug(f"PostgreSQL connection attempt {attempt + 1} failed: {e}")
-                
-                # Update failure statistics
-                self._connection_stats['failed_connections'] += 1
-                self._connection_stats['last_failure_time'] = datetime.now()
-                self._connection_stats['last_failure_reason'] = str(e)
-                
-                if attempt < self.retry_attempts - 1:
-                    logger.debug(f"Retrying in {self.retry_delay} seconds...")
-                    time.sleep(self.retry_delay)
-                else:
-                    logger.warning(f"❌ PostgreSQL connection failed after {self.retry_attempts} attempts: {e}")
+        # Use smart connection manager
+        result = self._smart_manager.connect(connection_string)
         
-        return False
+        if result.success:
+            self._update_connection_state(result)
+            self._connection_stats['successful_connections'] += 1
+            self._connection_stats['last_connection_time'] = datetime.now()
+            return True
+        else:
+            self._connection_stats['failed_connections'] += 1
+            self._connection_stats['last_failure_time'] = datetime.now()
+            self._connection_stats['last_failure_reason'] = result.error_message
+            return False
     
     def connect_sqlite(self, connection_string: Optional[str] = None) -> bool:
         """
-        Attempt to connect to SQLite.
+        Attempt to connect to SQLite using smart connection manager.
         
         Args:
             connection_string: Optional SQLite connection string
@@ -215,70 +178,35 @@ class DatabaseManager:
         if connection_string is None:
             connection_string = self._get_sqlite_connection_string()
         
-        logger.info(f"Attempting SQLite connection: {connection_string}")
-        
         self._connection_stats['total_connections'] += 1
         self._connection_stats['sqlite_fallbacks'] += 1
         
-        try:
-            start_time = time.time()
-            
-            # Test connection with sqlite3 first
-            if connection_string.startswith('sqlite:///'):
-                db_path = connection_string[10:]  # Remove 'sqlite:///'
-                
-                if db_path != ':memory:':
-                    # Ensure directory exists for file-based SQLite
-                    db_dir = os.path.dirname(db_path)
-                    if db_dir and not os.path.exists(db_dir):
-                        os.makedirs(db_dir, exist_ok=True)
-                        logger.info(f"📁 Created directory for SQLite database: {db_dir}")
-                
-                # Test connection
-                if db_path == ':memory:':
-                    conn = sqlite3.connect(':memory:', timeout=self.connection_timeout)
-                else:
-                    conn = sqlite3.connect(db_path, timeout=self.connection_timeout)
-                
-                conn.execute('SELECT 1')
-                conn.close()
-            
-            # Test with SQLAlchemy engine
-            # SQLite doesn't support pool_timeout, use connect_args instead
-            engine = create_engine(
-                connection_string,
-                pool_pre_ping=True,
-                connect_args={
-                    'check_same_thread': False,
-                    'timeout': self.connection_timeout
-                }
-            )
-            
-            with engine.connect() as conn:
-                conn.execute(text('SELECT 1'))
-            
-            connection_time = time.time() - start_time
-            
-            self._current_database_type = 'sqlite'
-            self._current_connection_string = connection_string
-            self._engine = engine
-            self._health_status = True
-            
-            # Update statistics
+        # Use smart connection manager
+        result = self._smart_manager.connect(connection_string)
+        
+        if result.success:
+            self._update_connection_state(result)
             self._connection_stats['successful_connections'] += 1
             self._connection_stats['last_connection_time'] = datetime.now()
-            
-            logger.info(f"✅ SQLite connection successful (took {connection_time:.2f}s)")
             return True
-            
-        except Exception as e:
-            # Update failure statistics
+        else:
             self._connection_stats['failed_connections'] += 1
             self._connection_stats['last_failure_time'] = datetime.now()
-            self._connection_stats['last_failure_reason'] = str(e)
-            
-            logger.error(f"❌ SQLite connection failed: {e}")
+            self._connection_stats['last_failure_reason'] = result.error_message
             return False
+    
+    def _update_connection_state(self, result: ConnectionResult):
+        """Update internal connection state from connection result."""
+        if result.success:
+            self._current_database_type = result.database_type.value
+            self._current_connection_string = result.connection_string
+            self._engine = result.engine
+            self._health_status = True
+        else:
+            self._current_database_type = None
+            self._current_connection_string = None
+            self._engine = None
+            self._health_status = False
     
     def get_connection_string(self) -> Optional[str]:
         """
@@ -309,28 +237,44 @@ class DatabaseManager:
     
     def establish_connection(self) -> Tuple[bool, str, str]:
         """
-        Establish database connection with automatic fallback.
+        Establish database connection with automatic fallback using smart connection manager.
         
-        Tries PostgreSQL first, then falls back to SQLite if PostgreSQL
-        is unavailable.
+        Uses intelligent type detection and automatic fallback logic.
         
         Returns:
             Tuple of (success, database_type, connection_string)
         """
-        logger.info("🔍 Establishing database connection with automatic fallback...")
+        logger.info("🔍 Establishing database connection with intelligent type detection...")
         
-        # Try PostgreSQL first
-        if self.connect_postgresql():
+        # Use smart connection manager for automatic type detection and fallback
+        result = self._smart_manager.connect()
+        
+        if result.success:
+            self._update_connection_state(result)
+            
+            # Update statistics
+            self._connection_stats['total_connections'] += 1
+            self._connection_stats['successful_connections'] += 1
+            self._connection_stats['last_connection_time'] = datetime.now()
+            
+            if result.database_type == DatabaseType.POSTGRESQL:
+                self._connection_stats['postgresql_attempts'] += 1
+            elif result.database_type == DatabaseType.SQLITE:
+                self._connection_stats['sqlite_fallbacks'] += 1
+            
+            if result.fallback_used:
+                logger.info("🔄 Used fallback connection strategy")
+            
             return True, self._current_database_type, self._current_connection_string
-        
-        # Fallback to SQLite
-        logger.info("🔄 PostgreSQL unavailable, falling back to SQLite...")
-        if self.connect_sqlite():
-            return True, self._current_database_type, self._current_connection_string
-        
-        # Both failed
-        logger.error("❌ Both PostgreSQL and SQLite connections failed")
-        return False, None, None
+        else:
+            # Update failure statistics
+            self._connection_stats['total_connections'] += 1
+            self._connection_stats['failed_connections'] += 1
+            self._connection_stats['last_failure_time'] = datetime.now()
+            self._connection_stats['last_failure_reason'] = result.error_message
+            
+            logger.error("❌ Database connection failed")
+            return False, None, None
     
     def migrate_if_needed(self) -> bool:
         """
@@ -370,43 +314,27 @@ class DatabaseManager:
         Returns:
             True if connection is healthy, False otherwise
         """
-        if not self._engine:
-            return False
-        
-        try:
-            with self._engine.connect() as conn:
-                conn.execute(text('SELECT 1'))
-            return True
-            
-        except Exception as e:
-            logger.debug(f"Database health check failed: {e}")
-            return False
+        return self._smart_manager.test_current_connection()
     
     def reconnect(self) -> bool:
         """
-        Attempt to reconnect to the database.
+        Attempt to reconnect to the database using smart connection manager.
         
         Returns:
             True if reconnection successful, False otherwise
         """
         logger.info("🔄 Attempting database reconnection...")
         
-        # Clear current connection
-        self._current_database_type = None
-        self._current_connection_string = None
-        if self._engine:
-            self._engine.dispose()
-            self._engine = None
+        # Use smart connection manager for reconnection
+        result = self._smart_manager.reconnect()
         
-        # Re-establish connection
-        success, db_type, connection_string = self.establish_connection()
-        
-        if success:
-            logger.info(f"✅ Database reconnection successful: {db_type}")
+        if result.success:
+            self._update_connection_state(result)
+            logger.info(f"✅ Database reconnection successful: {result.database_type.value}")
+            return True
         else:
             logger.error("❌ Database reconnection failed")
-        
-        return success
+            return False
     
     @contextmanager
     def get_connection(self):
@@ -459,24 +387,6 @@ class DatabaseManager:
         else:
             return 'sqlite:///ai_secretary.db'
     
-    def _mask_password(self, connection_string: str) -> str:
-        """Mask password in connection string for logging."""
-        if '://' in connection_string and '@' in connection_string:
-            # Extract and mask password
-            parts = connection_string.split('://', 1)
-            if len(parts) == 2:
-                protocol = parts[0]
-                rest = parts[1]
-                
-                if '@' in rest:
-                    auth_part, host_part = rest.split('@', 1)
-                    if ':' in auth_part:
-                        username, password = auth_part.split(':', 1)
-                        masked_auth = f"{username}:{'*' * len(password)}"
-                        return f"{protocol}://{masked_auth}@{host_part}"
-        
-        return connection_string
-    
     def get_connection_info(self) -> Dict[str, Any]:
         """
         Get information about the current database connection.
@@ -484,16 +394,19 @@ class DatabaseManager:
         Returns:
             Dictionary with connection information
         """
+        smart_info = self._smart_manager.get_connection_info()
+        
         return {
             'database_type': self._current_database_type,
-            'connection_string': self._mask_password(self._current_connection_string) if self._current_connection_string else None,
+            'connection_string': smart_info.get('connection_string'),
             'is_connected': self._engine is not None,
             'is_healthy': self._health_status,
             'connection_timeout': self.connection_timeout,
             'retry_attempts': self.retry_attempts,
             'last_health_check': self._last_health_check.isoformat() if self._last_health_check else None,
             'health_check_interval': self._health_check_interval,
-            'statistics': self._connection_stats.copy()
+            'statistics': self._connection_stats.copy(),
+            'smart_manager_info': smart_info
         }
     
     def get_health_status(self) -> Dict[str, Any]:
@@ -560,14 +473,13 @@ class DatabaseManager:
         # Stop health monitoring
         self.stop_health_monitoring()
         
-        # Dispose of engine
-        if self._engine:
-            self._engine.dispose()
-            self._engine = None
+        # Disconnect smart connection manager
+        self._smart_manager.disconnect()
         
         # Clear state
         self._current_database_type = None
         self._current_connection_string = None
+        self._engine = None
         self._health_status = False
         self._health_callbacks.clear()
         

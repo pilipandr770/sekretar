@@ -3,7 +3,7 @@ import json
 from flask import request
 from flask_socketio import emit, join_room, leave_room, disconnect
 from flask_jwt_extended import decode_token, get_jwt_identity
-from app import socketio
+from app.utils.websocket_manager import get_socketio, emit_with_fallback
 from app.models.user import User
 from app.models.tenant import Tenant
 import structlog
@@ -14,8 +14,11 @@ logger = structlog.get_logger(__name__)
 # Store active connections
 active_connections = {}
 
+# Get socketio instance - will be None if WebSocket unavailable
+socketio = get_socketio()
 
-@socketio.on('connect')
+
+# Handler functions (will be registered conditionally)
 def handle_connect(auth):
     """Handle client connection."""
     try:
@@ -77,7 +80,6 @@ def handle_connect(auth):
         return False
 
 
-@socketio.on('disconnect')
 def handle_disconnect():
     """Handle client disconnection."""
     session_id = request.sid
@@ -100,7 +102,6 @@ def handle_disconnect():
                    session_id=session_id)
 
 
-@socketio.on('join_conversation')
 def handle_join_conversation(data):
     """Handle joining a conversation room."""
     session_id = request.sid
@@ -132,7 +133,6 @@ def handle_join_conversation(data):
     })
 
 
-@socketio.on('leave_conversation')
 def handle_leave_conversation(data):
     """Handle leaving a conversation room."""
     session_id = request.sid
@@ -157,7 +157,6 @@ def handle_leave_conversation(data):
                room=room_name)
 
 
-@socketio.on('typing_start')
 def handle_typing_start(data):
     """Handle typing indicator start."""
     session_id = request.sid
@@ -183,7 +182,6 @@ def handle_typing_start(data):
     }, room=room_name, include_self=False)
 
 
-@socketio.on('typing_stop')
 def handle_typing_stop(data):
     """Handle typing indicator stop."""
     session_id = request.sid
@@ -209,7 +207,6 @@ def handle_typing_stop(data):
     }, room=room_name, include_self=False)
 
 
-@socketio.on('ping')
 def handle_ping():
     """Handle ping for connection keepalive."""
     emit('pong')
@@ -220,10 +217,14 @@ def handle_ping():
 def broadcast_new_message(tenant_id, conversation_id, message_data):
     """Broadcast new message to conversation participants."""
     room_name = f"conversation_{conversation_id}_{tenant_id}"
-    socketio.emit('new_message', {
+    
+    def fallback(event, data, room):
+        logger.debug(f"WebSocket unavailable, message broadcast skipped for {room}")
+    
+    emit_with_fallback('new_message', {
         'conversation_id': conversation_id,
         'message': message_data
-    }, room=room_name)
+    }, room=room_name, fallback_callback=fallback)
     
     logger.info("Broadcasted new message", 
                tenant_id=tenant_id,
@@ -234,7 +235,7 @@ def broadcast_new_message(tenant_id, conversation_id, message_data):
 def broadcast_message_update(tenant_id, conversation_id, message_data):
     """Broadcast message update to conversation participants."""
     room_name = f"conversation_{conversation_id}_{tenant_id}"
-    socketio.emit('message_updated', {
+    emit_with_fallback('message_updated', {
         'conversation_id': conversation_id,
         'message': message_data
     }, room=room_name)
@@ -243,7 +244,7 @@ def broadcast_message_update(tenant_id, conversation_id, message_data):
 def broadcast_conversation_update(tenant_id, conversation_data):
     """Broadcast conversation update to tenant users."""
     room_name = f"tenant_{tenant_id}"
-    socketio.emit('conversation_updated', {
+    emit_with_fallback('conversation_updated', {
         'conversation': conversation_data
     }, room=room_name)
 
@@ -251,7 +252,12 @@ def broadcast_conversation_update(tenant_id, conversation_data):
 def broadcast_notification(user_id, notification_data):
     """Broadcast notification to specific user."""
     room_name = f"user_{user_id}"
-    socketio.emit('notification', notification_data, room=room_name)
+    
+    def fallback(event, data, room):
+        # Could implement push notification fallback here
+        logger.debug(f"WebSocket unavailable, notification fallback for user {user_id}")
+    
+    emit_with_fallback('notification', notification_data, room=room_name, fallback_callback=fallback)
     
     logger.info("Broadcasted notification", 
                user_id=user_id,
@@ -261,13 +267,13 @@ def broadcast_notification(user_id, notification_data):
 def broadcast_tenant_notification(tenant_id, notification_data):
     """Broadcast notification to all tenant users."""
     room_name = f"tenant_{tenant_id}"
-    socketio.emit('tenant_notification', notification_data, room=room_name)
+    emit_with_fallback('tenant_notification', notification_data, room=room_name)
 
 
 def broadcast_lead_update(tenant_id, lead_data):
     """Broadcast lead update to tenant users."""
     room_name = f"tenant_{tenant_id}"
-    socketio.emit('lead_updated', {
+    emit_with_fallback('lead_updated', {
         'lead': lead_data
     }, room=room_name)
 
@@ -275,7 +281,7 @@ def broadcast_lead_update(tenant_id, lead_data):
 def broadcast_appointment_update(tenant_id, appointment_data):
     """Broadcast appointment update to tenant users."""
     room_name = f"tenant_{tenant_id}"
-    socketio.emit('appointment_updated', {
+    emit_with_fallback('appointment_updated', {
         'appointment': appointment_data
     }, room=room_name)
 
@@ -283,7 +289,7 @@ def broadcast_appointment_update(tenant_id, appointment_data):
 def broadcast_system_alert(tenant_id, alert_data):
     """Broadcast system alert to tenant users."""
     room_name = f"tenant_{tenant_id}"
-    socketio.emit('system_alert', alert_data, room=room_name)
+    emit_with_fallback('system_alert', alert_data, room=room_name)
 
 
 def get_active_users_count(tenant_id):
@@ -308,3 +314,23 @@ def is_user_online(user_id):
         if connection['user_id'] == user_id:
             return True
     return False
+
+
+def register_websocket_handlers():
+    """Register WebSocket handlers with the manager."""
+    # Only register if WebSocket is available
+    socketio = get_socketio()
+    if not socketio:
+        logger.info("WebSocket unavailable, skipping handler registration")
+        return
+    
+    # Register handlers directly with socketio
+    socketio.on('connect')(handle_connect)
+    socketio.on('disconnect')(handle_disconnect)
+    socketio.on('join_conversation')(handle_join_conversation)
+    socketio.on('leave_conversation')(handle_leave_conversation)
+    socketio.on('typing_start')(handle_typing_start)
+    socketio.on('typing_stop')(handle_typing_stop)
+    socketio.on('ping')(handle_ping)
+    
+    logger.info("WebSocket handlers registered")

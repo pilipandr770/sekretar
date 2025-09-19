@@ -1,21 +1,26 @@
 """
-Health Validation System
+Enhanced Health Validation System
 
-This module provides comprehensive database health validation functionality
-for connectivity testing, schema validation, and diagnostic reporting.
+This module provides comprehensive health validation functionality for external services,
+database connectivity, schema validation, and diagnostic reporting with fallback modes.
+Addresses Requirements 6.3 and 6.4 for service health monitoring and fallback handling.
 """
 import logging
 import time
+import requests
+import socket
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Optional, List, Dict, Any, Tuple
+from typing import Optional, List, Dict, Any, Tuple, Union
 from enum import Enum
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import create_engine, text, inspect, MetaData
 from sqlalchemy.exc import SQLAlchemyError
+from urllib.parse import urlparse
 
 from .database_init_logger import get_database_init_logger, LogLevel, LogCategory
+from .config_validator import ServiceStatus, ServiceHealth
 
 logger = logging.getLogger(__name__)
 
@@ -34,6 +39,28 @@ class ValidationSeverity(Enum):
     WARNING = "warning"
     ERROR = "error"
     CRITICAL = "critical"
+
+
+class ServiceType(Enum):
+    """Types of services that can be validated."""
+    DATABASE = "database"
+    CACHE = "cache"
+    EXTERNAL_API = "external_api"
+    OAUTH = "oauth"
+    PAYMENT = "payment"
+    MESSAGING = "messaging"
+    STORAGE = "storage"
+    MONITORING = "monitoring"
+
+
+@dataclass
+class FallbackConfig:
+    """Configuration for service fallback behavior."""
+    enabled: bool = True
+    fallback_service: Optional[str] = None
+    fallback_message: Optional[str] = None
+    degraded_functionality: List[str] = field(default_factory=list)
+    recovery_instructions: List[str] = field(default_factory=list)
 
 
 @dataclass
@@ -100,10 +127,10 @@ class HealthCheckResult:
 
 class HealthValidator:
     """
-    Database health validation system.
+    Enhanced health validation system for external services and database.
     
     Provides comprehensive health checks including connectivity testing,
-    schema validation, and diagnostic reporting.
+    schema validation, external service monitoring, and fallback handling.
     """
     
     def __init__(self, app: Flask, db: SQLAlchemy):
@@ -119,6 +146,75 @@ class HealthValidator:
         self.connection_timeout = app.config.get('DATABASE_CONNECTION_TIMEOUT', 30)
         self.query_timeout = app.config.get('DATABASE_QUERY_TIMEOUT', 10)
         self.max_retries = app.config.get('DATABASE_MAX_RETRIES', 3)
+        self.service_timeout = app.config.get('SERVICE_HEALTH_TIMEOUT', 10)
+        
+        # Service configurations with fallback options
+        self.service_configs = {
+            'openai': {
+                'type': ServiceType.EXTERNAL_API,
+                'url_key': 'OPENAI_API_KEY',
+                'test_endpoint': 'https://api.openai.com/v1/models',
+                'fallback': FallbackConfig(
+                    enabled=True,
+                    fallback_message="AI features disabled - using rule-based responses",
+                    degraded_functionality=["AI chat responses", "Smart categorization", "Content generation"],
+                    recovery_instructions=["Set valid OPENAI_API_KEY", "Check API quota and billing"]
+                )
+            },
+            'redis': {
+                'type': ServiceType.CACHE,
+                'url_key': 'REDIS_URL',
+                'fallback': FallbackConfig(
+                    enabled=True,
+                    fallback_service="simple_cache",
+                    fallback_message="Using simple in-memory cache instead of Redis",
+                    degraded_functionality=["Distributed caching", "Session sharing", "Task queues"],
+                    recovery_instructions=["Configure REDIS_URL", "Start Redis server", "Check network connectivity"]
+                )
+            },
+            'google_oauth': {
+                'type': ServiceType.OAUTH,
+                'url_key': 'GOOGLE_CLIENT_ID',
+                'test_endpoint': 'https://www.googleapis.com/oauth2/v1/tokeninfo',
+                'fallback': FallbackConfig(
+                    enabled=True,
+                    fallback_message="Google OAuth disabled - using email/password authentication only",
+                    degraded_functionality=["Google sign-in", "Calendar integration", "Gmail integration"],
+                    recovery_instructions=["Configure GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET", "Enable Google OAuth API"]
+                )
+            },
+            'stripe': {
+                'type': ServiceType.PAYMENT,
+                'url_key': 'STRIPE_SECRET_KEY',
+                'test_endpoint': 'https://api.stripe.com/v1/account',
+                'fallback': FallbackConfig(
+                    enabled=True,
+                    fallback_message="Payment processing disabled - subscription features unavailable",
+                    degraded_functionality=["Payment processing", "Subscription management", "Billing"],
+                    recovery_instructions=["Configure STRIPE_SECRET_KEY", "Verify Stripe account status"]
+                )
+            },
+            'telegram': {
+                'type': ServiceType.MESSAGING,
+                'url_key': 'TELEGRAM_BOT_TOKEN',
+                'fallback': FallbackConfig(
+                    enabled=True,
+                    fallback_message="Telegram integration disabled - using email notifications only",
+                    degraded_functionality=["Telegram notifications", "Bot interactions"],
+                    recovery_instructions=["Configure TELEGRAM_BOT_TOKEN", "Verify bot permissions"]
+                )
+            },
+            'signal': {
+                'type': ServiceType.MESSAGING,
+                'url_key': 'SIGNAL_CLI_PATH',
+                'fallback': FallbackConfig(
+                    enabled=True,
+                    fallback_message="Signal integration disabled - using email notifications only",
+                    degraded_functionality=["Signal notifications", "Secure messaging"],
+                    recovery_instructions=["Install signal-cli", "Configure SIGNAL_CLI_PATH"]
+                )
+            }
+        }
     
     def validate_connectivity(self) -> bool:
         """
@@ -346,6 +442,367 @@ class HealthValidator:
         
         return report
     
+    def validate_external_services(self) -> Dict[str, ServiceHealth]:
+        """
+        Validate external service connectivity and configuration.
+        
+        Returns:
+            Dictionary mapping service names to their health status
+        """
+        self.init_logger.info(LogCategory.VALIDATION, "Validating external services...")
+        
+        services = {}
+        
+        for service_name, config in self.service_configs.items():
+            try:
+                service_health = self._check_service_health(service_name, config)
+                services[service_name] = service_health
+                
+                # Log service status
+                if service_health.status == ServiceStatus.HEALTHY:
+                    self.init_logger.info(
+                        LogCategory.VALIDATION,
+                        f"✅ Service '{service_name}' is healthy: {service_health.message}"
+                    )
+                elif service_health.status == ServiceStatus.NOT_CONFIGURED:
+                    self.init_logger.info(
+                        LogCategory.VALIDATION,
+                        f"ℹ️ Service '{service_name}' not configured: {service_health.message}"
+                    )
+                else:
+                    self.init_logger.warning(
+                        LogCategory.VALIDATION,
+                        f"⚠️ Service '{service_name}' unhealthy: {service_health.message}"
+                    )
+                    
+            except Exception as e:
+                services[service_name] = ServiceHealth(
+                    name=service_name,
+                    status=ServiceStatus.UNKNOWN,
+                    message=f"Health check failed: {str(e)}",
+                    details={'error': str(e)}
+                )
+                self.init_logger.error(
+                    LogCategory.VALIDATION,
+                    f"❌ Service '{service_name}' health check failed: {str(e)}",
+                    error=e
+                )
+        
+        return services
+    
+    def _check_service_health(self, service_name: str, config: Dict[str, Any]) -> ServiceHealth:
+        """Check health of a specific service."""
+        url_key = config.get('url_key')
+        service_type = config.get('type')
+        test_endpoint = config.get('test_endpoint')
+        fallback_config = config.get('fallback')
+        
+        # Get configuration value
+        config_value = self.app.config.get(url_key, '').strip()
+        
+        if not config_value or config_value.startswith('your-'):
+            return ServiceHealth(
+                name=service_name,
+                status=ServiceStatus.NOT_CONFIGURED,
+                message=f"{service_name} not configured",
+                fallback_available=fallback_config.enabled if fallback_config else False,
+                fallback_message=fallback_config.fallback_message if fallback_config else None,
+                details={
+                    'config_key': url_key,
+                    'fallback_enabled': fallback_config.enabled if fallback_config else False
+                }
+            )
+        
+        # Perform service-specific health check
+        if service_type == ServiceType.EXTERNAL_API and test_endpoint:
+            return self._check_api_service(service_name, config_value, test_endpoint, fallback_config)
+        elif service_type == ServiceType.CACHE:
+            return self._check_cache_service(service_name, config_value, fallback_config)
+        elif service_type == ServiceType.OAUTH:
+            return self._check_oauth_service(service_name, config_value, fallback_config)
+        elif service_type == ServiceType.MESSAGING:
+            return self._check_messaging_service(service_name, config_value, fallback_config)
+        else:
+            return self._check_generic_service(service_name, config_value, fallback_config)
+    
+    def _check_api_service(self, service_name: str, api_key: str, endpoint: str, 
+                          fallback_config: FallbackConfig) -> ServiceHealth:
+        """Check external API service health."""
+        try:
+            headers = {}
+            
+            # Set appropriate headers based on service
+            if service_name == 'openai':
+                headers['Authorization'] = f'Bearer {api_key}'
+            elif service_name == 'stripe':
+                headers['Authorization'] = f'Bearer {api_key}'
+            
+            response = requests.get(
+                endpoint,
+                headers=headers,
+                timeout=self.service_timeout
+            )
+            
+            if response.status_code == 200:
+                return ServiceHealth(
+                    name=service_name,
+                    status=ServiceStatus.HEALTHY,
+                    message=f"{service_name} API is accessible and responding",
+                    details={
+                        'response_time': response.elapsed.total_seconds(),
+                        'status_code': response.status_code
+                    }
+                )
+            elif response.status_code == 401:
+                return ServiceHealth(
+                    name=service_name,
+                    status=ServiceStatus.UNHEALTHY,
+                    message=f"{service_name} API authentication failed",
+                    fallback_available=fallback_config.enabled,
+                    fallback_message=fallback_config.fallback_message,
+                    details={
+                        'status_code': response.status_code,
+                        'error': 'Authentication failed - check API key'
+                    }
+                )
+            else:
+                return ServiceHealth(
+                    name=service_name,
+                    status=ServiceStatus.DEGRADED,
+                    message=f"{service_name} API returned status {response.status_code}",
+                    fallback_available=fallback_config.enabled,
+                    fallback_message=fallback_config.fallback_message,
+                    details={'status_code': response.status_code}
+                )
+                
+        except requests.exceptions.Timeout:
+            return ServiceHealth(
+                name=service_name,
+                status=ServiceStatus.UNHEALTHY,
+                message=f"{service_name} API timeout",
+                fallback_available=fallback_config.enabled,
+                fallback_message=fallback_config.fallback_message,
+                details={'error': 'Request timeout'}
+            )
+        except requests.exceptions.ConnectionError:
+            return ServiceHealth(
+                name=service_name,
+                status=ServiceStatus.UNHEALTHY,
+                message=f"{service_name} API connection failed",
+                fallback_available=fallback_config.enabled,
+                fallback_message=fallback_config.fallback_message,
+                details={'error': 'Connection failed'}
+            )
+        except Exception as e:
+            return ServiceHealth(
+                name=service_name,
+                status=ServiceStatus.UNKNOWN,
+                message=f"{service_name} API check failed: {str(e)}",
+                fallback_available=fallback_config.enabled,
+                fallback_message=fallback_config.fallback_message,
+                details={'error': str(e)}
+            )
+    
+    def _check_cache_service(self, service_name: str, redis_url: str, 
+                           fallback_config: FallbackConfig) -> ServiceHealth:
+        """Check Redis cache service health."""
+        try:
+            import redis
+            
+            r = redis.from_url(redis_url, socket_connect_timeout=5, socket_timeout=5)
+            
+            # Test basic operations
+            test_key = f"health_check_{int(time.time())}"
+            r.set(test_key, "test_value", ex=60)  # Expire in 60 seconds
+            value = r.get(test_key)
+            r.delete(test_key)
+            
+            if value == b"test_value":
+                info = r.info()
+                return ServiceHealth(
+                    name=service_name,
+                    status=ServiceStatus.HEALTHY,
+                    message="Redis is healthy and responding",
+                    details={
+                        'version': info.get('redis_version', 'unknown'),
+                        'memory_used': info.get('used_memory_human', 'unknown'),
+                        'connected_clients': info.get('connected_clients', 0)
+                    }
+                )
+            else:
+                return ServiceHealth(
+                    name=service_name,
+                    status=ServiceStatus.DEGRADED,
+                    message="Redis responding but operations failing",
+                    fallback_available=fallback_config.enabled,
+                    fallback_message=fallback_config.fallback_message
+                )
+                
+        except ImportError:
+            return ServiceHealth(
+                name=service_name,
+                status=ServiceStatus.DEGRADED,
+                message="Redis package not installed",
+                fallback_available=fallback_config.enabled,
+                fallback_message=fallback_config.fallback_message,
+                details={'error': 'redis package not installed'}
+            )
+        except Exception as e:
+            return ServiceHealth(
+                name=service_name,
+                status=ServiceStatus.UNHEALTHY,
+                message=f"Redis connection failed: {str(e)}",
+                fallback_available=fallback_config.enabled,
+                fallback_message=fallback_config.fallback_message,
+                details={'error': str(e)}
+            )
+    
+    def _check_oauth_service(self, service_name: str, client_id: str, 
+                           fallback_config: FallbackConfig) -> ServiceHealth:
+        """Check OAuth service configuration."""
+        # For OAuth, we mainly check configuration completeness
+        if service_name == 'google_oauth':
+            client_secret = self.app.config.get('GOOGLE_CLIENT_SECRET', '').strip()
+            
+            if not client_secret:
+                return ServiceHealth(
+                    name=service_name,
+                    status=ServiceStatus.DEGRADED,
+                    message="Google OAuth partially configured - missing client secret",
+                    fallback_available=fallback_config.enabled,
+                    fallback_message=fallback_config.fallback_message,
+                    details={'missing': 'GOOGLE_CLIENT_SECRET'}
+                )
+            
+            # Basic format validation
+            if not client_id.endswith('.apps.googleusercontent.com'):
+                return ServiceHealth(
+                    name=service_name,
+                    status=ServiceStatus.DEGRADED,
+                    message="Google OAuth client ID format appears invalid",
+                    fallback_available=fallback_config.enabled,
+                    fallback_message=fallback_config.fallback_message,
+                    details={'warning': 'Invalid client ID format'}
+                )
+            
+            return ServiceHealth(
+                name=service_name,
+                status=ServiceStatus.HEALTHY,
+                message="Google OAuth properly configured",
+                details={'client_id_format': 'valid'}
+            )
+        
+        return self._check_generic_service(service_name, client_id, fallback_config)
+    
+    def _check_messaging_service(self, service_name: str, config_value: str, 
+                               fallback_config: FallbackConfig) -> ServiceHealth:
+        """Check messaging service health."""
+        if service_name == 'telegram':
+            # For Telegram, check if bot token format is valid
+            if not config_value.count(':') == 1:
+                return ServiceHealth(
+                    name=service_name,
+                    status=ServiceStatus.DEGRADED,
+                    message="Telegram bot token format appears invalid",
+                    fallback_available=fallback_config.enabled,
+                    fallback_message=fallback_config.fallback_message,
+                    details={'error': 'Invalid token format'}
+                )
+            
+            # Could test with Telegram API, but for now just validate format
+            return ServiceHealth(
+                name=service_name,
+                status=ServiceStatus.HEALTHY,
+                message="Telegram bot token configured",
+                details={'token_format': 'valid'}
+            )
+        
+        elif service_name == 'signal':
+            # For Signal, check if CLI path exists
+            import os
+            if os.path.exists(config_value):
+                return ServiceHealth(
+                    name=service_name,
+                    status=ServiceStatus.HEALTHY,
+                    message="Signal CLI path exists",
+                    details={'cli_path': config_value}
+                )
+            else:
+                return ServiceHealth(
+                    name=service_name,
+                    status=ServiceStatus.UNHEALTHY,
+                    message="Signal CLI path not found",
+                    fallback_available=fallback_config.enabled,
+                    fallback_message=fallback_config.fallback_message,
+                    details={'error': f'Path not found: {config_value}'}
+                )
+        
+        return self._check_generic_service(service_name, config_value, fallback_config)
+    
+    def _check_generic_service(self, service_name: str, config_value: str, 
+                             fallback_config: FallbackConfig) -> ServiceHealth:
+        """Generic service health check."""
+        return ServiceHealth(
+            name=service_name,
+            status=ServiceStatus.HEALTHY,
+            message=f"{service_name} is configured",
+            details={'configured': True}
+        )
+    
+    def get_service_status_summary(self) -> Dict[str, Any]:
+        """
+        Get a summary of all service statuses.
+        
+        Returns:
+            Dictionary with service status summary
+        """
+        services = self.validate_external_services()
+        
+        summary = {
+            'total_services': len(services),
+            'healthy': 0,
+            'degraded': 0,
+            'unhealthy': 0,
+            'not_configured': 0,
+            'unknown': 0,
+            'fallback_available': 0,
+            'services': {},
+            'recommendations': [],
+            'last_check': datetime.now().isoformat()
+        }
+        
+        for service_name, health in services.items():
+            summary['services'][service_name] = {
+                'status': health.status.value,
+                'message': health.message,
+                'fallback_available': health.fallback_available
+            }
+            
+            # Count statuses
+            if health.status == ServiceStatus.HEALTHY:
+                summary['healthy'] += 1
+            elif health.status == ServiceStatus.DEGRADED:
+                summary['degraded'] += 1
+            elif health.status == ServiceStatus.UNHEALTHY:
+                summary['unhealthy'] += 1
+            elif health.status == ServiceStatus.NOT_CONFIGURED:
+                summary['not_configured'] += 1
+            else:
+                summary['unknown'] += 1
+            
+            if health.fallback_available:
+                summary['fallback_available'] += 1
+        
+        # Generate recommendations
+        if summary['unhealthy'] > 0:
+            summary['recommendations'].append("Fix unhealthy services for full functionality")
+        if summary['not_configured'] > 0:
+            summary['recommendations'].append("Configure additional services to enable more features")
+        if summary['degraded'] > 0:
+            summary['recommendations'].append("Address degraded services to improve reliability")
+        
+        return summary
+
     def run_comprehensive_health_check(self) -> HealthCheckResult:
         """
         Run comprehensive health check.
@@ -381,7 +838,28 @@ class HealthValidator:
                 result.add_issue(f"Data integrity failed: {len(data_result.issues)} issues", HealthStatus.WARNING)
                 result.details['data_issues'] = data_result.issues
             
-            # Check 4: Performance metrics
+            # Check 4: External services
+            services = self.validate_external_services()
+            healthy_services = sum(1 for s in services.values() if s.status == ServiceStatus.HEALTHY)
+            total_services = len(services)
+            
+            if healthy_services == total_services:
+                result.add_success("External services")
+            elif healthy_services > 0:
+                result.add_issue(f"Some external services unavailable: {healthy_services}/{total_services} healthy", HealthStatus.WARNING)
+            else:
+                result.add_issue("All external services unavailable - running in fallback mode", HealthStatus.WARNING)
+            
+            result.details['external_services'] = {
+                service_name: {
+                    'status': health.status.value,
+                    'message': health.message,
+                    'fallback_available': health.fallback_available
+                }
+                for service_name, health in services.items()
+            }
+            
+            # Check 5: Performance metrics
             perf_result = self._check_performance_metrics()
             if perf_result['status'] == 'healthy':
                 result.add_success("Performance metrics")

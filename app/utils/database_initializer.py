@@ -863,6 +863,44 @@ class DatabaseInitializer:
             True if connection successful, False otherwise
         """
         try:
+            # Ensure we have app context for database operations
+            from flask import has_app_context, current_app
+            
+            if not has_app_context():
+                if hasattr(self, 'app') and self.app:
+                    with self.app.app_context():
+                        return self._perform_connection_test(conn_params)
+                else:
+                    # Try to get app from current_app if available
+                    try:
+                        app = current_app._get_current_object()
+                        with app.app_context():
+                            return self._perform_connection_test(conn_params)
+                    except RuntimeError:
+                        # No app context available, proceed without it
+                        return self._perform_connection_test(conn_params)
+            else:
+                return self._perform_connection_test(conn_params)
+                
+        except Exception as e:
+            self.init_logger.error(
+                LogCategory.CONNECTION,
+                f"Database connection test failed: {str(e)}",
+                error=e
+            )
+            return False
+    
+    def _perform_connection_test(self, conn_params: Dict[str, Any]) -> bool:
+        """
+        Perform the actual connection test.
+        
+        Args:
+            conn_params: Connection parameters
+            
+        Returns:
+            True if connection successful, False otherwise
+        """
+        try:
             connection_string = conn_params['connection_string']
             timeout = conn_params.get('timeout', 30)
             

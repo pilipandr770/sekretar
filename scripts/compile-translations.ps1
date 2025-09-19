@@ -7,11 +7,12 @@ param(
 Write-Host "Compiling translation files..." -ForegroundColor Green
 
 # Activate virtual environment
-if (Test-Path "venv\Scripts\Activate.ps1") {
+if (Test-Path ".venv\Scripts\Activate.ps1") {
+    & ".\.venv\Scripts\Activate.ps1"
+} elseif (Test-Path "venv\Scripts\Activate.ps1") {
     & ".\venv\Scripts\Activate.ps1"
 } else {
-    Write-Host "Virtual environment not found. Run setup.ps1 first." -ForegroundColor Red
-    exit 1
+    Write-Host "Virtual environment not found. Using current Python environment." -ForegroundColor Yellow
 }
 
 $languages = @("en", "de", "uk")

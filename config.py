@@ -13,34 +13,148 @@ class Config:
     # Flask Configuration
     SECRET_KEY = os.environ.get('SECRET_KEY') or 'dev-secret-key-change-in-production'
     JWT_SECRET_KEY = os.environ.get('JWT_SECRET_KEY') or 'jwt-secret-key-change-in-production'
-    JWT_ACCESS_TOKEN_EXPIRES = timedelta(hours=1)
+    JWT_ACCESS_TOKEN_EXPIRES = timedelta(hours=24)  # Longer for development
     JWT_REFRESH_TOKEN_EXPIRES = timedelta(days=30)
     
+    # JWT Configuration for development
+    JWT_COOKIE_SECURE = False  # Allow HTTP for development
+    JWT_COOKIE_CSRF_PROTECT = False  # Disable CSRF for development
+    JWT_COOKIE_SAMESITE = 'Lax'  # Allow cross-site requests
+    JWT_TOKEN_LOCATION = ['headers', 'cookies']  # Accept tokens from headers and cookies
+    
     # Database Configuration
-    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or 'postgresql://localhost/ai_secretary'
+    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or 'sqlite:///ai_secretary.db'
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     
     # Database Schema Configuration
-    DB_SCHEMA = os.environ.get('DB_SCHEMA') or 'ai_secretary'
+    DB_SCHEMA = os.environ.get('DB_SCHEMA') or None
     
-    SQLALCHEMY_ENGINE_OPTIONS = {
-        'pool_pre_ping': True,
-        'pool_recycle': 300,
-        'pool_timeout': 20,
-        'max_overflow': 0,
-        'connect_args': {
-            'options': f'-csearch_path={DB_SCHEMA},public'
-        }
-    }
+    @classmethod
+    def get_sqlalchemy_engine_options(cls):
+        """Get appropriate engine options based on database type with performance optimizations."""
+        db_uri = cls.SQLALCHEMY_DATABASE_URI
+        environment = cls.get_environment()
+        
+        if 'sqlite:///' in db_uri:
+            # SQLite configuration with performance optimizations
+            if environment == 'production':
+                return {
+                    'pool_pre_ping': True,
+                    'pool_recycle': 300,
+                    'connect_args': {
+                        'check_same_thread': False,
+                        'timeout': 30,
+                        'isolation_level': None,  # Autocommit mode
+                        # 'journal_mode': 'WAL',    # Write-Ahead Logging (not supported in connect_args)
+                        # 'synchronous': 'NORMAL',  # Balance safety and performance (not supported in connect_args)
+                        'cache_size': -64000,     # 64MB cache
+                        'temp_store': 'MEMORY'    # Temp tables in memory
+                    }
+                }
+            else:
+                return {
+                    'pool_pre_ping': True,
+                    'pool_recycle': 300,
+                    'connect_args': {
+                        'check_same_thread': False,
+                        'timeout': 20,
+                        'isolation_level': None,
+                        # 'journal_mode': 'WAL',    # Not supported in connect_args
+                        # 'synchronous': 'NORMAL',  # Not supported in connect_args
+                        'cache_size': -32000,     # 32MB cache for development
+                        'temp_store': 'MEMORY'
+                    }
+                }
+        else:
+            # PostgreSQL configuration with performance optimizations
+            schema = cls.DB_SCHEMA
+            
+            if environment == 'production':
+                options = {
+                    'pool_pre_ping': True,
+                    'pool_recycle': 3600,         # 1 hour
+                    'pool_timeout': 30,
+                    'pool_size': 20,              # Larger pool for production
+                    'max_overflow': 30,
+                    'echo': False,
+                    'connect_args': {
+                        'connect_timeout': 10,
+                        'application_name': 'ai_secretary_prod',
+                        'sslmode': 'prefer',
+                        'keepalives_idle': 600,
+                        'keepalives_interval': 30,
+                        'keepalives_count': 3
+                    }
+                }
+            elif environment == 'testing':
+                options = {
+                    'pool_pre_ping': False,       # Skip ping in tests
+                    'pool_recycle': -1,           # Don't recycle in tests
+                    'connect_args': {
+                        'connect_timeout': 5,
+                        'application_name': 'ai_secretary_test'
+                    }
+                }
+            else:
+                # Development configuration
+                options = {
+                    'pool_pre_ping': True,
+                    'pool_recycle': 1800,         # 30 minutes
+                    'pool_timeout': 20,
+                    'pool_size': 5,               # Smaller pool for development
+                    'max_overflow': 10,
+                    'echo': False,
+                    'connect_args': {
+                        'connect_timeout': 10,
+                        'application_name': 'ai_secretary_dev'
+                    }
+                }
+            
+            if schema:
+                options['connect_args']['options'] = f'-csearch_path={schema},public'
+            
+            return options
     
-    # Redis Configuration
-    REDIS_URL = os.environ.get('REDIS_URL') or 'redis://localhost:6379/0'
-    CACHE_TYPE = 'redis'
-    CACHE_REDIS_URL = REDIS_URL
+    SQLALCHEMY_ENGINE_OPTIONS = {}
     
-    # Celery Configuration
-    CELERY_BROKER_URL = os.environ.get('CELERY_BROKER_URL') or 'redis://localhost:6379/1'
-    CELERY_RESULT_BACKEND = os.environ.get('CELERY_RESULT_BACKEND') or 'redis://localhost:6379/2'
+    # Redis Configuration with fallback
+    REDIS_URL = os.environ.get('REDIS_URL')
+    
+    @classmethod
+    def get_cache_config(cls):
+        """Get cache configuration with Redis fallback."""
+        redis_url = cls.REDIS_URL
+        
+        if redis_url and cls._test_redis_connection(redis_url):
+            return {
+                'CACHE_TYPE': 'redis',
+                'CACHE_REDIS_URL': redis_url
+            }
+        else:
+            return {
+                'CACHE_TYPE': 'simple'
+            }
+    
+    @staticmethod
+    def _test_redis_connection(redis_url):
+        """Test Redis connection availability."""
+        if not redis_url:
+            return False
+        
+        try:
+            import redis
+            r = redis.from_url(redis_url, socket_connect_timeout=2)
+            r.ping()
+            return True
+        except Exception:
+            return False
+    
+    CACHE_TYPE = os.environ.get('CACHE_TYPE', 'simple')
+    CACHE_REDIS_URL = REDIS_URL if REDIS_URL else None
+    
+    # Celery Configuration with fallback
+    CELERY_BROKER_URL = os.environ.get('CELERY_BROKER_URL') if REDIS_URL else None
+    CELERY_RESULT_BACKEND = os.environ.get('CELERY_RESULT_BACKEND') if REDIS_URL else None
     
     # OpenAI Configuration
     OPENAI_API_KEY = os.environ.get('OPENAI_API_KEY')
@@ -365,6 +479,18 @@ class Config:
     # Performance Monitoring
     PERFORMANCE_LOG_THRESHOLD_MS = int(os.environ.get('PERFORMANCE_LOG_THRESHOLD_MS') or 1000)
     METRICS_RETENTION_DAYS = int(os.environ.get('METRICS_RETENTION_DAYS') or 30)
+    SLOW_QUERY_THRESHOLD_MS = int(os.environ.get('SLOW_QUERY_THRESHOLD_MS') or 1000)
+    SLOW_REQUEST_THRESHOLD_MS = int(os.environ.get('SLOW_REQUEST_THRESHOLD_MS') or 2000)
+    
+    # Performance Optimization Settings
+    ENABLE_QUERY_OPTIMIZATION = os.environ.get('ENABLE_QUERY_OPTIMIZATION', 'true').lower() == 'true'
+    ENABLE_STATIC_OPTIMIZATION = os.environ.get('ENABLE_STATIC_OPTIMIZATION', 'true').lower() == 'true'
+    ENABLE_CONNECTION_POOLING = os.environ.get('ENABLE_CONNECTION_POOLING', 'true').lower() == 'true'
+    ENABLE_LAZY_LOADING = os.environ.get('ENABLE_LAZY_LOADING', 'true').lower() == 'true'
+    
+    # Cache Settings for Performance
+    QUERY_CACHE_TIMEOUT = int(os.environ.get('QUERY_CACHE_TIMEOUT') or 300)  # 5 minutes
+    STATIC_CACHE_TIMEOUT = int(os.environ.get('STATIC_CACHE_TIMEOUT') or 86400)  # 1 day
     
     # Alert Thresholds
     CPU_ALERT_THRESHOLD = float(os.environ.get('CPU_ALERT_THRESHOLD') or 85.0)
@@ -473,14 +599,17 @@ class SQLiteConfig(Config):
     DB_SCHEMA = None  # SQLite doesn't support schemas
     
     # SQLite-specific engine options
-    SQLALCHEMY_ENGINE_OPTIONS = {
-        'pool_pre_ping': True,
-        'pool_recycle': 300,
-        'connect_args': {
-            'check_same_thread': False,
-            'timeout': int(os.environ.get('SQLITE_TIMEOUT', '20'))
+    @classmethod
+    def get_sqlalchemy_engine_options(cls):
+        return {
+            'pool_pre_ping': True,
+            'connect_args': {
+                'check_same_thread': False,
+                'timeout': int(os.environ.get('SQLITE_TIMEOUT', '20'))
+            }
         }
-    }
+    
+    SQLALCHEMY_ENGINE_OPTIONS = {}  # Will be set by init_app
     
     # Use simple cache instead of Redis for SQLite mode
     CACHE_TYPE = 'simple'
@@ -501,10 +630,11 @@ class SQLiteConfig(Config):
     ENABLE_RATE_LIMITING = False
     ENABLE_WEBSOCKETS = True  # SocketIO can work without Redis
     
-    @staticmethod
-    def init_app(app):
+    @classmethod
+    def init_app(cls, app):
         """Initialize app with SQLite configuration."""
-        Config.init_app(app)
+        # Set proper engine options for SQLite
+        app.config['SQLALCHEMY_ENGINE_OPTIONS'] = cls.get_sqlalchemy_engine_options()
         
         # Create necessary directories
         import os
@@ -517,6 +647,10 @@ class SQLiteConfig(Config):
         # Create logs folder
         logs_folder = Path('logs')
         logs_folder.mkdir(exist_ok=True)
+        
+        # Create instance folder for SQLite database
+        instance_folder = Path('instance')
+        instance_folder.mkdir(exist_ok=True)
         
         logger.info("✅ SQLite configuration initialized")
         logger.info(f"📍 Database: {app.config['SQLALCHEMY_DATABASE_URI']}")
@@ -583,8 +717,10 @@ def get_config_class(environment: Optional[str] = None) -> type:
     if environment is None:
         environment = Config.get_environment()
     
-    # Check for SQLite mode override
-    if os.environ.get('SQLITE_MODE', '').lower() == 'true':
+    # Check for SQLite mode override or SQLite database URL
+    database_url = os.environ.get('DATABASE_URL', '')
+    if (os.environ.get('SQLITE_MODE', '').lower() == 'true' or 
+        'sqlite:///' in database_url):
         environment = 'sqlite'
     
     config_class = config.get(environment, config['default'])

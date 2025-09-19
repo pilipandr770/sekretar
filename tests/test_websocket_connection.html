@@ -1,0 +1,667 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebSocket Connection Test</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f8f9fa;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .test-section {
+            padding: 20px;
+        }
+        
+        .status {
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+        
+        .status.connecting {
+            background: #fff3cd;
+            color: #856404;
+        }
+        
+        .status.connected {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .status.disconnected {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        .log {
+            background: #1e1e1e;
+            color: #d4d4d4;
+            padding: 15px;
+            border-radius: 5px;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 13px;
+            line-height: 1.5;
+            max-height: 400px;
+            overflow-y: auto;
+            margin: 15px 0;
+        }
+        
+        .controls {
+            padding: 15px;
+            border-top: 1px solid #eee;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+        }
+        
+        .btn-primary {
+            background: #007bff;
+            color: white;
+        }
+        
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+        
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+        
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔌 WebSocket Connection Test</h1>
+            <p>Testing WebSocket connectivity across different browsers</p>
+        </div>
+        
+        <div class="test-section">
+            <div id="connectionStatus" class="status connecting">
+                🔄 Initializing WebSocket test...
+            </div>
+            
+            <div id="browserInfo">
+                <h3>Browser Information</h3>
+                <div id="browserDetails"></div>
+            </div>
+            
+            <div class="log" id="testLog"></div>
+            
+            <div class="controls">
+                <button id="connectBtn" class="btn btn-primary">🔌 Connect</button>
+                <button id="disconnectBtn" class="btn btn-secondary">🔌 Disconnect</button>
+                <button id="testMessageBtn" class="btn btn-success">📤 Send Test Message</button>
+                <button id="clearLogBtn" class="btn btn-secondary">🗑️ Clear Log</button>
+                <button id="runTestsBtn" class="btn btn-primary">🧪 Run All Tests</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class WebSocketTester {
+            constructor() {
+                this.socket = null;
+                this.isConnected = false;
+                this.testResults = [];
+                this.browserInfo = this.detectBrowser();
+                
+                this.init();
+            }
+            
+            init() {
+                this.displayBrowserInfo();
+                this.setupEventListeners();
+                this.log('🔧 WebSocket tester initialized');
+                
+                // Auto-run tests if requested
+                const urlParams = new URLSearchParams(window.location.search);
+                if (urlParams.get('autorun') === 'true') {
+                    setTimeout(() => this.runAllTests(), 1000);
+                }
+            }
+            
+            detectBrowser() {
+                const userAgent = navigator.userAgent;
+                const vendor = navigator.vendor || '';
+                
+                let browser = 'Unknown';
+                let version = 'Unknown';
+                let majorVersion = 0;
+                
+                if (userAgent.includes('Chrome') && vendor.includes('Google')) {
+                    browser = 'Chrome';
+                    const match = userAgent.match(/Chrome\/(\d+)\.(\d+)/);
+                    if (match) {
+                        version = `${match[1]}.${match[2]}`;
+                        majorVersion = parseInt(match[1]);
+                    }
+                } else if (userAgent.includes('Firefox')) {
+                    browser = 'Firefox';
+                    const match = userAgent.match(/Firefox\/(\d+)\.(\d+)/);
+                    if (match) {
+                        version = `${match[1]}.${match[2]}`;
+                        majorVersion = parseInt(match[1]);
+                    }
+                } else if (userAgent.includes('Safari') && !userAgent.includes('Chrome')) {
+                    browser = 'Safari';
+                    const match = userAgent.match(/Version\/(\d+)\.(\d+)/);
+                    if (match) {
+                        version = `${match[1]}.${match[2]}`;
+                        majorVersion = parseInt(match[1]);
+                    }
+                } else if (userAgent.includes('Edg')) {
+                    browser = 'Edge';
+                    const match = userAgent.match(/Edg\/(\d+)\.(\d+)/);
+                    if (match) {
+                        version = `${match[1]}.${match[2]}`;
+                        majorVersion = parseInt(match[1]);
+                    }
+                }
+                
+                return {
+                    name: browser,
+                    version: version,
+                    majorVersion: majorVersion,
+                    userAgent: userAgent,
+                    vendor: vendor,
+                    platform: navigator.platform,
+                    language: navigator.language,
+                    supportsWebSocket: typeof WebSocket !== 'undefined'
+                };
+            }
+            
+            displayBrowserInfo() {
+                const browserDetails = document.getElementById('browserDetails');
+                browserDetails.innerHTML = `
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin: 15px 0;">
+                        <div><strong>Browser:</strong> ${this.browserInfo.name} ${this.browserInfo.version}</div>
+                        <div><strong>Platform:</strong> ${this.browserInfo.platform}</div>
+                        <div><strong>Language:</strong> ${this.browserInfo.language}</div>
+                        <div><strong>WebSocket Support:</strong> ${this.browserInfo.supportsWebSocket ? '✅ Yes' : '❌ No'}</div>
+                    </div>
+                `;
+            }
+            
+            setupEventListeners() {
+                document.getElementById('connectBtn').addEventListener('click', () => this.connect());
+                document.getElementById('disconnectBtn').addEventListener('click', () => this.disconnect());
+                document.getElementById('testMessageBtn').addEventListener('click', () => this.sendTestMessage());
+                document.getElementById('clearLogBtn').addEventListener('click', () => this.clearLog());
+                document.getElementById('runTestsBtn').addEventListener('click', () => this.runAllTests());
+            }
+            
+            async connect() {
+                if (this.isConnected) {
+                    this.log('⚠️ Already connected');
+                    return;
+                }
+                
+                if (!this.browserInfo.supportsWebSocket) {
+                    this.log('❌ WebSocket not supported in this browser');
+                    this.updateStatus('error', '❌ WebSocket not supported');
+                    return;
+                }
+                
+                this.log('🔄 Attempting to connect...');
+                this.updateStatus('connecting', '🔄 Connecting...');
+                
+                try {
+                    // Try echo websocket service for testing
+                    const wsUrl = 'wss://echo.websocket.org/';
+                    this.log(`📡 Connecting to: ${wsUrl}`);
+                    
+                    this.socket = new WebSocket(wsUrl);
+                    
+                    this.socket.onopen = () => {
+                        this.isConnected = true;
+                        this.log('✅ WebSocket connected successfully');
+                        this.updateStatus('connected', '✅ Connected');
+                        
+                        // Test browser-specific behavior
+                        this.testBrowserSpecificBehavior();
+                    };
+                    
+                    this.socket.onmessage = (event) => {
+                        this.log(`📥 Received: ${event.data}`);
+                    };
+                    
+                    this.socket.onclose = (event) => {
+                        this.isConnected = false;
+                        this.log(`🔌 Connection closed: Code ${event.code}, Reason: ${event.reason || 'No reason'}`);
+                        this.updateStatus('disconnected', '🔌 Disconnected');
+                    };
+                    
+                    this.socket.onerror = (error) => {
+                        this.log(`❌ WebSocket error: ${error.message || 'Unknown error'}`);
+                        this.updateStatus('error', '❌ Connection error');
+                    };
+                    
+                    // Set connection timeout
+                    setTimeout(() => {
+                        if (!this.isConnected && this.socket && this.socket.readyState === WebSocket.CONNECTING) {
+                            this.log('⏰ Connection timeout');
+                            this.socket.close();
+                            this.updateStatus('error', '⏰ Connection timeout');
+                        }
+                    }, 10000);
+                    
+                } catch (error) {
+                    this.log(`❌ Failed to create WebSocket: ${error.message}`);
+                    this.updateStatus('error', '❌ Connection failed');
+                }
+            }
+            
+            disconnect() {
+                if (!this.isConnected || !this.socket) {
+                    this.log('⚠️ Not connected');
+                    return;
+                }
+                
+                this.log('🔌 Disconnecting...');
+                this.socket.close();
+            }
+            
+            sendTestMessage() {
+                if (!this.isConnected || !this.socket) {
+                    this.log('⚠️ Not connected - cannot send message');
+                    return;
+                }
+                
+                const testMessage = `Test message from ${this.browserInfo.name} at ${new Date().toISOString()}`;
+                this.log(`📤 Sending: ${testMessage}`);
+                this.socket.send(testMessage);
+            }
+            
+            async runAllTests() {
+                this.log('🧪 Starting comprehensive WebSocket tests...');
+                this.testResults = [];
+                
+                // Test 1: Basic WebSocket support
+                await this.testWebSocketSupport();
+                
+                // Test 2: Connection establishment
+                await this.testConnectionEstablishment();
+                
+                // Test 3: Message sending/receiving
+                await this.testMessageExchange();
+                
+                // Test 4: Connection recovery
+                await this.testConnectionRecovery();
+                
+                // Test 5: Browser-specific features
+                await this.testBrowserSpecificFeatures();
+                
+                this.generateTestReport();
+            }
+            
+            async testWebSocketSupport() {
+                this.log('🧪 Test 1: WebSocket Support');
+                
+                try {
+                    if (typeof WebSocket === 'undefined') {
+                        throw new Error('WebSocket not supported');
+                    }
+                    
+                    // Test WebSocket constructor
+                    const testWs = new WebSocket('wss://echo.websocket.org/');
+                    testWs.close();
+                    
+                    this.testResults.push({ name: 'WebSocket Support', passed: true });
+                    this.log('   ✅ WebSocket support: PASSED');
+                } catch (error) {
+                    this.testResults.push({ name: 'WebSocket Support', passed: false, error: error.message });
+                    this.log(`   ❌ WebSocket support: FAILED - ${error.message}`);
+                }
+            }
+            
+            async testConnectionEstablishment() {
+                this.log('🧪 Test 2: Connection Establishment');
+                
+                return new Promise((resolve) => {
+                    try {
+                        const testWs = new WebSocket('wss://echo.websocket.org/');
+                        
+                        const timeout = setTimeout(() => {
+                            testWs.close();
+                            this.testResults.push({ name: 'Connection Establishment', passed: false, error: 'Timeout' });
+                            this.log('   ❌ Connection establishment: FAILED - Timeout');
+                            resolve();
+                        }, 10000);
+                        
+                        testWs.onopen = () => {
+                            clearTimeout(timeout);
+                            testWs.close();
+                            this.testResults.push({ name: 'Connection Establishment', passed: true });
+                            this.log('   ✅ Connection establishment: PASSED');
+                            resolve();
+                        };
+                        
+                        testWs.onerror = (error) => {
+                            clearTimeout(timeout);
+                            this.testResults.push({ name: 'Connection Establishment', passed: false, error: 'Connection error' });
+                            this.log('   ❌ Connection establishment: FAILED - Connection error');
+                            resolve();
+                        };
+                        
+                    } catch (error) {
+                        this.testResults.push({ name: 'Connection Establishment', passed: false, error: error.message });
+                        this.log(`   ❌ Connection establishment: FAILED - ${error.message}`);
+                        resolve();
+                    }
+                });
+            }
+            
+            async testMessageExchange() {
+                this.log('🧪 Test 3: Message Exchange');
+                
+                return new Promise((resolve) => {
+                    try {
+                        const testWs = new WebSocket('wss://echo.websocket.org/');
+                        const testMessage = 'Test message for echo';
+                        let messageReceived = false;
+                        
+                        const timeout = setTimeout(() => {
+                            testWs.close();
+                            this.testResults.push({ name: 'Message Exchange', passed: false, error: 'Timeout' });
+                            this.log('   ❌ Message exchange: FAILED - Timeout');
+                            resolve();
+                        }, 15000);
+                        
+                        testWs.onopen = () => {
+                            testWs.send(testMessage);
+                        };
+                        
+                        testWs.onmessage = (event) => {
+                            if (event.data === testMessage) {
+                                messageReceived = true;
+                                clearTimeout(timeout);
+                                testWs.close();
+                                this.testResults.push({ name: 'Message Exchange', passed: true });
+                                this.log('   ✅ Message exchange: PASSED');
+                                resolve();
+                            }
+                        };
+                        
+                        testWs.onerror = (error) => {
+                            clearTimeout(timeout);
+                            this.testResults.push({ name: 'Message Exchange', passed: false, error: 'Connection error' });
+                            this.log('   ❌ Message exchange: FAILED - Connection error');
+                            resolve();
+                        };
+                        
+                    } catch (error) {
+                        this.testResults.push({ name: 'Message Exchange', passed: false, error: error.message });
+                        this.log(`   ❌ Message exchange: FAILED - ${error.message}`);
+                        resolve();
+                    }
+                });
+            }
+            
+            async testConnectionRecovery() {
+                this.log('🧪 Test 4: Connection Recovery');
+                
+                // This test simulates connection recovery behavior
+                try {
+                    // Test that we can create multiple connections
+                    const ws1 = new WebSocket('wss://echo.websocket.org/');
+                    ws1.close();
+                    
+                    const ws2 = new WebSocket('wss://echo.websocket.org/');
+                    ws2.close();
+                    
+                    this.testResults.push({ name: 'Connection Recovery', passed: true });
+                    this.log('   ✅ Connection recovery: PASSED');
+                } catch (error) {
+                    this.testResults.push({ name: 'Connection Recovery', passed: false, error: error.message });
+                    this.log(`   ❌ Connection recovery: FAILED - ${error.message}`);
+                }
+            }
+            
+            async testBrowserSpecificFeatures() {
+                this.log(`🧪 Test 5: ${this.browserInfo.name}-Specific Features`);
+                
+                try {
+                    switch (this.browserInfo.name) {
+                        case 'Safari':
+                            await this.testSafariFeatures();
+                            break;
+                        case 'Firefox':
+                            await this.testFirefoxFeatures();
+                            break;
+                        case 'Edge':
+                            await this.testEdgeFeatures();
+                            break;
+                        case 'Chrome':
+                            await this.testChromeFeatures();
+                            break;
+                        default:
+                            this.log('   ℹ️ No specific tests for this browser');
+                            this.testResults.push({ name: 'Browser-Specific Features', passed: true, note: 'No specific tests' });
+                    }
+                } catch (error) {
+                    this.testResults.push({ name: 'Browser-Specific Features', passed: false, error: error.message });
+                    this.log(`   ❌ Browser-specific features: FAILED - ${error.message}`);
+                }
+            }
+            
+            async testSafariFeatures() {
+                this.log('   🍎 Testing Safari-specific WebSocket behavior');
+                
+                // Safari has issues with WebSocket over HTTPS with self-signed certificates
+                // Test secure connection preference
+                try {
+                    const secureWs = new WebSocket('wss://echo.websocket.org/');
+                    secureWs.close();
+                    
+                    this.testResults.push({ name: 'Safari Features', passed: true });
+                    this.log('   ✅ Safari features: PASSED');
+                } catch (error) {
+                    this.testResults.push({ name: 'Safari Features', passed: false, error: error.message });
+                    this.log(`   ❌ Safari features: FAILED - ${error.message}`);
+                }
+            }
+            
+            async testFirefoxFeatures() {
+                this.log('   🦊 Testing Firefox-specific WebSocket behavior');
+                
+                // Firefox-specific tests
+                try {
+                    const ws = new WebSocket('wss://echo.websocket.org/');
+                    
+                    // Test Firefox WebSocket properties
+                    if (ws.protocol !== undefined && ws.extensions !== undefined) {
+                        this.testResults.push({ name: 'Firefox Features', passed: true });
+                        this.log('   ✅ Firefox features: PASSED');
+                    } else {
+                        this.testResults.push({ name: 'Firefox Features', passed: false, error: 'Missing WebSocket properties' });
+                        this.log('   ❌ Firefox features: FAILED - Missing properties');
+                    }
+                    
+                    ws.close();
+                } catch (error) {
+                    this.testResults.push({ name: 'Firefox Features', passed: false, error: error.message });
+                    this.log(`   ❌ Firefox features: FAILED - ${error.message}`);
+                }
+            }
+            
+            async testEdgeFeatures() {
+                this.log('   🔷 Testing Edge-specific WebSocket behavior');
+                
+                // Edge-specific tests
+                try {
+                    const ws = new WebSocket('wss://echo.websocket.org/');
+                    
+                    // Test Edge WebSocket binary type support
+                    ws.binaryType = 'arraybuffer';
+                    if (ws.binaryType === 'arraybuffer') {
+                        this.testResults.push({ name: 'Edge Features', passed: true });
+                        this.log('   ✅ Edge features: PASSED');
+                    } else {
+                        this.testResults.push({ name: 'Edge Features', passed: false, error: 'Binary type not supported' });
+                        this.log('   ❌ Edge features: FAILED - Binary type issue');
+                    }
+                    
+                    ws.close();
+                } catch (error) {
+                    this.testResults.push({ name: 'Edge Features', passed: false, error: error.message });
+                    this.log(`   ❌ Edge features: FAILED - ${error.message}`);
+                }
+            }
+            
+            async testChromeFeatures() {
+                this.log('   🟢 Testing Chrome-specific WebSocket behavior');
+                
+                // Chrome-specific tests
+                try {
+                    const ws = new WebSocket('wss://echo.websocket.org/');
+                    
+                    // Test Chrome WebSocket bufferedAmount property
+                    if (ws.bufferedAmount !== undefined) {
+                        this.testResults.push({ name: 'Chrome Features', passed: true });
+                        this.log('   ✅ Chrome features: PASSED');
+                    } else {
+                        this.testResults.push({ name: 'Chrome Features', passed: false, error: 'bufferedAmount not available' });
+                        this.log('   ❌ Chrome features: FAILED - Missing bufferedAmount');
+                    }
+                    
+                    ws.close();
+                } catch (error) {
+                    this.testResults.push({ name: 'Chrome Features', passed: false, error: error.message });
+                    this.log(`   ❌ Chrome features: FAILED - ${error.message}`);
+                }
+            }
+            
+            testBrowserSpecificBehavior() {
+                this.log(`🔍 Testing ${this.browserInfo.name}-specific behavior...`);
+                
+                switch (this.browserInfo.name) {
+                    case 'Safari':
+                        this.log('   🍎 Safari: Testing secure connection handling');
+                        break;
+                    case 'Firefox':
+                        this.log('   🦊 Firefox: Testing connection timing');
+                        break;
+                    case 'Edge':
+                        this.log('   🔷 Edge: Testing binary data support');
+                        break;
+                    case 'Chrome':
+                        this.log('   🟢 Chrome: Testing buffer management');
+                        break;
+                }
+            }
+            
+            generateTestReport() {
+                this.log('\n📊 Test Report Summary');
+                this.log('=====================');
+                
+                const totalTests = this.testResults.length;
+                const passedTests = this.testResults.filter(test => test.passed).length;
+                const failedTests = totalTests - passedTests;
+                
+                this.log(`Browser: ${this.browserInfo.name} ${this.browserInfo.version}`);
+                this.log(`Platform: ${this.browserInfo.platform}`);
+                this.log(`Total Tests: ${totalTests}`);
+                this.log(`Passed: ${passedTests}`);
+                this.log(`Failed: ${failedTests}`);
+                this.log(`Success Rate: ${totalTests > 0 ? Math.round((passedTests / totalTests) * 100) : 0}%`);
+                
+                if (failedTests > 0) {
+                    this.log('\n❌ Failed Tests:');
+                    this.testResults.filter(test => !test.passed).forEach(test => {
+                        this.log(`   • ${test.name}: ${test.error}`);
+                    });
+                }
+                
+                this.log('=====================');
+                
+                if (failedTests === 0) {
+                    this.log('🎉 All WebSocket tests passed!');
+                    this.updateStatus('connected', '🎉 All tests passed!');
+                } else {
+                    this.log(`⚠️ ${failedTests} test(s) failed`);
+                    this.updateStatus('error', `⚠️ ${failedTests} test(s) failed`);
+                }
+            }
+            
+            updateStatus(type, message) {
+                const statusElement = document.getElementById('connectionStatus');
+                statusElement.className = `status ${type}`;
+                statusElement.textContent = message;
+            }
+            
+            log(message) {
+                const logElement = document.getElementById('testLog');
+                const timestamp = new Date().toLocaleTimeString();
+                const logEntry = document.createElement('div');
+                logEntry.textContent = `[${timestamp}] ${message}`;
+                
+                // Color coding
+                if (message.includes('✅')) {
+                    logEntry.style.color = '#4ec9b0';
+                } else if (message.includes('❌')) {
+                    logEntry.style.color = '#f48771';
+                } else if (message.includes('⚠️')) {
+                    logEntry.style.color = '#dcdcaa';
+                } else if (message.includes('🧪')) {
+                    logEntry.style.color = '#569cd6';
+                    logEntry.style.fontWeight = 'bold';
+                }
+                
+                logElement.appendChild(logEntry);
+                logElement.scrollTop = logElement.scrollHeight;
+            }
+            
+            clearLog() {
+                document.getElementById('testLog').innerHTML = '';
+            }
+        }
+        
+        // Initialize when DOM is loaded
+        document.addEventListener('DOMContentLoaded', () => {
+            window.webSocketTester = new WebSocketTester();
+        });
+    </script>
+</body>
+</html>

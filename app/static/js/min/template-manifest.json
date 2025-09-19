@@ -1,0 +1,155 @@
+{
+  "ai-secretary-widget.js": {
+    "url": "/static/js/min/ai-secretary-widget.1a8bfa93.min.js",
+    "size": 18195,
+    "gzipped_size": 5154
+  },
+  "app.js": {
+    "url": "/static/js/min/app.af858b69.min.js",
+    "size": 17094,
+    "gzipped_size": 4484
+  },
+  "auth-manager.js": {
+    "url": "/static/js/min/auth-manager.453a438a.min.js",
+    "size": 9527,
+    "gzipped_size": 2695
+  },
+  "browser-compatibility.js": {
+    "url": "/static/js/min/browser-compatibility.9624c4a1.min.js",
+    "size": 10395,
+    "gzipped_size": 3266
+  },
+  "dropdown-manager.js": {
+    "url": "/static/js/min/dropdown-manager.004f40a8.min.js",
+    "size": 8093,
+    "gzipped_size": 1964
+  },
+  "enhanced-language-switcher.js": {
+    "url": "/static/js/min/enhanced-language-switcher.db4f090d.min.js",
+    "size": 6446,
+    "gzipped_size": 2198
+  },
+  "error-handler.js": {
+    "url": "/static/js/min/error-handler.dfed2cab.min.js",
+    "size": 16685,
+    "gzipped_size": 4845
+  },
+  "i18n.js": {
+    "url": "/static/js/min/i18n.ff1830dc.min.js",
+    "size": 9354,
+    "gzipped_size": 2627
+  },
+  "inbox-features.js": {
+    "url": "/static/js/min/inbox-features.2a8b95db.min.js",
+    "size": 13538,
+    "gzipped_size": 3671
+  },
+  "language-persistence-manager.js": {
+    "url": "/static/js/min/language-persistence-manager.5e79abbe.min.js",
+    "size": 6438,
+    "gzipped_size": 1658
+  },
+  "language-switcher-test.js": {
+    "url": "/static/js/min/language-switcher-test.fef3a43b.min.js",
+    "size": 4836,
+    "gzipped_size": 1430
+  },
+  "language-switcher.js": {
+    "url": "/static/js/min/language-switcher.a948b16e.min.js",
+    "size": 3595,
+    "gzipped_size": 1359
+  },
+  "loading-manager.js": {
+    "url": "/static/js/min/loading-manager.5f413258.min.js",
+    "size": 12552,
+    "gzipped_size": 3150
+  },
+  "localization.js": {
+    "url": "/static/js/min/localization.e837cabf.min.js",
+    "size": 11088,
+    "gzipped_size": 2586
+  },
+  "module-loader.js": {
+    "url": "/static/js/min/module-loader.4d656650.min.js",
+    "size": 7240,
+    "gzipped_size": 2277
+  },
+  "navigation-controller.js": {
+    "url": "/static/js/min/navigation-controller.3896781a.min.js",
+    "size": 8973,
+    "gzipped_size": 2484
+  },
+  "ui-state-manager.js": {
+    "url": "/static/js/min/ui-state-manager.3b5422b0.min.js",
+    "size": 8042,
+    "gzipped_size": 2005
+  },
+  "ui-state-test.js": {
+    "url": "/static/js/min/ui-state-test.d97b4dc3.min.js",
+    "size": 9965,
+    "gzipped_size": 2065
+  },
+  "websocket-client.js": {
+    "url": "/static/js/min/websocket-client.e98555df.min.js",
+    "size": 12447,
+    "gzipped_size": 3161
+  },
+  "websocket-status-dashboard.js": {
+    "url": "/static/js/min/websocket-status-dashboard.510050d5.min.js",
+    "size": 3936,
+    "gzipped_size": 1138
+  },
+  "core-bundle": {
+    "url": "/static/js/min/core-bundle.23b45d20.min.js",
+    "size": 54914,
+    "gzipped_size": 13573,
+    "files": [
+      "browser-compatibility.js",
+      "module-loader.js",
+      "error-handler.js",
+      "loading-manager.js",
+      "ui-state-manager.js"
+    ]
+  },
+  "auth-bundle": {
+    "url": "/static/js/min/auth-bundle.fddbd4de.min.js",
+    "size": 26593,
+    "gzipped_size": 5989,
+    "files": [
+      "auth-manager.js",
+      "navigation-controller.js",
+      "dropdown-manager.js"
+    ]
+  },
+  "i18n-bundle": {
+    "url": "/static/js/min/i18n-bundle.909b2b14.min.js",
+    "size": 25833,
+    "gzipped_size": 5794,
+    "files": [
+      "i18n.js",
+      "language-switcher.js",
+      "language-persistence-manager.js",
+      "enhanced-language-switcher.js"
+    ]
+  },
+  "websocket-bundle": {
+    "url": "/static/js/min/websocket-bundle.e690d4b1.min.js",
+    "size": 16383,
+    "gzipped_size": 3992,
+    "files": [
+      "websocket-client.js",
+      "websocket-status-dashboard.js"
+    ]
+  },
+  "features-bundle": {
+    "url": "/static/js/min/features-bundle.2a8b95db.min.js",
+    "size": 13538,
+    "gzipped_size": 3671,
+    "files": [
+      "inbox-features.js",
+      "crm-features.js",
+      "calendar-features.js",
+      "api-tester.js"
+    ]
+  }
+}

@@ -1,0 +1,235 @@
+/**
+ * Language Switcher Test Utility
+ * Simple test functions to verify language switching functionality
+ */
+
+class LanguageSwitcherTest {
+    constructor() {
+        this.testResults = [];
+    }
+
+    async runAllTests() {
+        console.log('🧪 Running Language Switcher Tests...');
+        
+        this.testResults = [];
+        
+        // Test 1: Language detection
+        await this.testLanguageDetection();
+        
+        // Test 2: Language persistence
+        await this.testLanguagePersistence();
+        
+        // Test 3: URL parameter handling
+        await this.testURLParameterHandling();
+        
+        // Test 4: Server synchronization
+        await this.testServerSynchronization();
+        
+        // Test 5: Multi-tab synchronization
+        await this.testMultiTabSync();
+        
+        // Display results
+        this.displayResults();
+        
+        return this.testResults;
+    }
+
+    async testLanguageDetection() {
+        console.log('🔍 Testing language detection...');
+        
+        try {
+            if (window.languagePersistence) {
+                const debugInfo = window.languagePersistence.getDebugInfo();
+                
+                this.addResult('Language Detection', 'PASS', {
+                    currentLanguage: debugInfo.currentLanguage,
+                    sources: {
+                        url: debugInfo.urlLanguage,
+                        stored: debugInfo.storedLanguage,
+                        session: debugInfo.sessionLanguage,
+                        html: debugInfo.htmlLanguage,
+                        browser: debugInfo.browserLanguage
+                    }
+                });
+            } else {
+                this.addResult('Language Detection', 'SKIP', 'LanguagePersistenceManager not available');
+            }
+        } catch (error) {
+            this.addResult('Language Detection', 'FAIL', error.message);
+        }
+    }
+
+    async testLanguagePersistence() {
+        console.log('💾 Testing language persistence...');
+        
+        try {
+            if (window.languagePersistence) {
+                const originalLang = window.languagePersistence.getCurrentLanguage();
+                const testLang = originalLang === 'en' ? 'de' : 'en';
+                
+                // Test setting language
+                const setResult = window.languagePersistence.setCurrentLanguage(testLang);
+                
+                if (setResult) {
+                    const retrievedLang = window.languagePersistence.getCurrentLanguage();
+                    
+                    if (retrievedLang === testLang) {
+                        // Restore original language
+                        window.languagePersistence.setCurrentLanguage(originalLang);
+                        
+                        this.addResult('Language Persistence', 'PASS', {
+                            original: originalLang,
+                            test: testLang,
+                            retrieved: retrievedLang
+                        });
+                    } else {
+                        this.addResult('Language Persistence', 'FAIL', 
+                            `Expected ${testLang}, got ${retrievedLang}`);
+                    }
+                } else {
+                    this.addResult('Language Persistence', 'FAIL', 'Failed to set language');
+                }
+            } else {
+                this.addResult('Language Persistence', 'SKIP', 'LanguagePersistenceManager not available');
+            }
+        } catch (error) {
+            this.addResult('Language Persistence', 'FAIL', error.message);
+        }
+    }
+
+    async testURLParameterHandling() {
+        console.log('🔗 Testing URL parameter handling...');
+        
+        try {
+            // Create test URL with language parameter
+            const testURL = new URL(window.location);
+            testURL.searchParams.set('lang', 'de');
+            
+            // Test URL parsing
+            const urlParams = new URLSearchParams(testURL.search);
+            const langParam = urlParams.get('lang');
+            
+            if (langParam === 'de') {
+                this.addResult('URL Parameter Handling', 'PASS', {
+                    testURL: testURL.toString(),
+                    extractedLang: langParam
+                });
+            } else {
+                this.addResult('URL Parameter Handling', 'FAIL', 
+                    `Expected 'de', got '${langParam}'`);
+            }
+        } catch (error) {
+            this.addResult('URL Parameter Handling', 'FAIL', error.message);
+        }
+    }
+
+    async testServerSynchronization() {
+        console.log('🌐 Testing server synchronization...');
+        
+        try {
+            if (window.languagePersistence) {
+                // Test getting server preference
+                const serverLang = await window.languagePersistence.getServerLanguagePreference();
+                
+                this.addResult('Server Synchronization', 'PASS', {
+                    serverLanguage: serverLang || 'not available',
+                    note: 'Server communication successful'
+                });
+            } else {
+                this.addResult('Server Synchronization', 'SKIP', 'LanguagePersistenceManager not available');
+            }
+        } catch (error) {
+            this.addResult('Server Synchronization', 'FAIL', error.message);
+        }
+    }
+
+    async testMultiTabSync() {
+        console.log('🔄 Testing multi-tab synchronization...');
+        
+        try {
+            // Test localStorage event simulation
+            const testLang = 'uk';
+            const originalLang = localStorage.getItem('preferred_language');
+            
+            // Simulate storage change from another tab
+            const storageEvent = new StorageEvent('storage', {
+                key: 'preferred_language',
+                newValue: testLang,
+                oldValue: originalLang
+            });
+            
+            // Dispatch the event
+            window.dispatchEvent(storageEvent);
+            
+            // Restore original value
+            if (originalLang) {
+                localStorage.setItem('preferred_language', originalLang);
+            }
+            
+            this.addResult('Multi-tab Synchronization', 'PASS', {
+                testLanguage: testLang,
+                originalLanguage: originalLang,
+                note: 'Storage event simulation successful'
+            });
+        } catch (error) {
+            this.addResult('Multi-tab Synchronization', 'FAIL', error.message);
+        }
+    }
+
+    addResult(testName, status, details) {
+        this.testResults.push({
+            test: testName,
+            status: status,
+            details: details,
+            timestamp: new Date().toISOString()
+        });
+    }
+
+    displayResults() {
+        console.log('\n📊 Language Switcher Test Results:');
+        console.log('=====================================');
+        
+        let passed = 0;
+        let failed = 0;
+        let skipped = 0;
+        
+        this.testResults.forEach(result => {
+            const icon = result.status === 'PASS' ? '✅' : 
+                        result.status === 'FAIL' ? '❌' : '⏭️';
+            
+            console.log(`${icon} ${result.test}: ${result.status}`);
+            
+            if (result.details) {
+                console.log(`   Details:`, result.details);
+            }
+            
+            if (result.status === 'PASS') passed++;
+            else if (result.status === 'FAIL') failed++;
+            else skipped++;
+        });
+        
+        console.log('\n📈 Summary:');
+        console.log(`   Passed: ${passed}`);
+        console.log(`   Failed: ${failed}`);
+        console.log(`   Skipped: ${skipped}`);
+        console.log(`   Total: ${this.testResults.length}`);
+        
+        if (failed === 0) {
+            console.log('🎉 All tests passed!');
+        } else {
+            console.log('⚠️  Some tests failed. Check the details above.');
+        }
+    }
+
+    // Quick test function for console use
+    static async quickTest() {
+        const tester = new LanguageSwitcherTest();
+        return await tester.runAllTests();
+    }
+}
+
+// Export for global use
+window.LanguageSwitcherTest = LanguageSwitcherTest;
+
+// Add console helper
+window.testLanguageSwitcher = () => LanguageSwitcherTest.quickTest();

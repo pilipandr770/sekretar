@@ -47,6 +47,12 @@ def dashboard():
         return redirect(url_for('main.login'))
 
 
+@main_bp.route('/error-test')
+def error_test():
+    """Error handler test page."""
+    return render_template('error_test.html')
+
+
 @main_bp.route('/inbox')
 @jwt_required(optional=True)
 def inbox():

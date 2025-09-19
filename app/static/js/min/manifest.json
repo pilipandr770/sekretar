@@ -1,0 +1,225 @@
+{
+  "ai-secretary-widget.js": {
+    "hash": "1a0d9aa2",
+    "minified_file": "ai-secretary-widget.1a8bfa93.min.js",
+    "original_size": 35915,
+    "minified_size": 18195,
+    "gzipped_size": 5154,
+    "compression_ratio": 49.34
+  },
+  "app.js": {
+    "hash": "1741544e",
+    "minified_file": "app.af858b69.min.js",
+    "original_size": 29287,
+    "minified_size": 17094,
+    "gzipped_size": 4484,
+    "compression_ratio": 41.63
+  },
+  "auth-manager.js": {
+    "hash": "be751347",
+    "minified_file": "auth-manager.453a438a.min.js",
+    "original_size": 18838,
+    "minified_size": 9527,
+    "gzipped_size": 2695,
+    "compression_ratio": 49.43
+  },
+  "browser-compatibility.js": {
+    "hash": "d91ccac3",
+    "minified_file": "browser-compatibility.9624c4a1.min.js",
+    "original_size": 18692,
+    "minified_size": 10395,
+    "gzipped_size": 3266,
+    "compression_ratio": 44.39
+  },
+  "dropdown-manager.js": {
+    "hash": "6eca842b",
+    "minified_file": "dropdown-manager.004f40a8.min.js",
+    "original_size": 14977,
+    "minified_size": 8093,
+    "gzipped_size": 1964,
+    "compression_ratio": 45.96
+  },
+  "enhanced-language-switcher.js": {
+    "hash": "ba3c0a8c",
+    "minified_file": "enhanced-language-switcher.db4f090d.min.js",
+    "original_size": 11373,
+    "minified_size": 6446,
+    "gzipped_size": 2198,
+    "compression_ratio": 43.32
+  },
+  "error-handler.js": {
+    "hash": "5fe2268a",
+    "minified_file": "error-handler.dfed2cab.min.js",
+    "original_size": 30258,
+    "minified_size": 16685,
+    "gzipped_size": 4845,
+    "compression_ratio": 44.86
+  },
+  "i18n.js": {
+    "hash": "17f2153b",
+    "minified_file": "i18n.ff1830dc.min.js",
+    "original_size": 18436,
+    "minified_size": 9354,
+    "gzipped_size": 2627,
+    "compression_ratio": 49.26
+  },
+  "inbox-features.js": {
+    "hash": "a93d02dc",
+    "minified_file": "inbox-features.2a8b95db.min.js",
+    "original_size": 21069,
+    "minified_size": 13538,
+    "gzipped_size": 3671,
+    "compression_ratio": 35.74
+  },
+  "language-persistence-manager.js": {
+    "hash": "18376b87",
+    "minified_file": "language-persistence-manager.5e79abbe.min.js",
+    "original_size": 10910,
+    "minified_size": 6438,
+    "gzipped_size": 1658,
+    "compression_ratio": 40.99
+  },
+  "language-switcher-test.js": {
+    "hash": "5336dc77",
+    "minified_file": "language-switcher-test.fef3a43b.min.js",
+    "original_size": 8377,
+    "minified_size": 4836,
+    "gzipped_size": 1430,
+    "compression_ratio": 42.27
+  },
+  "language-switcher.js": {
+    "hash": "e01aac35",
+    "minified_file": "language-switcher.a948b16e.min.js",
+    "original_size": 6132,
+    "minified_size": 3595,
+    "gzipped_size": 1359,
+    "compression_ratio": 41.37
+  },
+  "loading-manager.js": {
+    "hash": "412d04ae",
+    "minified_file": "loading-manager.5f413258.min.js",
+    "original_size": 18599,
+    "minified_size": 12552,
+    "gzipped_size": 3150,
+    "compression_ratio": 32.51
+  },
+  "localization.js": {
+    "hash": "d815afb7",
+    "minified_file": "localization.e837cabf.min.js",
+    "original_size": 18334,
+    "minified_size": 11088,
+    "gzipped_size": 2586,
+    "compression_ratio": 39.52
+  },
+  "module-loader.js": {
+    "hash": "52d1e216",
+    "minified_file": "module-loader.4d656650.min.js",
+    "original_size": 12513,
+    "minified_size": 7240,
+    "gzipped_size": 2277,
+    "compression_ratio": 42.14
+  },
+  "navigation-controller.js": {
+    "hash": "037b4209",
+    "minified_file": "navigation-controller.3896781a.min.js",
+    "original_size": 17222,
+    "minified_size": 8973,
+    "gzipped_size": 2484,
+    "compression_ratio": 47.9
+  },
+  "ui-state-manager.js": {
+    "hash": "86243624",
+    "minified_file": "ui-state-manager.3b5422b0.min.js",
+    "original_size": 15309,
+    "minified_size": 8042,
+    "gzipped_size": 2005,
+    "compression_ratio": 47.47
+  },
+  "ui-state-test.js": {
+    "hash": "5c33ffbd",
+    "minified_file": "ui-state-test.d97b4dc3.min.js",
+    "original_size": 16529,
+    "minified_size": 9965,
+    "gzipped_size": 2065,
+    "compression_ratio": 39.71
+  },
+  "websocket-client.js": {
+    "hash": "fc8105cc",
+    "minified_file": "websocket-client.e98555df.min.js",
+    "original_size": 21630,
+    "minified_size": 12447,
+    "gzipped_size": 3161,
+    "compression_ratio": 42.45
+  },
+  "websocket-status-dashboard.js": {
+    "hash": "6695d36d",
+    "minified_file": "websocket-status-dashboard.510050d5.min.js",
+    "original_size": 6057,
+    "minified_size": 3936,
+    "gzipped_size": 1138,
+    "compression_ratio": 35.02
+  },
+  "core-bundle": {
+    "files": [
+      "browser-compatibility.js",
+      "module-loader.js",
+      "error-handler.js",
+      "loading-manager.js",
+      "ui-state-manager.js"
+    ],
+    "bundle_file": "core-bundle.23b45d20.min.js",
+    "original_size": 95371,
+    "minified_size": 54914,
+    "gzipped_size": 13573,
+    "compression_ratio": 42.42
+  },
+  "auth-bundle": {
+    "files": [
+      "auth-manager.js",
+      "navigation-controller.js",
+      "dropdown-manager.js"
+    ],
+    "bundle_file": "auth-bundle.fddbd4de.min.js",
+    "original_size": 51037,
+    "minified_size": 26593,
+    "gzipped_size": 5989,
+    "compression_ratio": 47.89
+  },
+  "i18n-bundle": {
+    "files": [
+      "i18n.js",
+      "language-switcher.js",
+      "language-persistence-manager.js",
+      "enhanced-language-switcher.js"
+    ],
+    "bundle_file": "i18n-bundle.909b2b14.min.js",
+    "original_size": 46851,
+    "minified_size": 25833,
+    "gzipped_size": 5794,
+    "compression_ratio": 44.86
+  },
+  "websocket-bundle": {
+    "files": [
+      "websocket-client.js",
+      "websocket-status-dashboard.js"
+    ],
+    "bundle_file": "websocket-bundle.e690d4b1.min.js",
+    "original_size": 27687,
+    "minified_size": 16383,
+    "gzipped_size": 3992,
+    "compression_ratio": 40.83
+  },
+  "features-bundle": {
+    "files": [
+      "inbox-features.js",
+      "crm-features.js",
+      "calendar-features.js",
+      "api-tester.js"
+    ],
+    "bundle_file": "features-bundle.2a8b95db.min.js",
+    "original_size": 21069,
+    "minified_size": 13538,
+    "gzipped_size": 3671,
+    "compression_ratio": 35.74
+  }
+}

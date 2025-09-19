@@ -1,0 +1,183 @@
+/* Error Handler Styles */
+
+.error-notifications {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 9999;
+    max-width: 400px;
+    pointer-events: none;
+}
+
+.error-notification {
+    pointer-events: auto;
+    margin-bottom: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    animation: slideInRight 0.3s ease-out;
+}
+
+.error-notification.alert-error {
+    background-color: #f8d7da;
+    border-color: #f5c6cb;
+    color: #721c24;
+}
+
+.error-notification.alert-warning {
+    background-color: #fff3cd;
+    border-color: #ffeaa7;
+    color: #856404;
+}
+
+.error-notification.alert-info {
+    background-color: #d1ecf1;
+    border-color: #bee5eb;
+    color: #0c5460;
+}
+
+.error-notification.alert-success {
+    background-color: #d4edda;
+    border-color: #c3e6cb;
+    color: #155724;
+}
+
+@keyframes slideInRight {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+.error-notification .btn-close {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+}
+
+.error-notification strong {
+    display: block;
+    margin-bottom: 4px;
+    font-weight: 600;
+}
+
+.error-notification div {
+    font-size: 0.9em;
+    line-height: 1.4;
+}
+
+/* Offline indicator */
+.offline-indicator {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    background-color: #dc3545;
+    color: white;
+    text-align: center;
+    padding: 8px;
+    z-index: 10000;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.offline-indicator.online {
+    background-color: #28a745;
+}
+
+/* Error stats panel (for debugging) */
+.error-stats {
+    position: fixed;
+    bottom: 20px;
+    left: 20px;
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 10px;
+    border-radius: 4px;
+    font-family: monospace;
+    font-size: 12px;
+    z-index: 9998;
+    max-width: 300px;
+    display: none;
+}
+
+.error-stats.visible {
+    display: block;
+}
+
+.error-stats h6 {
+    margin: 0 0 8px 0;
+    color: #ffc107;
+}
+
+.error-stats ul {
+    margin: 0;
+    padding-left: 16px;
+    list-style-type: disc;
+}
+
+.error-stats li {
+    margin-bottom: 4px;
+}
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+    .error-notifications {
+        top: 10px;
+        right: 10px;
+        left: 10px;
+        max-width: none;
+    }
+    
+    .error-notification {
+        margin-bottom: 8px;
+    }
+    
+    .error-stats {
+        bottom: 10px;
+        left: 10px;
+        right: 10px;
+        max-width: none;
+    }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+    .error-notification {
+        border-width: 2px;
+        border-style: solid;
+    }
+    
+    .error-notification.alert-error {
+        border-color: #dc3545;
+    }
+    
+    .error-notification.alert-warning {
+        border-color: #ffc107;
+    }
+    
+    .error-notification.alert-info {
+        border-color: #17a2b8;
+    }
+    
+    .error-notification.alert-success {
+        border-color: #28a745;
+    }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+    .error-notification {
+        animation: none;
+    }
+    
+    @keyframes slideInRight {
+        from, to {
+            transform: translateX(0);
+            opacity: 1;
+        }
+    }
+}

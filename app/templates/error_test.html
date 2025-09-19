@@ -1,0 +1,290 @@
+{% extends "base.html" %}
+
+{% block title %}Error Handler Test{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8">
+            <h1>Error Handler Test Page</h1>
+            <p class="text-muted">This page allows you to test the error handling system.</p>
+            
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5>JavaScript Error Tests</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <button class="btn btn-danger mb-2" onclick="testReferenceError()">
+                                Test Reference Error
+                            </button>
+                            <br>
+                            <button class="btn btn-danger mb-2" onclick="testTypeError()">
+                                Test Type Error
+                            </button>
+                            <br>
+                            <button class="btn btn-danger mb-2" onclick="testPromiseRejection()">
+                                Test Promise Rejection
+                            </button>
+                        </div>
+                        <div class="col-md-6">
+                            <button class="btn btn-warning mb-2" onclick="testResourceError()">
+                                Test Resource Error
+                            </button>
+                            <br>
+                            <button class="btn btn-info mb-2" onclick="testCustomError()">
+                                Test Custom Error
+                            </button>
+                            <br>
+                            <button class="btn btn-secondary mb-2" onclick="clearErrors()">
+                                Clear Errors
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5>API Error Tests</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <button class="btn btn-danger mb-2" onclick="test404Error()">
+                                Test 404 Error
+                            </button>
+                            <br>
+                            <button class="btn btn-danger mb-2" onclick="test500Error()">
+                                Test 500 Error
+                            </button>
+                            <br>
+                            <button class="btn btn-warning mb-2" onclick="test401Error()">
+                                Test 401 Error
+                            </button>
+                        </div>
+                        <div class="col-md-6">
+                            <button class="btn btn-warning mb-2" onclick="testNetworkError()">
+                                Test Network Error
+                            </button>
+                            <br>
+                            <button class="btn btn-info mb-2" onclick="testTimeoutError()">
+                                Test Timeout Error
+                            </button>
+                            <br>
+                            <button class="btn btn-success mb-2" onclick="testSuccessfulRequest()">
+                                Test Successful Request
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5>Network Simulation</h5>
+                </div>
+                <div class="card-body">
+                    <button class="btn btn-warning mb-2" onclick="simulateOffline()">
+                        Simulate Offline
+                    </button>
+                    <button class="btn btn-success mb-2" onclick="simulateOnline()">
+                        Simulate Online
+                    </button>
+                    <button class="btn btn-info mb-2" onclick="showErrorStats()">
+                        Show Error Stats
+                    </button>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header">
+                    <h5>Test Form (Network Required)</h5>
+                </div>
+                <div class="card-body">
+                    <form data-requires-network>
+                        <div class="mb-3">
+                            <label for="testInput" class="form-label">Test Input</label>
+                            <input type="text" class="form-control" id="testInput" name="testInput">
+                        </div>
+                        <button type="submit" class="btn btn-primary" data-requires-network>
+                            Submit (Requires Network)
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5>Error Statistics</h5>
+                </div>
+                <div class="card-body">
+                    <div id="error-stats-display">
+                        <p class="text-muted">Click "Show Error Stats" to view statistics</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Test functions for error handling
+function testReferenceError() {
+    // This will cause a ReferenceError
+    nonExistentFunction();
+}
+
+function testTypeError() {
+    // This will cause a TypeError
+    const obj = null;
+    obj.someProperty.anotherProperty = 'test';
+}
+
+function testPromiseRejection() {
+    // This will cause an unhandled promise rejection
+    new Promise((resolve, reject) => {
+        reject(new Error('Test promise rejection'));
+    });
+}
+
+function testResourceError() {
+    // This will cause a resource loading error
+    const script = document.createElement('script');
+    script.src = '/static/js/non-existent-file.js';
+    document.head.appendChild(script);
+}
+
+function testCustomError() {
+    if (window.errorHandler) {
+        window.errorHandler.showNotification('info', 'Custom Test', 'This is a custom error notification test');
+    }
+}
+
+function clearErrors() {
+    if (window.errorHandler) {
+        window.errorHandler.clearErrors();
+        
+        // Clear notification container
+        const container = document.getElementById('error-notifications');
+        if (container) {
+            container.innerHTML = '';
+        }
+        
+        alert('Errors cleared');
+    }
+}
+
+async function test404Error() {
+    try {
+        await fetch('/api/v1/non-existent-endpoint');
+    } catch (error) {
+        console.log('404 error test completed');
+    }
+}
+
+async function test500Error() {
+    try {
+        // This endpoint should return a 500 error for testing
+        await fetch('/api/v1/test/error/500');
+    } catch (error) {
+        console.log('500 error test completed');
+    }
+}
+
+async function test401Error() {
+    try {
+        // This should return a 401 error
+        await fetch('/api/v1/auth/me', {
+            headers: {
+                'Authorization': 'Bearer invalid-token'
+            }
+        });
+    } catch (error) {
+        console.log('401 error test completed');
+    }
+}
+
+async function testNetworkError() {
+    try {
+        // This should cause a network error
+        await fetch('http://non-existent-domain.invalid/api/test');
+    } catch (error) {
+        console.log('Network error test completed');
+    }
+}
+
+async function testTimeoutError() {
+    try {
+        const controller = new AbortController();
+        setTimeout(() => controller.abort(), 100); // Abort after 100ms
+        
+        await fetch('/api/v1/health', {
+            signal: controller.signal
+        });
+    } catch (error) {
+        console.log('Timeout error test completed');
+    }
+}
+
+async function testSuccessfulRequest() {
+    try {
+        const response = await fetch('/api/v1/health');
+        const data = await response.json();
+        
+        if (window.errorHandler) {
+            window.errorHandler.showNotification('success', 'Success', 'Request completed successfully');
+        }
+        
+        console.log('Successful request test completed:', data);
+    } catch (error) {
+        console.log('Successful request test failed:', error);
+    }
+}
+
+function simulateOffline() {
+    // Dispatch offline event
+    window.dispatchEvent(new Event('offline'));
+    console.log('Simulated offline mode');
+}
+
+function simulateOnline() {
+    // Dispatch online event
+    window.dispatchEvent(new Event('online'));
+    console.log('Simulated online mode');
+}
+
+function showErrorStats() {
+    if (window.errorHandler) {
+        const stats = window.errorHandler.getErrorStats();
+        const display = document.getElementById('error-stats-display');
+        
+        display.innerHTML = `
+            <h6>Current Statistics</h6>
+            <ul>
+                <li><strong>Total Errors:</strong> ${stats.totalErrors}</li>
+                <li><strong>Online Status:</strong> ${stats.isOnline ? 'Online' : 'Offline'}</li>
+                <li><strong>Session ID:</strong> ${stats.sessionId}</li>
+            </ul>
+            <h6>Error Counts</h6>
+            <ul>
+                ${Object.entries(stats.errorCounts).map(([key, count]) => 
+                    `<li><strong>${key}:</strong> ${count}</li>`
+                ).join('') || '<li>No errors recorded</li>'}
+            </ul>
+        `;
+    } else {
+        document.getElementById('error-stats-display').innerHTML = 
+            '<p class="text-danger">Error handler not available</p>';
+    }
+}
+
+// Show initial stats on page load
+document.addEventListener('DOMContentLoaded', () => {
+    setTimeout(showErrorStats, 1000); // Wait for error handler to initialize
+});
+</script>
+{% endblock %}

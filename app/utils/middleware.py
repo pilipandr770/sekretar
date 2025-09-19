@@ -239,6 +239,15 @@ def setup_error_handling_middleware(app):
 def init_middleware(app):
     """Initialize all middleware."""
     setup_language_middleware(app)
+    
+    # Initialize performance monitoring middleware
+    try:
+        from app.utils.performance_middleware import init_performance_monitoring
+        init_performance_monitoring(app)
+        logger.info("✅ Performance monitoring middleware initialized")
+    except Exception as e:
+        logger.error(f"❌ Failed to initialize performance monitoring middleware: {e}")
+        # Continue without performance monitoring
     setup_tenant_middleware(app)
     setup_role_validation_middleware(app)
     setup_request_logging_middleware(app)

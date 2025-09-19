@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Loading States Test</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    
+    <!-- Custom CSS -->
+    <link href="app/static/css/loading-states.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container mt-5">
+        <h1>Loading States and User Feedback Test</h1>
+        
+        <div class="row mt-4">
+            <div class="col-md-6">
+                <h3>Authentication Loading</h3>
+                <button id="test-login" class="btn btn-primary">Test Login Loading</button>
+                <button id="test-logout" class="btn btn-secondary ms-2">Test Logout Loading</button>
+                
+                <h3 class="mt-4">Language Switching</h3>
+                <button id="test-language" class="btn btn-success">Test Language Switch</button>
+                
+                <h3 class="mt-4">WebSocket Connection</h3>
+                <button id="test-ws-connecting" class="btn btn-info">Test Connecting</button>
+                <button id="test-ws-connected" class="btn btn-success ms-2">Test Connected</button>
+                <button id="test-ws-disconnected" class="btn btn-warning ms-2">Test Disconnected</button>
+                <button id="test-ws-failed" class="btn btn-danger ms-2">Test Failed</button>
+                
+                <h3 class="mt-4">Toast Notifications</h3>
+                <button id="test-success-toast" class="btn btn-success">Success Toast</button>
+                <button id="test-error-toast" class="btn btn-danger ms-2">Error Toast</button>
+                <button id="test-warning-toast" class="btn btn-warning ms-2">Warning Toast</button>
+                <button id="test-info-toast" class="btn btn-info ms-2">Info Toast</button>
+            </div>
+            
+            <div class="col-md-6">
+                <h3>Form Loading Test</h3>
+                <form id="test-form">
+                    <div class="mb-3">
+                        <label for="email" class="form-label">Email</label>
+                        <input type="email" class="form-control" id="email" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="password" class="form-label">Password</label>
+                        <input type="password" class="form-control" id="password" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Test Form Loading</button>
+                </form>
+                
+                <h3 class="mt-4">Element Loading Test</h3>
+                <div id="test-element" class="card p-3">
+                    <h5>Test Element</h5>
+                    <p>This element can show loading state</p>
+                    <button id="test-element-loading" class="btn btn-outline-primary">Test Element Loading</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Loading Manager -->
+    <script src="app/static/js/loading-manager.js"></script>
+    
+    <script>
+        // Test script
+        document.addEventListener('DOMContentLoaded', () => {
+            const loadingManager = new LoadingManager();
+            
+            // Authentication tests
+            document.getElementById('test-login').addEventListener('click', () => {
+                document.dispatchEvent(new CustomEvent('auth:login_start'));
+                setTimeout(() => {
+                    document.dispatchEvent(new CustomEvent('auth:login_success', {
+                        detail: { user: { email: 'test@example.com' } }
+                    }));
+                }, 2000);
+            });
+            
+            document.getElementById('test-logout').addEventListener('click', () => {
+                document.dispatchEvent(new CustomEvent('auth:logout_start'));
+                setTimeout(() => {
+                    document.dispatchEvent(new CustomEvent('auth:logout_complete'));
+                }, 1500);
+            });
+            
+            // Language switching test
+            document.getElementById('test-language').addEventListener('click', () => {
+                document.dispatchEvent(new CustomEvent('language:switch_start', {
+                    detail: { language: 'de', languageName: 'Deutsch' }
+                }));
+                setTimeout(() => {
+                    document.dispatchEvent(new CustomEvent('language:switch_success', {
+                        detail: { language: 'de', languageName: 'Deutsch' }
+                    }));
+                }, 1500);
+            });
+            
+            // WebSocket tests
+            document.getElementById('test-ws-connecting').addEventListener('click', () => {
+                document.dispatchEvent(new CustomEvent('websocket:connecting'));
+            });
+            
+            document.getElementById('test-ws-connected').addEventListener('click', () => {
+                document.dispatchEvent(new CustomEvent('websocket:connected'));
+            });
+            
+            document.getElementById('test-ws-disconnected').addEventListener('click', () => {
+                document.dispatchEvent(new CustomEvent('websocket:disconnected'));
+            });
+            
+            document.getElementById('test-ws-failed').addEventListener('click', () => {
+                document.dispatchEvent(new CustomEvent('websocket:max_reconnect_attempts'));
+            });
+            
+            // Toast tests
+            document.getElementById('test-success-toast').addEventListener('click', () => {
+                loadingManager.showSuccessToast('This is a success message!');
+            });
+            
+            document.getElementById('test-error-toast').addEventListener('click', () => {
+                loadingManager.showErrorToast('This is an error message!');
+            });
+            
+            document.getElementById('test-warning-toast').addEventListener('click', () => {
+                loadingManager.showWarningToast('This is a warning message!');
+            });
+            
+            document.getElementById('test-info-toast').addEventListener('click', () => {
+                loadingManager.showInfoToast('This is an info message!');
+            });
+            
+            // Form loading test
+            document.getElementById('test-form').addEventListener('submit', (e) => {
+                e.preventDefault();
+                const form = e.target;
+                loadingManager.showFormLoading(form, 'Processing form...');
+                setTimeout(() => {
+                    loadingManager.hideFormLoading(form);
+                    loadingManager.showSuccessToast('Form processed successfully!');
+                }, 3000);
+            });
+            
+            // Element loading test
+            document.getElementById('test-element-loading').addEventListener('click', () => {
+                const element = document.getElementById('test-element');
+                loadingManager.showElementLoading(element, 'Loading content...');
+                setTimeout(() => {
+                    loadingManager.hideElementLoading(element);
+                }, 2000);
+            });
+        });
+    </script>
+</body>
+</html>

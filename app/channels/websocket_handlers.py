@@ -3,7 +3,8 @@ from flask import request, g
 from flask_socketio import emit, join_room, leave_room, disconnect
 from flask_jwt_extended import decode_token, get_jwt_identity
 from sqlalchemy.orm import joinedload
-from app import socketio, db
+from app import db
+from app.utils.websocket_manager import get_socketio, emit_with_fallback
 from app.models import InboxMessage, Thread, Channel, User, Tenant
 from app.utils.tenant_middleware import TenantAwareQuery
 # from app.services.orchestration_service import OrchestrationService
@@ -12,6 +13,9 @@ import json
 from datetime import datetime
 
 logger = structlog.get_logger()
+
+# Get socketio instance - will be None if WebSocket unavailable
+socketio = get_socketio()
 
 
 class WebSocketAuth:
@@ -44,7 +48,6 @@ class WebSocketAuth:
             return None, None
 
 
-@socketio.on('connect')
 def handle_connect(auth):
     """Handle WebSocket connection."""
     try:
@@ -91,7 +94,6 @@ def handle_connect(auth):
         return False
 
 
-@socketio.on('disconnect')
 def handle_disconnect():
     """Handle WebSocket disconnection."""
     try:
@@ -112,7 +114,6 @@ def handle_disconnect():
         logger.error("WebSocket disconnection error", error=str(e))
 
 
-@socketio.on('join_thread')
 def handle_join_thread(data):
     """Join a specific thread room for real-time updates."""
     try:
@@ -160,7 +161,6 @@ def handle_join_thread(data):
         emit('error', {'message': 'Failed to join thread'})
 
 
-@socketio.on('leave_thread')
 def handle_leave_thread(data):
     """Leave a specific thread room."""
     try:
@@ -198,7 +198,6 @@ def handle_leave_thread(data):
         emit('error', {'message': 'Failed to leave thread'})
 
 
-@socketio.on('send_message')
 def handle_send_message(data):
     """Handle real-time message sending."""
     try:
@@ -331,7 +330,6 @@ def handle_send_message(data):
         emit('error', {'message': 'Failed to send message'})
 
 
-@socketio.on('typing_start')
 def handle_typing_start(data):
     """Handle typing indicator start."""
     try:
@@ -363,7 +361,6 @@ def handle_typing_start(data):
         logger.error("Failed to handle typing start", error=str(e))
 
 
-@socketio.on('typing_stop')
 def handle_typing_stop(data):
     """Handle typing indicator stop."""
     try:
@@ -395,7 +392,6 @@ def handle_typing_stop(data):
         logger.error("Failed to handle typing stop", error=str(e))
 
 
-@socketio.on('mark_read')
 def handle_mark_read(data):
     """Handle marking messages as read."""
     try:
@@ -445,7 +441,6 @@ def handle_mark_read(data):
         emit('error', {'message': 'Failed to mark messages as read'})
 
 
-@socketio.on('get_thread_messages')
 def handle_get_thread_messages(data):
     """Get messages for a thread via WebSocket."""
     try:

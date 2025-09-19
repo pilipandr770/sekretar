@@ -1,0 +1,70 @@
+{
+  "timestamp": "2025-09-19T10:12:59.869888",
+  "overall_ready": true,
+  "checks": {
+    "render_requirements": {
+      "success": true,
+      "issues": [],
+      "warnings": []
+    },
+    "environment_variables": {
+      "success": true,
+      "issues": [],
+      "warnings": [
+        "Found placeholder value pattern 'your-' in .env",
+        "Found placeholder value pattern 'dev-secret' in .env",
+        "Ensure FLASK_ENV=production is set in production environment",
+        "Ensure FLASK_DEBUG=false is set in production environment",
+        "Ensure FORCE_HTTPS=true is set in production environment"
+      ]
+    },
+    "database_readiness": {
+      "success": true,
+      "issues": [],
+      "warnings": []
+    },
+    "security_settings": {
+      "success": true,
+      "issues": [],
+      "warnings": [
+        "Sensitive file found: .env - ensure it's in .gitignore"
+      ]
+    },
+    "performance_readiness": {
+      "success": true,
+      "issues": [],
+      "warnings": [
+        "No static file handler found - may impact performance"
+      ]
+    },
+    "monitoring_readiness": {
+      "success": true,
+      "issues": [],
+      "warnings": [
+        "No error handlers found"
+      ]
+    }
+  },
+  "summary": {
+    "total_checks": 6,
+    "passed_checks": 6,
+    "failed_checks": 0,
+    "total_issues": 0,
+    "total_warnings": 8
+  },
+  "all_issues": [],
+  "all_warnings": [
+    "Found placeholder value pattern 'your-' in .env",
+    "Found placeholder value pattern 'dev-secret' in .env",
+    "Ensure FLASK_ENV=production is set in production environment",
+    "Ensure FLASK_DEBUG=false is set in production environment",
+    "Ensure FORCE_HTTPS=true is set in production environment",
+    "Sensitive file found: .env - ensure it's in .gitignore",
+    "No static file handler found - may impact performance",
+    "No error handlers found"
+  ],
+  "recommendations": [
+    "Review and address warnings for optimal deployment",
+    "Project appears ready for deployment to Render"
+  ]
+}

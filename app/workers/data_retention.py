@@ -5,6 +5,7 @@ from typing import Dict, Any, List
 from celery import current_task
 from app import db
 from app.workers.base import MonitoredWorker, create_task_decorator
+from app.utils.application_context_manager import get_context_manager, with_app_context, safe_context
 
 logger = logging.getLogger(__name__)
 

@@ -4,6 +4,7 @@ from typing import Dict, Any, List, Optional
 from datetime import datetime, timedelta, timezone
 from app.workers.base import get_task_status, get_active_tasks, get_worker_stats
 from app.workers.dead_letter import get_dead_letter_stats
+from app.utils.application_context_manager import get_context_manager, with_app_context, safe_context
 
 logger = logging.getLogger(__name__)
 
@@ -245,8 +246,9 @@ def setup_periodic_monitoring():
 
 
 # Health check function for API endpoints
+@safe_context
 def get_queue_health() -> Dict[str, Any]:
-    """Get queue health for API health checks."""
+    """Get queue health for API health checks with proper Flask context."""
     try:
         monitor = TaskQueueMonitor()
         stats = monitor.get_queue_stats()

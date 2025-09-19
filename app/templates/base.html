@@ -11,10 +11,12 @@
     <!-- Custom CSS -->
     <link href="{{ url_for('static', filename='css/app.css') }}" rel="stylesheet">
     <link href="{{ url_for('static', filename='css/i18n.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/error-handler.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/loading-states.css') }}" rel="stylesheet">
     
     {% block head %}{% endblock %}
 </head>
-<body>
+<body data-page="{% block page_name %}default{% endblock %}">
     <!-- Navigation -->
     <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
         <div class="container">
@@ -49,10 +51,11 @@
                         </a>
                     </li>
                     <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" 
+                           id="moreDropdown" aria-expanded="false">
                             <i class="fas fa-cog"></i> {{ _('More') }}
                         </a>
-                        <ul class="dropdown-menu">
+                        <ul class="dropdown-menu" aria-labelledby="moreDropdown">
                             <li><a class="dropdown-item" href="{{ url_for('main.secretary_setup') }}">
                                 <i class="fas fa-robot"></i> {{ _('AI Secretary') }}
                             </a></li>
@@ -75,10 +78,11 @@
                 
                 <!-- User Menu -->
                 <div class="dropdown" id="user-menu">
-                    <button class="btn btn-outline-light btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown" id="userMenuButton">
+                    <button class="btn btn-outline-light btn-sm dropdown-toggle" type="button" 
+                            data-bs-toggle="dropdown" id="userMenuButton" aria-expanded="false">
                         <i class="fas fa-user"></i> <span id="userName">{{ _('Account') }}</span>
                     </button>
-                    <ul class="dropdown-menu">
+                    <ul class="dropdown-menu" aria-labelledby="userMenuButton">
                         <li id="auth-links">
                             <a class="dropdown-item" href="{{ url_for('main.login') }}">
                                 <i class="fas fa-sign-in-alt"></i> {{ _('Login') }}
@@ -101,7 +105,7 @@
                         </li>
                         <li id="user-links-divider" class="d-none"><hr class="dropdown-divider"></li>
                         <li id="user-links-logout" class="d-none">
-                            <a class="dropdown-item" href="#" onclick="logout()">
+                            <a class="dropdown-item" href="#" data-action="logout">
                                 <i class="fas fa-sign-out-alt"></i> {{ _('Logout') }}
                             </a>
                         </li>
@@ -148,81 +152,134 @@
         </div>
     </footer>
     
-    <!-- Bootstrap JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    
-    <!-- Socket.IO -->
-    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
-    
-    <!-- Custom JS -->
-    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/websocket-client.js') }}"></script>
-    
-    <!-- i18n System -->
-    <script src="{{ url_for('static', filename='js/i18n.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/language-switcher.js') }}"></script>
-    
-    <!-- i18n Initialization -->
+    <!-- Critical CSS and JS (loaded synchronously) -->
     <script>
-    // Initialize i18n system
-    document.addEventListener('DOMContentLoaded', async () => {
-        try {
-            // Get i18n context from server
-            const response = await fetch('/api/v1/i18n/context');
-            const contextData = await response.json();
-            
-            if (contextData.success) {
-                const context = contextData.data;
-                
-                // Initialize i18n client
-                window.i18n = new I18nClient(
-                    context.current_language,
-                    context.translations
-                );
-                
-                // Set fallback translations
-                window.i18nFallbackTranslations = context.fallback_translations;
-                window.i18nAvailableLocales = Object.keys(context.available_languages);
-                
-                // Initialize language switcher
-                window.languageSwitcher = new LanguageSwitcher({
-                    containerId: 'language-switcher',
-                    style: 'dropdown',
-                    position: 'navbar',
-                    showFlags: true,
-                    showNames: true
-                });
-                
-                // Update page elements with translations
-                updateTranslatableElements();
-                
-                console.log('i18n system initialized successfully');
-            } else {
-                console.error('Failed to load i18n context:', contextData.message);
-                // Fallback initialization
-                initializeFallbackI18n();
+        // Inline critical performance monitoring
+        window.performanceMetrics = {
+            startTime: performance.now(),
+            loadTimes: {},
+            markTime: function(name) {
+                this.loadTimes[name] = performance.now() - this.startTime;
             }
-        } catch (error) {
-            console.error('Error initializing i18n system:', error);
-            // Fallback initialization
-            initializeFallbackI18n();
-        }
-    });
+        };
+        window.performanceMetrics.markTime('html-parsed');
+    </script>
     
-    // Fallback initialization when API is not available
-    function initializeFallbackI18n() {
-        const currentLang = '{{ get_current_language() }}';
-        window.i18n = new I18nClient(currentLang, {});
-        
-        // Basic language switcher
-        window.languageSwitcher = new LanguageSwitcher({
-            containerId: 'language-switcher',
-            style: 'dropdown',
-            position: 'navbar',
-            showFlags: true,
-            showNames: true
+    <!-- Browser Compatibility Check (load first) -->
+    <script src="{{ url_for('static', filename='js/browser-compatibility-fixes.js') }}"></script>
+    
+    <!-- Module Loader (load early) -->
+    <script src="{{ url_for('static', filename='js/module-loader.js') }}"></script>
+    
+    <!-- Bootstrap JS (async) -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" async></script>
+    
+    <!-- Socket.IO (conditional loading) -->
+    <script>
+        // Only load Socket.IO if WebSocket is supported
+        if (window.browserCompatibility && window.browserCompatibility.isSupported('webSocket')) {
+            const socketScript = document.createElement('script');
+            socketScript.src = 'https://cdn.socket.io/4.7.2/socket.io.min.js';
+            socketScript.async = true;
+            document.head.appendChild(socketScript);
+        } else {
+            console.log('WebSocket not supported, skipping Socket.IO');
+        }
+    </script>
+    
+    <!-- Core Application Initialization -->
+    <script>
+        document.addEventListener('DOMContentLoaded', async function() {
+            window.performanceMetrics.markTime('dom-ready');
+            
+            try {
+                // Load critical modules first
+                await window.moduleLoader.loadModule('error-handler', { priority: 'high' });
+                await window.moduleLoader.loadModule('loading-manager', { priority: 'high' });
+                await window.moduleLoader.loadModule('ui-state-manager', { priority: 'high' });
+                
+                window.performanceMetrics.markTime('critical-modules-loaded');
+                
+                // Load authentication and navigation
+                await Promise.all([
+                    window.moduleLoader.loadModule('auth-manager'),
+                    window.moduleLoader.loadModule('navigation-controller'),
+                    window.moduleLoader.loadModule('dropdown-manager')
+                ]);
+                
+                window.performanceMetrics.markTime('ui-modules-loaded');
+                
+                // Load i18n system
+                await Promise.all([
+                    window.moduleLoader.loadModule('language-switcher'),
+                    window.moduleLoader.loadModule('language-persistence-manager'),
+                    window.moduleLoader.loadModule('i18n')
+                ]);
+                
+                // Load enhanced language switcher if basic one is loaded
+                if (window.moduleLoader.isModuleLoaded('language-switcher')) {
+                    await window.moduleLoader.loadModule('enhanced-language-switcher');
+                }
+                
+                window.performanceMetrics.markTime('i18n-loaded');
+                
+                // Load main application
+                await window.moduleLoader.loadModule('app');
+                
+                window.performanceMetrics.markTime('app-loaded');
+                
+                // Load WebSocket client if supported and user is authenticated
+                const token = localStorage.getItem('access_token');
+                if (token && window.browserCompatibility.isSupported('webSocket')) {
+                    await window.moduleLoader.loadModule('websocket-client');
+                    window.performanceMetrics.markTime('websocket-loaded');
+                }
+                
+                // Load page-specific features based on current page
+                const pageName = document.body.dataset.page;
+                if (pageName) {
+                    await window.moduleLoader.loadPageFeatures(pageName);
+                    window.performanceMetrics.markTime('page-features-loaded');
+                }
+                
+                // Emit application ready event
+                document.dispatchEvent(new CustomEvent('app:ready', {
+                    detail: { loadTimes: window.performanceMetrics.loadTimes }
+                }));
+                
+                console.log('Application loaded successfully:', window.performanceMetrics.loadTimes);
+                
+            } catch (error) {
+                console.error('Application initialization failed:', error);
+                
+                // Show error to user
+                const errorDiv = document.createElement('div');
+                errorDiv.className = 'alert alert-danger alert-dismissible fade show position-fixed';
+                errorDiv.style.cssText = 'top: 20px; right: 20px; z-index: 9999; max-width: 400px;';
+                errorDiv.innerHTML = `
+                    <strong>Application Error:</strong> Failed to load application modules. 
+                    Please refresh the page or check your internet connection.
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                `;
+                document.body.appendChild(errorDiv);
+            }
         });
-    }
+        
+        // Preload modules for better performance on subsequent pages
+        window.addEventListener('load', function() {
+            window.performanceMetrics.markTime('window-loaded');
+            
+            // Preload common modules that might be needed later
+            if (window.moduleLoader) {
+                window.moduleLoader.preloadModules([
+                    'websocket-status-dashboard',
+                    'api-tester'
+                ]);
+            }
+        });
+    </script>
+    
+    <!-- i18n will be initialized by main app.js -->
     
     // Update all translatable elements
     function updateTranslatableElements() {
@@ -283,71 +340,7 @@
     }
     </script>
     
-    <!-- Authentication JS -->
-    <script>
-    // Check authentication status on page load
-    document.addEventListener('DOMContentLoaded', () => {
-        checkAuthStatus();
-    });
-    
-    async function checkAuthStatus() {
-        const token = localStorage.getItem('access_token');
-        
-        if (token) {
-            try {
-                const response = await fetch('/api/v1/auth/me', {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
-                
-                if (response.ok) {
-                    const data = await response.json();
-                    const user = data.data?.user;
-                    
-                    if (user) {
-                        showAuthenticatedUI(user);
-                        return;
-                    }
-                }
-            } catch (error) {
-                console.error('Auth check failed:', error);
-            }
-        }
-        
-        showUnauthenticatedUI();
-    }
-    
-    function showAuthenticatedUI(user) {
-        // Update user name
-        document.getElementById('userName').textContent = user.name || user.email;
-        
-        // Show authenticated menu items
-        document.getElementById('auth-links').classList.add('d-none');
-        document.getElementById('auth-links-register').classList.add('d-none');
-        document.getElementById('user-links').classList.remove('d-none');
-        document.getElementById('user-links-divider').classList.remove('d-none');
-        document.getElementById('user-links-logout').classList.remove('d-none');
-        
-        // Show user management for owners/managers
-        if (user.role === 'owner' || user.role === 'manager') {
-            document.getElementById('user-links-users').classList.remove('d-none');
-        }
-    }
-    
-    function showUnauthenticatedUI() {
-        // Show login/register links
-        document.getElementById('auth-links').classList.remove('d-none');
-        document.getElementById('auth-links-register').classList.remove('d-none');
-        document.getElementById('user-links').classList.add('d-none');
-        document.getElementById('user-links-users').classList.add('d-none');
-        document.getElementById('user-links-divider').classList.add('d-none');
-        document.getElementById('user-links-logout').classList.add('d-none');
-        
-        // Reset user name
-        document.getElementById('userName').textContent = '{{ _("Account") }}';
-        
-        // Hide WebSocket status
-        hideWebSocketStatus();
-    }
+    <!-- Authentication will be handled by main app.js -->
     
     // WebSocket status indicator
     function showWebSocketStatus(status, message) {
@@ -356,11 +349,18 @@
             statusElement = document.createElement('div');
             statusElement.id = 'ws-status';
             statusElement.className = 'ws-status';
+            statusElement.innerHTML = `
+                <div class="ws-status-content">
+                    <span class="ws-status-icon"></span>
+                    <span class="ws-status-message"></span>
+                </div>
+            `;
             document.body.appendChild(statusElement);
         }
         
+        const messageElement = statusElement.querySelector('.ws-status-message');
         statusElement.className = `ws-status ${status}`;
-        statusElement.textContent = message;
+        messageElement.textContent = message;
         statusElement.style.display = 'block';
         
         // Auto-hide after 3 seconds for connected status
@@ -393,27 +393,60 @@
         showWebSocketStatus('disconnected', '{{ _("Connection failed - please refresh the page") }}');
     });
     
-    async function logout() {
-        try {
-            const token = localStorage.getItem('access_token');
+    document.addEventListener('websocket:initialization_failed', (event) => {
+        console.error('WebSocket initialization failed:', event.detail);
+        showWebSocketStatus('disconnected', '{{ _("WebSocket initialization failed") }}');
+    });
+    
+    document.addEventListener('websocket:connection_error', (event) => {
+        console.error('WebSocket connection error details:', event.detail);
+        const errorType = event.detail.type || 'unknown';
+        let message = '{{ _("Connection error") }}';
+        
+        if (errorType === 'TransportError') {
+            message = '{{ _("Transport error - trying different connection method") }}';
+        } else if (errorType === 'TimeoutError') {
+            message = '{{ _("Connection timeout - retrying") }}';
+        } else if (event.detail.error && event.detail.error.includes('400')) {
+            message = '{{ _("Server configuration error - please contact support") }}';
+        }
+        
+        showWebSocketStatus('disconnected', message);
+    });
+    
+    // Handle status changes from WebSocket client
+    document.addEventListener('websocket:status_change', (event) => {
+        const { status, message } = event.detail;
+        showWebSocketStatus(status, message);
+    });
+    
+    // Add manual reconnect button functionality
+    function addManualReconnectButton() {
+        const statusElement = document.getElementById('ws-status');
+        if (statusElement && statusElement.classList.contains('failed')) {
+            const reconnectBtn = document.createElement('button');
+            reconnectBtn.className = 'btn btn-sm btn-outline-primary ms-2';
+            reconnectBtn.textContent = '{{ _("Retry") }}';
+            reconnectBtn.onclick = () => {
+                if (window.wsClient) {
+                    window.wsClient.reconnectManually();
+                    reconnectBtn.remove();
+                }
+            };
             
-            if (token) {
-                await fetch('/api/v1/auth/logout', {
-                    method: 'POST',
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
+            const contentDiv = statusElement.querySelector('.ws-status-content');
+            if (contentDiv && !contentDiv.querySelector('button')) {
+                contentDiv.appendChild(reconnectBtn);
             }
-        } catch (error) {
-            console.error('Logout error:', error);
-        } finally {
-            // Clear tokens
-            localStorage.removeItem('access_token');
-            localStorage.removeItem('refresh_token');
-            
-            // Redirect to login
-            window.location.href = '/login';
         }
     }
+    
+    // Add reconnect button when connection fails
+    document.addEventListener('websocket:max_reconnect_attempts', () => {
+        setTimeout(addManualReconnectButton, 1000);
+    });
+    
+
     </script>
     
     {% block scripts %}{% endblock %}

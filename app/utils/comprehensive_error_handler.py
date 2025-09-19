@@ -117,13 +117,21 @@ class ComprehensiveErrorHandler:
         # 2. Check if this is a service degradation issue
         self._check_and_handle_service_degradation(error, error_context)
         
-        # 3. Create user notification if needed
+        # 3. Try service-specific error handling
+        service_result = self._try_service_error_handling(error, error_context)
+        if service_result:
+            return service_result
+        
+        # 4. Create user notification if needed
         self._create_error_notification(error, error_context)
         
-        # 4. Format user-friendly response
+        # 5. Send real-time error notification
+        self._send_realtime_error_notification(error, error_context)
+        
+        # 6. Format user-friendly response with multilingual support
         response_data, status_code = self._format_error_response(error, error_context)
         
-        # 5. Log the final response
+        # 7. Log the final response
         logger.error(
             "Exception handled comprehensively",
             error_type=type(error).__name__,
@@ -252,9 +260,139 @@ class ComprehensiveErrorHandler:
         
         return 'low'
     
+    def _try_service_error_handling(self, error: Exception, context: Dict[str, Any]) -> Optional[Tuple[Dict[str, Any], int]]:
+        """Try service-specific error handling."""
+        try:
+            # Get service error handlers from app config
+            service_handlers = current_app.config.get('SERVICE_ERROR_HANDLERS', {})
+            
+            # Determine service name from context
+            service_name = context.get('service_name')
+            if not service_name:
+                # Try to infer from error type or context
+                error_type = type(error).__name__.lower()
+                if 'database' in error_type or 'sql' in error_type:
+                    service_name = 'database'
+                elif 'auth' in error_type or 'jwt' in error_type:
+                    service_name = 'authentication'
+                elif 'redis' in error_type or 'cache' in error_type:
+                    service_name = 'cache'
+            
+            if service_name and service_name in service_handlers:
+                service_handler = service_handlers[service_name]
+                
+                # Handle the error with service-specific handler
+                result = service_handler.handle_error(error, context)
+                
+                if isinstance(result, dict):
+                    # Convert service handler result to HTTP response
+                    if result.get('error'):
+                        status_code = 503 if result.get('service_unavailable') else 500
+                        response_data = {
+                            'error': {
+                                'code': 'SERVICE_ERROR',
+                                'message': result.get('user_message', result.get('message', str(error))),
+                                'request_id': context.get('request_id'),
+                                'service_affected': service_name,
+                                'fallback_active': result.get('fallback_active', False)
+                            }
+                        }
+                        
+                        if result.get('retry_after'):
+                            response_data['error']['retry_after'] = result['retry_after']
+                        
+                        return response_data, status_code
+                    else:
+                        # Service handled the error gracefully
+                        return {
+                            'success': True,
+                            'message': result.get('message', 'Request processed with fallback'),
+                            'fallback_active': result.get('fallback_active', False)
+                        }, 200
+            
+        except Exception as e:
+            logger.warning(f"Service error handling failed: {e}")
+        
+        return None
+    
+    def _send_realtime_error_notification(self, error: Exception, context: Dict[str, Any]):
+        """Send real-time error notification."""
+        try:
+            # Get error notification system
+            error_notification_system = current_app.config.get('ERROR_HANDLERS', {}).get('error_notification_system')
+            
+            if error_notification_system:
+                # Determine severity based on error type
+                severity = self._determine_error_severity(error)
+                
+                # Send notification
+                error_notification_system.notify_error(
+                    error=error,
+                    context=context,
+                    severity=severity
+                )
+                
+        except Exception as e:
+            logger.warning(f"Failed to send real-time error notification: {e}")
+    
+    def _determine_error_severity(self, error: Exception) -> str:
+        """Determine error severity for notifications."""
+        error_type = type(error).__name__.lower()
+        
+        # Critical errors
+        if any(keyword in error_type for keyword in ['database', 'auth', 'security']):
+            return 'critical'
+        
+        # High severity errors
+        if any(keyword in error_type for keyword in ['permission', 'config', 'connection']):
+            return 'high'
+        
+        # Medium severity errors
+        if any(keyword in error_type for keyword in ['validation', 'timeout', 'file']):
+            return 'medium'
+        
+        return 'low'
+    
     def _format_error_response(self, error: Exception, context: Dict[str, Any]) -> Tuple[Dict[str, Any], int]:
-        """Format comprehensive error response."""
-        # Use error formatter if available
+        """Format comprehensive error response with multilingual support."""
+        # Try multilingual error formatting first
+        try:
+            multilingual_messages = current_app.config.get('ERROR_HANDLERS', {}).get('multilingual_messages')
+            
+            if multilingual_messages:
+                multilingual_response = multilingual_messages.create_multilingual_error_response(
+                    error=error,
+                    context=context,
+                    include_technical_details=current_app.config.get('DEBUG', False)
+                )
+                
+                response_data = {
+                    'error': {
+                        'code': multilingual_response.get('error_category', 'UNKNOWN_ERROR').upper(),
+                        'title': multilingual_response.get('title', 'Error'),
+                        'message': multilingual_response['user_message'],
+                        'request_id': context.get('request_id'),
+                        'language': multilingual_response.get('language', 'en')
+                    }
+                }
+                
+                # Add resolution steps if available
+                if multilingual_response.get('resolution_steps'):
+                    response_data['error']['resolution_steps'] = multilingual_response['resolution_steps']
+                
+                # Add technical details if in debug mode
+                if multilingual_response.get('technical_details'):
+                    response_data['error']['technical_details'] = multilingual_response['technical_details']
+                
+                # Determine status code
+                status_code = self._determine_status_code(error)
+                
+                return response_data, status_code
+                
+        except Exception as e:
+            logger.warning(f"Multilingual error formatting failed: {e}")
+        
+        # Fallback to error formatter
         if self._error_formatter:
             try:
                 formatted_error = self._error_formatter.create_user_friendly_response(
@@ -287,7 +425,7 @@ class ComprehensiveErrorHandler:
             except Exception as e:
                 logger.warning(f"Failed to format error response: {e}")
         
-        # Fallback to basic error response
+        # Final fallback to basic error response
         response_data = {
             'error': {
                 'code': 'INTERNAL_ERROR',

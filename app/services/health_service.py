@@ -7,6 +7,7 @@ import redis
 from flask import current_app
 from sqlalchemy import text
 from app import db
+from app.utils.application_context_manager import with_app_context, safe_context
 
 
 @dataclass
@@ -29,8 +30,9 @@ class HealthService:
     """Service for performing health checks on system dependencies."""
     
     @staticmethod
+    @with_app_context
     def check_database() -> HealthCheckResult:
-        """Check database connectivity and response time."""
+        """Check database connectivity and response time with proper Flask context."""
         start_time = time.time()
         
         try:
@@ -73,8 +75,9 @@ class HealthService:
             )
     
     @staticmethod
+    @with_app_context
     def check_redis() -> HealthCheckResult:
-        """Check Redis connectivity and response time."""
+        """Check Redis connectivity and response time with proper Flask context."""
         start_time = time.time()
         
         try:
@@ -147,8 +150,9 @@ class HealthService:
             )
     
     @staticmethod
+    @with_app_context
     def check_rate_limiting() -> HealthCheckResult:
-        """Check rate limiting system health."""
+        """Check rate limiting system health with proper Flask context."""
         start_time = time.time()
         
         try:
@@ -191,8 +195,9 @@ class HealthService:
             )
     
     @staticmethod
+    @with_app_context
     def check_monitoring() -> HealthCheckResult:
-        """Check monitoring system health."""
+        """Check monitoring system health with proper Flask context."""
         start_time = time.time()
         
         try:
@@ -235,8 +240,9 @@ class HealthService:
             )
     
     @staticmethod
+    @with_app_context
     def get_overall_health() -> OverallHealthResult:
-        """Get overall health status by checking all services."""
+        """Get overall health status by checking all services with proper Flask context."""
         from datetime import datetime
         
         checks = {}

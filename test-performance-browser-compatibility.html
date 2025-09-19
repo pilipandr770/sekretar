@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Performance and Browser Compatibility Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-section { margin: 20px 0; padding: 15px; border: 1px solid #ddd; border-radius: 5px; }
+        .success { background-color: #d4edda; color: #155724; }
+        .warning { background-color: #fff3cd; color: #856404; }
+        .error { background-color: #f8d7da; color: #721c24; }
+        .result { margin: 10px 0; padding: 10px; border-radius: 3px; }
+    </style>
+</head>
+<body>
+    <h1>🚀 Performance and Browser Compatibility Test</h1>
+    
+    <div class="test-section">
+        <h2>Browser Detection</h2>
+        <div id="browser-info"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Performance Optimization</h2>
+        <div id="performance-info"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Module Loading</h2>
+        <div id="module-info"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>WebSocket Compatibility</h2>
+        <div id="websocket-info"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Cross-Browser Features</h2>
+        <div id="features-info"></div>
+    </div>
+
+    <!-- Load the JavaScript files -->
+    <script src="app/static/js/browser-compatibility.js"></script>
+    <script src="app/static/js/module-loader.js"></script>
+    <script src="app/static/js/cross-browser-test.js"></script>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Test browser detection
+            if (window.browserCompatibility) {
+                const browserInfo = window.browserCompatibility.getBrowserInfo();
+                document.getElementById('browser-info').innerHTML = `
+                    <div class="result success">
+                        <strong>Browser:</strong> ${browserInfo.name} ${browserInfo.version}<br>
+                        <strong>Supported:</strong> ${browserInfo.isSupported ? 'Yes' : 'No'}<br>
+                        <strong>Modern:</strong> ${window.browserCompatibility.isModernBrowser() ? 'Yes' : 'No'}
+                    </div>
+                `;
+            } else {
+                document.getElementById('browser-info').innerHTML = `
+                    <div class="result error">Browser compatibility checker not loaded</div>
+                `;
+            }
+            
+            // Test performance features
+            const performanceInfo = document.getElementById('performance-info');
+            const performanceTests = [];
+            
+            if ('performance' in window && 'now' in performance) {
+                performanceTests.push('✅ Performance API available');
+            } else {
+                performanceTests.push('❌ Performance API not available');
+            }
+            
+            if ('PerformanceObserver' in window) {
+                performanceTests.push('✅ Performance Observer available');
+            } else {
+                performanceTests.push('⚠️ Performance Observer not available');
+            }
+            
+            performanceInfo.innerHTML = `
+                <div class="result ${performanceTests.some(t => t.includes('❌')) ? 'error' : 'success'}">
+                    ${performanceTests.join('<br>')}
+                </div>
+            `;
+            
+            // Test module loading
+            if (window.moduleLoader) {
+                const loadedModules = window.moduleLoader.getLoadedModules();
+                const loadTimes = window.moduleLoader.getLoadTimes();
+                
+                document.getElementById('module-info').innerHTML = `
+                    <div class="result success">
+                        <strong>Module Loader:</strong> Active<br>
+                        <strong>Loaded Modules:</strong> ${loadedModules.length}<br>
+                        <strong>Browser Support:</strong> ${JSON.stringify(window.moduleLoader.getBrowserSupport(), null, 2).replace(/\n/g, '<br>')}
+                    </div>
+                `;
+            } else {
+                document.getElementById('module-info').innerHTML = `
+                    <div class="result error">Module loader not available</div>
+                `;
+            }
+            
+            // Test WebSocket compatibility
+            const websocketInfo = document.getElementById('websocket-info');
+            const websocketTests = [];
+            
+            if ('WebSocket' in window) {
+                websocketTests.push('✅ WebSocket API available');
+                
+                try {
+                    const testSocket = new WebSocket('ws://test');
+                    testSocket.close();
+                    websocketTests.push('✅ WebSocket creation successful');
+                } catch (error) {
+                    websocketTests.push('⚠️ WebSocket creation failed: ' + error.message);
+                }
+            } else {
+                websocketTests.push('❌ WebSocket API not available');
+            }
+            
+            if (typeof io !== 'undefined') {
+                websocketTests.push('✅ Socket.IO available');
+            } else {
+                websocketTests.push('⚠️ Socket.IO not available');
+            }
+            
+            websocketInfo.innerHTML = `
+                <div class="result ${websocketTests.some(t => t.includes('❌')) ? 'error' : 'success'}">
+                    ${websocketTests.join('<br>')}
+                </div>
+            `;
+            
+            // Test cross-browser features
+            const featuresInfo = document.getElementById('features-info');
+            const featureTests = [];
+            
+            // Test ES6 features
+            try {
+                eval('class Test {}');
+                featureTests.push('✅ ES6 Classes supported');
+            } catch (e) {
+                featureTests.push('❌ ES6 Classes not supported');
+            }
+            
+            if ('Promise' in window) {
+                featureTests.push('✅ Promises supported');
+            } else {
+                featureTests.push('❌ Promises not supported');
+            }
+            
+            if ('fetch' in window) {
+                featureTests.push('✅ Fetch API supported');
+            } else {
+                featureTests.push('❌ Fetch API not supported');
+            }
+            
+            if ('localStorage' in window) {
+                try {
+                    localStorage.setItem('test', 'test');
+                    localStorage.removeItem('test');
+                    featureTests.push('✅ localStorage working');
+                } catch (e) {
+                    featureTests.push('⚠️ localStorage blocked (private mode?)');
+                }
+            } else {
+                featureTests.push('❌ localStorage not supported');
+            }
+            
+            featuresInfo.innerHTML = `
+                <div class="result ${featureTests.some(t => t.includes('❌')) ? 'error' : 'success'}">
+                    ${featureTests.join('<br>')}
+                </div>
+            `;
+            
+            // Run cross-browser test if available
+            if (window.crossBrowserTest) {
+                setTimeout(() => {
+                    console.log('Cross-browser test suite available');
+                }, 1000);
+            }
+        });
+    </script>
+</body>
+</html>

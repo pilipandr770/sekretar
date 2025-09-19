@@ -531,6 +531,38 @@ class ServiceHealthMonitor:
         start_time = time.time()
         
         try:
+            # Ensure we have app context for database operations
+            from flask import has_app_context, current_app
+            
+            if not has_app_context():
+                if hasattr(self, 'app') and self.app:
+                    with self.app.app_context():
+                        return self._perform_postgresql_check(start_time)
+                else:
+                    # Try to get app from current_app if available
+                    try:
+                        app = current_app._get_current_object()
+                        with app.app_context():
+                            return self._perform_postgresql_check(start_time)
+                    except RuntimeError:
+                        # No app context available, proceed without it
+                        return self._perform_postgresql_check(start_time)
+            else:
+                return self._perform_postgresql_check(start_time)
+                
+        except Exception as e:
+            response_time = (time.time() - start_time) * 1000
+            return HealthCheckResult(
+                service_name='postgresql',
+                status=ServiceStatus.UNHEALTHY,
+                response_time_ms=response_time,
+                timestamp=datetime.now(),
+                error_message=str(e)
+            )
+    
+    def _perform_postgresql_check(self, start_time: float) -> HealthCheckResult:
+        """Perform the actual PostgreSQL health check."""
+        try:
             # Get connection string
             database_url = os.environ.get('DATABASE_URL')
             if not database_url:
@@ -581,6 +613,38 @@ class ServiceHealthMonitor:
         """Check SQLite health."""
         start_time = time.time()
         
+        try:
+            # Ensure we have app context for database operations
+            from flask import has_app_context, current_app
+            
+            if not has_app_context():
+                if hasattr(self, 'app') and self.app:
+                    with self.app.app_context():
+                        return self._perform_sqlite_check(start_time)
+                else:
+                    # Try to get app from current_app if available
+                    try:
+                        app = current_app._get_current_object()
+                        with app.app_context():
+                            return self._perform_sqlite_check(start_time)
+                    except RuntimeError:
+                        # No app context available, proceed without it
+                        return self._perform_sqlite_check(start_time)
+            else:
+                return self._perform_sqlite_check(start_time)
+                
+        except Exception as e:
+            response_time = (time.time() - start_time) * 1000
+            return HealthCheckResult(
+                service_name='sqlite',
+                status=ServiceStatus.UNHEALTHY,
+                response_time_ms=response_time,
+                timestamp=datetime.now(),
+                error_message=str(e)
+            )
+    
+    def _perform_sqlite_check(self, start_time: float) -> HealthCheckResult:
+        """Perform the actual SQLite health check."""
         try:
             # Get SQLite database path
             sqlite_url = os.environ.get('SQLITE_DATABASE_URL', 'sqlite:///ai_secretary.db')

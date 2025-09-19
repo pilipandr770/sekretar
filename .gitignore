@@ -155,3 +155,31 @@ instance/config.py
 *.temp
 .tmp/
 .temp/
+# AI Secretary specific patterns
+*.db-shm
+*.db-wal
+ai_secretary.db*
+dev.db*
+test*.db*
+final_reports/
+test_execution_logs/
+test_execution_traces/
+validation_history.json
+validation_report.json
+cleanup.log
+evidence/
+signal-cli/accounts/
+!.env.example
+!.env.example.new
+*.backup_*
+.config_backup/
+*.pid
+celerybeat-schedule*
+.DS_Store*
+# Security files
+*.key
+*.pem
+*.p12
+*.pfx
+secrets.json
+.secrets/
